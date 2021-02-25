@@ -1,0 +1,11 @@
+gene_id	gene_short_name	gene_type
+ENSG00000055044.11	NOP58	protein_coding
+ENSG00000111237.18	VPS29	protein_coding
+ENSG00000113648.16	H2AFY	protein_coding
+ENSG00000128739.22	SNRPN	protein_coding
+ENSG00000138326.20	RPS24	protein_coding
+ENSG00000143727.16	ACP1	protein_coding
+ENSG00000153310.19	FAM49B	protein_coding
+ENSG00000161016.17	RPL8	protein_coding
+ENSG00000182899.17	RPL35A	protein_coding
+ENSG00000198467.15	TPM2	protein_coding

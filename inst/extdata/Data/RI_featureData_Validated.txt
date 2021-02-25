@@ -1,0 +1,3 @@
+tran_id	event_type	gene_id	gene_short_name	gene_type
+chr2:202297379:202297459:+@chr2:202297489:202297513	RI	ENSG00000055044.11	NOP58	protein_coding
+chr8:129862335:129862263:-@chr8:129862257:129862229	RI	ENSG00000153310.19	FAM49B	protein_coding
