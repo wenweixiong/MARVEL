@@ -5,6 +5,8 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 3. Perform differential splicing analysis and identify network of genes which are coordinately spliced.
 4. Integrate both splicing and gene expression data to compare and contrast splicing and gene expression profiles.
 
+![](inst/extdata/Cover_Figure.png)
+
 # Installation
 ```
 # Install required Bioconductor packages
