@@ -28,4 +28,4 @@ library(MARVEL)
 ```
 
 # Tutorial
-A comprehensive tutorial for using MARVEL to extract biological insights can be found here: https://wenweixiong.github.io/MARVEL
+A comprehensive tutorial for using MARVEL to extract biological insights can be found here: https://wenweixiong.github.io/MARVEL.html
