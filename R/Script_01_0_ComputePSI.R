@@ -7,7 +7,7 @@
 #' @param MarvelObject S3 object generated from \code{CreateMarvelObject} function.
 #' @param CoverageThreshold Numeric value. Coverage threshold below which the PSI of the splicing event will be censored, i.e. annotated as missing (NA). Coverage defined as the total number of reads supporting both included and excluded isoforms.
 #' @param EventType Character string. Indicate which splicing event type to calculate the PSI values for. Can take value \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, or \code{"A3SS"} which represents skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS), respectively.
-#' @param CountsPerBaseIntronFile Data frame containing per base coverage of introns. Only applicable when \code{EventType} set to \code{"RI"}. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..
+#' @param IntronCountsFile Data frame containing per base coverage of introns. Only applicable when \code{EventType} set to \code{"RI"}. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..
 #' @param thread Numeric value. Set number of threads.
 #' @export
 #' @return An object of class S3 containing all the original slots as inputted by the user in addition to two new slots. \code{$SpliceFeatureValidated} contains the validated splicing event metadata. \code{$PSI} contains the computed PSI values for the validated splicing events.
@@ -26,12 +26,12 @@
 #' marvel$SpliceFeatureValidated$SE
 #' marvel$PSI$SE[,1:5]
 
-ComputePSI <- function(MarvelObject, CoverageThreshold, EventType, CountsPerBaseIntronFile=NULL, thread=NULL) {
+ComputePSI <- function(MarvelObject, CoverageThreshold, EventType, IntronCountsFile=NULL, thread=NULL) {
 
     # Define arguments
     MarvelObject <- MarvelObject
     CoverageThreshold <- CoverageThreshold
-    CountsPerBaseIntronFile <- CountsPerBaseIntronFile
+    IntronCountsFile <- IntronCountsFile
     thread <- thread
     EventType <- EventType
     
@@ -63,7 +63,7 @@ ComputePSI <- function(MarvelObject, CoverageThreshold, EventType, CountsPerBase
         
         ComputePSI.RI(MarvelObject=MarvelObject,
                         CoverageThreshold=CoverageThreshold,
-                        CountsPerBaseIntronFile=CountsPerBaseIntronFile,
+                        IntronCountsFile=IntronCountsFile,
                         thread=thread
                         )
                       

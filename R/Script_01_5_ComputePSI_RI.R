@@ -8,7 +8,7 @@
 #'
 #' @param MarvelObject S3 object generated from \code{CreateMarvelObject} function.
 #' @param CoverageThreshold Numeric value. Coverage threshold below which the PSI of the splicing event will be censored, i.e. annotated as missing (NA). Coverage defined as the total number of reads supporting both included and excluded isoforms.
-#' @param CountsPerBaseIntronFile Data frame containing per base coverage of introns. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..
+#' @param IntronCountsFile Data frame containing total coverage of introns. First column should be named \code{coord.intron} and indicate intron coordinates in the form of chr:start:end. Subsequent columns should contain the total intron coverage for each sample. These coverage counts can be deteted using external softwares such as Bedtools etc..
 #' @param thread Numeric value. Set number of threads.
 #' @export
 #' @return An object of class S3 containing all the original slots as inputted by the user in addition to two new slots. \code{$SpliceFeatureValidated$RI} contains the validated splicing event metadata. \code{$PSI$RI} contains the computed PSI values for the validated splicing events.
@@ -17,7 +17,7 @@
 #' @import parallel
 #' @importFrom plyr join
 #' @examples
-#' path_to_file <- system.file("extdata/Data", "Counts_per_Base_Validated.txt",
+#' path_to_file <- system.file("extdata/Data", "Counts_by_Region.txt",
 #'                             package="MARVEL")
 #' df.intron.counts <- read.table(path_to_file, sep="\t", header=TRUE,
 #'                                stringsAsFactors=FALSE, na.strings="NA")
@@ -26,7 +26,7 @@
 #'
 #' marvel <- ComputePSI.RI(MarvelObject=marvel,
 #'                         CoverageThreshold=10,
-#'                         CountsPerBaseIntronFile=df.intron.counts,
+#'                         IntronCountsFile=df.intron.counts,
 #'                         thread=1
 #'                         )
 #'
@@ -34,15 +34,24 @@
 #' marvel$PSI$RI[,1:5]
 
 
-ComputePSI.RI <- function(MarvelObject, CoverageThreshold, CountsPerBaseIntronFile, thread) {
+ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCountsFile, thread) {
 
     # Define arguments
     df <- MarvelObject$SpliceFeature$RI
     sj <- MarvelObject$SpliceJunction
     CoverageThreshold <- CoverageThreshold
-    df.intron.counts <- CountsPerBaseIntronFile
+    df.intron.counts <- IntronCountsFile
     thread <- thread
-
+    
+    # Example arguments
+    #library(parallel)
+    #library(plyr)
+    #df <- MarvelObject$SpliceFeature$RI
+    #sj <- MarvelObject$SpliceJunction
+    #CoverageThreshold <- 10
+    #df.intron.counts <- df.intron.counts
+    #thread <- 4
+    
     print(paste("Analysing ", nrow(df), " splicing events", sep=""))
     
     #########################################################################
@@ -558,32 +567,29 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, CountsPerBaseIntronFi
         # Print progress
         #print("Computing included counts... (~2mins for ~10,000 RI events)")
         
-        # Retrieve per-base intron coordinates
-        . <- strsplit(df$coord.intron, split=":", fixed=TRUE)
-        coords <- sapply(., function(x) {
-                            paste(x[1],
-                                 seq(from=as.numeric(x[2]), to=as.numeric(x[3]), by=1),
-                                 sep=":"
-                                 )
-                            })
-            
-        # Annotate with tran_id
-        coords.length <- sapply(coords, length)
-        tran_ids <- rep(df$tran_id, times=coords.length)
-        coords <- unlist(coords)
-        tran_id.coord <- data.frame("tran_id"=tran_ids, "coord.intron"=coords, stringsAsFactors=FALSE)
+        # Normalize counts by intron length
+        . <- strsplit(df.intron.counts$coord.intron, split=":")
+        start <- as.numeric(sapply(., function(x) {x[2]}))
+        end <- as.numeric(sapply(., function(x) {x[3]}))
+        length.intron <- (end - start) + 1
         
-        # Annotate with sample counts
-        tran_id.coord <- join(tran_id.coord, df.intron.counts, by="coord.intron", type="left")
-        tran_id.coord$coord.intron <- NULL
+        row.names(df.intron.counts) <- df.intron.counts$coord.intron
+        df.intron.counts$coord.intron <- NULL
         
-        # Collapse by mean
-        tran_id.coord <- aggregate(. ~ tran_id, data=tran_id.coord, mean)
-        row.names(tran_id.coord) <- tran_id.coord$tran_id
-        tran_id.coord$tran_id <- NULL
-
+        df.intron.counts.normalized <- sweep(x=df.intron.counts, MARGIN=1, FUN='/', STATS=length.intron)
+        
+        df.intron.counts.normalized$coord.intron <- row.names(df.intron.counts.normalized)
+       
+        # Annotate events
+        . <- df[,c("tran_id", "coord.intron")]
+        . <- join(., df.intron.counts.normalized, by="coord.intron", type="left")
+        .$coord.intron <- NULL
+        
+        row.names(.) <- .$tran_id
+        .$tran_id <- NULL
+        
         # Save as new object
-        counts.included <- tran_id.coord
+        counts.included <- .
         
     # Check alignment
     temp.1 <- counts.included

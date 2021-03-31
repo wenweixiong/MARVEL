@@ -5,7 +5,7 @@
 \title{Compute Percent Spliced-in (PSI) Values}
 \usage{
 ComputePSI(MarvelObject, CoverageThreshold, EventType,
-  CountsPerBaseIntronFile = NULL, thread = NULL)
+  IntronCountsFile = NULL, thread = NULL)
 }
 \arguments{
 \item{MarvelObject}{S3 object generated from \code{CreateMarvelObject} function.}
@@ -14,7 +14,7 @@ ComputePSI(MarvelObject, CoverageThreshold, EventType,
 
 \item{EventType}{Character string. Indicate which splicing event type to calculate the PSI values for. Can take value \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, or \code{"A3SS"} which represents skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS), respectively.}
 
-\item{CountsPerBaseIntronFile}{Data frame containing per base coverage of introns. Only applicable when \code{EventType} set to \code{"RI"}. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..}
+\item{IntronCountsFile}{Data frame containing per base coverage of introns. Only applicable when \code{EventType} set to \code{"RI"}. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..}
 
 \item{thread}{Numeric value. Set number of threads.}
 }

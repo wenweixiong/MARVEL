@@ -4,15 +4,14 @@
 \alias{ComputePSI.RI}
 \title{Compute Retained-intron (RI) Percent Spliced-in (PSI) Values}
 \usage{
-ComputePSI.RI(MarvelObject, CoverageThreshold, CountsPerBaseIntronFile,
-  thread)
+ComputePSI.RI(MarvelObject, CoverageThreshold, IntronCountsFile, thread)
 }
 \arguments{
 \item{MarvelObject}{S3 object generated from \code{CreateMarvelObject} function.}
 
 \item{CoverageThreshold}{Numeric value. Coverage threshold below which the PSI of the splicing event will be censored, i.e. annotated as missing (NA). Coverage defined as the total number of reads supporting both included and excluded isoforms.}
 
-\item{CountsPerBaseIntronFile}{Data frame containing per base coverage of introns. First column should be named \code{coord.intron} and indicate the per base intron position in the form of chr:position. Subsequent columns should contain the per base coverage for each sample. These counts can be deteted using external softwares such as Bedtools etc..}
+\item{IntronCountsFile}{Data frame containing total coverage of introns. First column should be named \code{coord.intron} and indicate intron coordinates in the form of chr:start:end. Subsequent columns should contain the total intron coverage for each sample. These coverage counts can be deteted using external softwares such as Bedtools etc..}
 
 \item{thread}{Numeric value. Set number of threads.}
 }
@@ -26,7 +25,7 @@ An object of class S3 containing all the original slots as inputted by the user 
 This function computes the PSI for each RI splicing event. Splicing events provided in \code{SpliceFeature} data frame will first be cross-checked against the splice junctions provided in \code{SpliceJunction} data frame. Only events whose junctions are found in \code{SpliceJunction} are retained. Formula for computing PSI is the normalized intron coverage divided by the total number of reads supporting both included and excluded isoforms. Normalized intron coverage is computed by taking the total coverage over the intronic region adjusted (divided) by the intron length.
 }
 \examples{
-path_to_file <- system.file("extdata/Data", "Counts_per_Base_Validated.txt",
+path_to_file <- system.file("extdata/Data", "Counts_by_Region.txt",
                             package="MARVEL")
 df.intron.counts <- read.table(path_to_file, sep="\\t", header=TRUE,
                                stringsAsFactors=FALSE, na.strings="NA")
@@ -35,7 +34,7 @@ marvel <- readRDS(system.file("extdata/Data", "MarvelObject.rds", package="MARVE
 
 marvel <- ComputePSI.RI(MarvelObject=marvel,
                         CoverageThreshold=10,
-                        CountsPerBaseIntronFile=df.intron.counts,
+                        IntronCountsFile=df.intron.counts,
                         thread=1
                         )
 
