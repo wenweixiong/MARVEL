@@ -1,22 +1,32 @@
 # MARVEL
-MARVEL is an R package developed for alternative splicing analysis at single-cell resolution. The main functionalities are:
-1. Compute PSI values for all five main exon-level splicing events, i.e. skipped-exon (SE),  mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS).
+MARVEL is an R package developed for alternative splicing analysis at single-cell resolution. Compared to existing single-cell alternative splicing analysis softwares such as BRIE and Expedition, MARVEL provides additional functionalities:
+1. Compute PSI values for all five main exon-level splicing events, i.e. skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS).
 2. Stratify PSI distribution for each splicing event into the five main modalities, i.e. included, excluded, bimodal, middle, and multimodal. Further stratify included and excluded into primary and dispersed sub-modalities. 
-3. Perform differential splicing analysis and identify network of genes which are coordinately spliced.
-4. Integrate both splicing and gene expression data to compare and contrast splicing and gene expression profiles.
+3. Modality of bimodal category are further screened for false bimodal modality.
+4. Perform integrated differential splicing and gene expression analysis to reveal gene-splicing dynamics.
+5. Functional annotation of differentially spliced genes, namely gene ontology and splicing-associated nonsense-mediated decay (NMD) prediction.
+
+MARVEL supports single-cell alternative splicing analysis for single-cell RNAseq data generated from plate-based (e.g. Smart-seq2) and droplet-based (10x Genomics) platforms.
 
 ![](inst/extdata/Cover_Figure.png)
 
 # Installation
+For the latest updates, including features in beta mode, please install MARVEL from Github.
 ```
 # Install required Bioconductor packages
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("AnnotationDbi")
+BiocManager::install("Biostrings")
+BiocManager::install("BSgenome")
+BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+BiocManager::install("GenomicRanges")
+BiocManager::install("GenomicScores")
 BiocManager::install("GO.db")
 BiocManager::install("GOstats")
 BiocManager::install("org.Hs.eg.db")
+BiocManager::install("phastCons100way.UCSC.hg38)
 
 # Install MARVEL package
 library(devtools)
@@ -24,10 +34,17 @@ install_github("wenweixiong/MARVEL")
 
 # Load package
 library(MARVEL)
+```
 
-# Launch vignette
-??MARVEL
+For CRAN-curated version of the package, please install MARVEL from CRAN.
+```
+# Install MARVEL package
+install.packages("MARVEL")
+
+# Load package
+library(MARVEL)
 ```
 
 # Tutorial
-A comprehensive tutorial for using MARVEL to extract biological insights can be found here: https://wenweixiong.github.io/MARVEL.html
+Single-cell plate-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Plate.html
+Single-cell droplet-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Droplet.html

@@ -1,19 +1,24 @@
 Package: MARVEL
 Title: Revealing Splicing Dynamics at Single-Cell Resolution
-Version: 1.1.0
+Version: 1.2.0
 Description: Alternative splicing represents an additional and underappreciated layer of complexity underlying gene expression profiles. Nevertheless, there remains hitherto a paucity of softwares to investigate splicing dynamics at single-cell resolution. 'MARVEL' quantifies percent spliced-in (PSI) values for the five primary exon-level splicing events, namely skipped-exon (SE), mutually exclusive exons (MXE), retained intron (RI), alternative 5' and 3' splice sites (A5SS and A3SS, respectively). Additionally, 'MARVEL' performs differential splicing analysis to identify splicing events whose PSI distribution differ between groups of cells. Finally, 'MARVEL' models the PSI distribution for each event as a beta distribution and categorises each distribution into modalities (inspired by Song (2017) <doi:10.1016/j.molcel.2017.06.003>).
-Imports: AnnotationDbi (>= 1.48.0), dplyr (>= 1.0.1), FactoMineR (>=
-        2.3), factoextra (>= 1.0.7), fitdistrplus (>= 1.1-1), ggplot2
-        (>= 3.3.2), GO.db (>= 3.10.0), GOstats (>= 2.52.0), methods,
-        plyr (>= 1.8.4), kableExtra (>= 1.3.1), org.Hs.eg.db (>=
-        3.10.0), parallel, stringr (>= 1.4.0)
+Imports: AnnotationDbi (>= 1.48.0), Biostrings (>= 2.58.0), BSgenome
+        (>= 1.58.0), BSgenome.Hsapiens.NCBI.GRCh38 (>= 1.3.1000), dplyr
+        (>= 1.0.1), factoextra (>= 1.0.7), FactoMineR (>= 2.3),
+        fitdistrplus (>= 1.1-1), GenomicRanges (>= 1.42.0),
+        GenomicScores (>= 2.2.0), ggplot2 (>= 3.3.2), GO.db (>=
+        3.10.0), GOstats (>= 2.52.0), ggrepel (>= 0.9.1), kableExtra
+        (>= 1.3.1), kSamples (>= 1.2-9), kuiper.2samp (>= 1.0),
+        methods, org.Hs.eg.db (>= 3.10.0), plyr (>= 1.8.4), parallel,
+        scales (>= 1.1.1), stringr (>= 1.4.0), textclean (>= 0.9.3)
 Encoding: UTF-8
 Author: Sean Wen
 Maintainer: Sean Wen <sean.wenwx@gmail.com>
 License: GPL-3
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2021-03-31 10:13:07 UTC; seanwen
+Packaged: 2021-09-01 11:20:42 UTC; seanwen
+Depends: R (>= 3.5.0)
