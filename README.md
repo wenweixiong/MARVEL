@@ -51,6 +51,6 @@ library(MARVEL)
 ```
 
 # Tutorial
-Single-cell plate-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Plate.html
+Single-cell plate-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Plate
 
 # Preprint
