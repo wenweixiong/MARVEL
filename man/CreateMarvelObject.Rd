@@ -2,7 +2,7 @@
 % Please edit documentation in R/Script_PLATE_01_CREATE_MARVEL_OBJECT.R
 \name{CreateMarvelObject}
 \alias{CreateMarvelObject}
-\title{Create Marvel Object}
+\title{Create Marvel object for plate-based RNA-sequencing data}
 \usage{
 CreateMarvelObject(
   SplicePheno = NULL,
@@ -11,67 +11,33 @@ CreateMarvelObject(
   SpliceFeature = NULL,
   SpliceFeatureValidated = NULL,
   PSI = NULL,
-  GenePheno = NULL,
   GeneFeature = NULL,
-  Exp = NULL
+  Exp = NULL,
+  GTF = NULL
 )
 }
 \arguments{
-\item{SplicePheno}{Data frame containing sample metadata. This object should consist of at least 2 columns. Mandatory columns are \code{sample.id} and \code{cell.type}. \code{sample.id} indicates all unique sample IDs. \code{cell.type} indicates the group names of each sample. Additional columns, if present, may contain additional details of each sample such sequencing QC details etc..}
+\item{SplicePheno}{Data frame. Sample metadata.}
 
-\item{SpliceJunction}{Data frame containing splice junction counts. First column should be named \code{coord.intron} and indicate the splice junction position in the form of chr:start:end. Subsequent columns should contain the splice junction counts for each sample. These junctions can be detected using external softwares such as STAR, featureCounts etc..}
+\item{SpliceJunction}{Data frame. Splice junction counts matrix.}
 
-\item{IntronCounts}{Data frame. Columns indicate sample IDs, rows indicate intron coordinates, and values indicate total intron coverage. The first column needs to be named \code{coord.intron}. These values will be combined with splice junction counts in the MARVEL object to compute PSI values.}
+\item{IntronCounts}{Data frame. Intron coverage matrix.}
 
-\item{SpliceFeature}{List containing splicing event metadata. Each element in the list is a data frame for each splicing event type, i.e. SE, MXE, RI, A5SS, and A3SS. Names of each element should reflect the splicing event type. Mandatory columns in each data frame are \code{tran_id} and \code{gene_id}. \code{tran_id} indicates all the splicing event coordinates. These events can be detected using external softwares such as rMATS, MISO, BRIE etc.. Other columns, if present, may contain additional details of each splicing event such as gene name, gene type etc..}
+\item{SpliceFeature}{List of data frames. Each data frame is the exon-level alternative splicing event metadata.}
 
-\item{SpliceFeatureValidated}{List containing validated splicing event metadata. Required when \code{SpliceFeature} and \code{SpliceJunction} not specified. Each element in the list is a data frame for each splicing event type, i.e. SE, MXE, RI, A5SS, and A3SS. Names of each element should reflect the splicing event type. Mandatory columns in each data frame are \code{tran_id} and \code{gene_id}. \code{tran_id} indicates all the splicing event coordinates. These events can be detected using external softwares such as rMATS, MISO, BRIE etc.. Additional columns, if present, may contain additional details of each splicing event such as gene name, gene type etc..}
+\item{SpliceFeatureValidated}{List of data frames. Each data frame is the validated (high-quality) exon-level alternative splicing event metadata.}
 
-\item{PSI}{Data frame containing pre-computed PSI values. Required when \code{SpliceFeature} and \code{SpliceJunction} not specified. The first column should be named \code{tran_id} and second column onwards should be sample names containing the PSI values.}
+\item{PSI}{Data frame. PSI matrix.}
 
-\item{GenePheno}{Data frame containing sample metadata. Optional but highly recommended. This object should consist of at least 2 columns. Mandatory columns are \code{sample.id} and \code{cell.type}. \code{sample.id} indicates all unique sample IDs. \code{cell.type} indicates the group names of each sample. Additional columns, if present, may contain additional details of each sample such sequencing QC details etc..}
+\item{GeneFeature}{Data frame. Gene metadata.}
 
-\item{GeneFeature}{Data frame containing the gene metadata. Optional but highly recommended. Mandatory column is \code{gene_id}. Additional columns, if present, may contain details of each gene, e.g. gene name, gene type etc..}
+\item{Exp}{Data frame. Normalised, non-log2-transformed gene expression matrix.}
 
-\item{Exp}{Data frame containing normalised and log-transformed gene expression values. Optional but highly recommended. The first column should be named \code{gene_id} and second column onwards should be sample names containing the gene expression values.}
+\item{GTF}{Data frame. GTF used for generating the exon-level alternative splicing event metadata.}
 }
 \value{
-An object of class S3. Each slot in the object is named after the \code{CreateMarvelObject} arguments.
+An object of class S3.
 }
 \description{
-\code{CreateMarvelObject} creates an S3 object named \code{Marvel} for downstream analysis.
-}
-\details{
-This function creates an S3 object named \code{Marvel} for downstream analysis. It can take both splicing and gene expression data. Gene expression data is highly encouraged so that users can compare and contrast splicing and gene expression profiles using other functionalities by \code{MARVEL}.
-}
-\examples{
-# Read sample metadata file
-path_to_file <- system.file("extdata/Data", "SJ_phenoData.txt", package="MARVEL")
-df.pheno <- read.table(path_to_file, sep="\t", header=TRUE, stringsAsFactors=FALSE,
-             na.strings="NA")
-
-# Read splice junction file
-path_to_file <- system.file("extdata/Data", "SJ.txt", package="MARVEL")
-sj <- read.table(paste(path_to_file), sep="\t", header=TRUE, stringsAsFactors=FALSE,
-                  na.strings="NA")
-
-# Read splicing event metadata file
-df.feature.list <- list()
-
-path_to_file <- system.file("extdata/Data", "SE_featureData.txt", package="MARVEL")
-df.feature.list[[1]] <- read.table(paste(path_to_file), sep="\t", header=TRUE,
-                         stringsAsFactors=FALSE, na.strings="NA")
-
-names(df.feature.list) <- "SE"
-
-# Create MARVEL object
-marvel <- CreateMarvelObject(SplicePheno=df.pheno,
-                              SpliceJunction=sj,
-                              SpliceFeature=df.feature.list
-                              )
-
-class(marvel)
-}
-\author{
-Sean Wen <sean.wenwx@gmail.com>
+Creates an S3 object named \code{Marvel} for downstream analysis, specifically for plate-based RNA-sequencing data.
 }

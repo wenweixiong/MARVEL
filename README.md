@@ -1,19 +1,19 @@
 # MARVEL
-MARVEL is an R package developed for alternative splicing analysis at single-cell resolution. Compared to existing single-cell alternative splicing analysis softwares such as BRIE and Expedition, MARVEL provides additional functionalities:
-1. Compute PSI values for all five main exon-level splicing events, i.e. skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS).
-2. Stratify PSI distribution for each splicing event into the five main modalities, i.e. included, excluded, bimodal, middle, and multimodal. Further stratify included and excluded into primary and dispersed sub-modalities. 
-3. Modality of bimodal category are further screened for false bimodal modality.
-4. Perform integrated differential splicing and gene expression analysis to reveal gene-splicing dynamics.
-5. Functional annotation of differentially spliced genes, namely gene ontology and splicing-associated nonsense-mediated decay (NMD) prediction.
-6. Supports both plate- and droplet-based single-cell data.
-
-MARVEL supports single-cell alternative splicing analysis for single-cell RNAseq data generated from plate-based (e.g. Smart-seq2) and droplet-based (10x Genomics) platforms.
+MARVEL is an R package developed for alternative splicing analysis at single-cell resolution. MARVEL complements published single-cell splicing softwares with the following features:
+1. Percent spliced-in (PSI) quantification for all seven main exon-level splicing events, i.e. skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' and 3' splice sites (A5SS, A3SS), and alternative first and last exons (AFE, ALE).
+2. Stratify PSI distribution for each splicing event into the modalities (discrete splicing patterns), and adjust for technical biases during this assignment.
+3. Integrated differential splicing and gene expression analysis to reveal gene-splicing dynamics.
+4. Dimension reduction analysis.
+5. Pathway enrichment analysis.
+6. Splicing-associated nonsense-mediated decay (NMD) prediction.
+7. Multiple visualisation functions for exploring splicing and gene expression across cell populations.
+8. Supports both plate-based (e.g., Smart-seq2) and droplet-based (e.g., 10x Genomics) single-cell RNA-sequencing data analysis. 
 
 # Workflow for plate-based splicing analysis
 ![](inst/extdata/Cover_Figure.png)
 
 # Installation
-Please install the following pre-requisite R package from Bioconductor before installing MARVEL.
+Please install the following pre-requisite R packages from Bioconductor prior to installing MARVEL.
 ```
 # Install required Bioconductor packages
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -23,15 +23,49 @@ BiocManager::install("AnnotationDbi")
 BiocManager::install("Biostrings")
 BiocManager::install("BSgenome")
 BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+BiocManager::install("clusterProfiler")
 BiocManager::install("GenomicRanges")
 BiocManager::install("GenomicScores")
 BiocManager::install("GO.db")
-BiocManager::install("GOstats")
+BiocManager::install("IRanges")
 BiocManager::install("org.Hs.eg.db")
-BiocManager::install("phastCons100way.UCSC.hg38)
+BiocManager::install("org.Mm.eg.db")
+BiocManager::install("phastCons100way.UCSC.hg38")
+BiocManager::install("waddR")
+```
+ 
+Please install the following pre-requisite R packages from CRAN prior to installing MARVEL.
+```
+install.packages("factoextra")
+install.packages("FactoMineR")
+install.packages("fitdistrplus")
+install.packages("ggplot2")
+install.packages("ggrepel")
+install.packages("gtools")
+install.packages("kableExtra")
+install.packages("knitr")
+install.packages("kSamples")
+install.packages("kuiper.2samp")
+install.packages("markdown")
+install.packages("Matrix")
+install.packages("pheatmap")
+install.packages("plyr")
+install.packages("reshape2")
+install.packages("rmarkdown")
+install.packages("S4Vectors")
+install.packages("scales")
+install.packages("scran")
+install.packages("stringr")
+install.packages("textclean")
+install.packages("twosamples")
 ```
 
-For the latest updates, including features in beta (testing) mode, please install MARVEL from Github.
+Please install the modified wiggleplotr R package from here: http://datashare.molbiol.ox.ac.uk/public/wwen/wiggleplotr_1.18.0_master.tar.gz
+```
+install.packages("wiggleplotr_1.18.0.tar.gz", repos=NULL, type="source")
+```
+
+Finally, please install MARVEL from this repository.
 ```
 # Install MARVEL package
 library(devtools)
@@ -41,16 +75,11 @@ install_github("wenweixiong/MARVEL")
 library(MARVEL)
 ```
 
-For CRAN-curated version of the package, please install MARVEL from CRAN.
-```
-# Install MARVEL package
-install.packages("MARVEL")
-
-# Load package
-library(MARVEL)
-```
 
 # Tutorial
 Single-cell plate-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Plate
 
 # Preprint
+
+# Contact
+Sean Wen <wei.wen@imm.ox.ac.uk>
