@@ -8,7 +8,7 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 6. Splicing-associated nonsense-mediated decay (NMD) prediction.
 7. Multiple visualisation functions for exploring splicing and gene expression across cell populations.
 8. Supports both plate-based (e.g., Smart-seq2) and droplet-based (e.g., 10x Genomics) single-cell RNA-sequencing data analysis. 
-9. In principal,  also applicable to bulk RNA-sequencing data analysis.
+9. In principle,  also applicable to bulk RNA-sequencing data analysis.
 
 # Workflow for plate-based splicing analysis
 ![](inst/extdata/Cover_Figure.png)
@@ -78,7 +78,8 @@ library(MARVEL)
 
 
 # Tutorial
-Single-cell plate-based alternative splicing analysis can be found here: https://wenweixiong.github.io/MARVEL_Plate.html
+Single-cell plate-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Plate.html
+Single-cell droplet-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Dropl.html
 
 # Preprint
 
