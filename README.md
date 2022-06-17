@@ -78,7 +78,7 @@ library(MARVEL)
 
 
 # Tutorial
-Single-cell plate-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Plate.html
+Single-cell plate-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Plate.html  
 Single-cell droplet-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Droplet.html
 
 # Preprint
