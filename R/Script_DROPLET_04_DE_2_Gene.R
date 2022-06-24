@@ -3,6 +3,7 @@
 #' @description Performs differential gene expression analysis between two groups of cells. Only among cells and genes previously included for splice junction analysis.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{CompareValues.SJ.10x} function.
+#' @param show.progress Logical value. If set to \code{TRUE} (default), the progress bar will appear.
 #'
 #' @return An object of class S3 with a updated slot \code{MarvelObject$DE$SJ$Table}.
 #'
@@ -11,7 +12,7 @@
 #'
 #' @export
 
-CompareValues.Genes.10x <- function(MarvelObject) {
+CompareValues.Genes.10x <- function(MarvelObject, show.progress=TRUE) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -20,6 +21,7 @@ CompareValues.Genes.10x <- function(MarvelObject) {
     df.sj.count <- MarvelObject$sj.count.matrix
     cell.group.g1 <- MarvelObject$DE$SJ$cell.group.g1
     cell.group.g2 <- MarvelObject$DE$SJ$cell.group.g2
+    show.progress <- show.progress
     
     # Example arguments
     #MarvelObject <- marvel
@@ -120,7 +122,11 @@ CompareValues.Genes.10x <- function(MarvelObject) {
     # Compute p-values
     print("Performing Wilcox rank sum test...")
     
-    pb <- txtProgressBar(1, length(gene_short_names), style=3)
+    if(show.progress==TRUE) {
+        
+        pb <- txtProgressBar(1, length(gene_short_names), style=3)
+    
+    }
     
     pval <- NULL
     
@@ -133,8 +139,12 @@ CompareValues.Genes.10x <- function(MarvelObject) {
         # Wilcox
         pval[i] <- wilcox.test(values.g1, values.g2)$p.value
         
-        # Track progress
-        setTxtProgressBar(pb, i)
+        if(show.progress==TRUE) {
+            
+            # Track progress
+            setTxtProgressBar(pb, i)
+            
+        }
         
     }
     

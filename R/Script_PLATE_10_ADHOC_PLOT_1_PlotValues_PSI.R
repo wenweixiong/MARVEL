@@ -57,13 +57,15 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #xlabels.size=8.5
     #max.cells.jitter=10000
     #max.cells.jitter.seed=1
-    #min.cells=0
+    #min.cells=15
     #sigma.sq=0.001
     #bimodal.adjust=TRUE
     #seed=1
     #modality.column="modality.bimodal.adj"
     #scale.y.log <- TRUE
-    #cell.group.colors <- c("white", "grey")
+    #cell.group.colors <- cell.group.colors
+    
+    ############################################################
     
     # Subset relevant feature
     df.feature <- df.feature[which(df.feature$tran_id == feature), , drop=FALSE]
@@ -88,14 +90,25 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                             bimodal.adjust=TRUE,
                             seed=seed
                             )
-                       
-        mod[i] <- .$Modality$Results[, modality.column]
         
-    
+        if(!is.null(.$Modality$Results)) {
+            
+            mod[i] <- .$Modality$Results[, modality.column]
+            
+        } else {
+            
+            print(paste("No expressed events found for ", names(cell.group.list)[[i]], sep=""))
+            mod[i] <- NA
+            
+        }
+        
     }
     
     modality <- data.frame("cell.type.label"=names(cell.group.list), "modality"=mod, stringsAsFactors=FALSE)
     
+    # Re-code missing modalities
+    modality$modality[is.na(modality$modality)] <- ""
+
     #######################################################################################
     
     # Create row names for matrix
@@ -135,7 +148,12 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     df.small <- df.small[!is.na(df.small$cell.type.label), ]
     
     # Remove missing psi (low coverage)
-    df.small <- df.small[!is.na(df.small$psi), ]
+    #df.small <- df.small[!is.na(df.small$psi), ]
+    
+    # Reset factor levels for remaining cell groups
+    #levels <- intersect(levels(df.small$cell.type.label), unique(df.small$cell.type.label))
+    #df.small$cell.type.label <- factor(df.small$cell.type.label, levels=levels)
+    #modality <- modality[which(modality$cell.type.label %in% df.small$cell.type.label), ]
     
     # Compute statistics
         # n cells per cell type
@@ -143,14 +161,19 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         n.cells <- data.frame("cell.type.label"=names(n.cells), "freq"=n.cells, stringsAsFactors=FALSE)
         row.names(n.cells) <- NULL
         
-        n.cells$label <- paste(n.cells$cell.type.label, "\n", "(n=", n.cells$freq, ")", "\n", modality$modality, sep="")
+        
+        n.cells$label <- ifelse(n.cells$freq >= min.cells,
+                                paste(n.cells$cell.type.label, "\n", "(n=", n.cells$freq, ")", "\n", modality$modality, sep=""),
+                                paste(n.cells$cell.type.label, "\n", "(n<", min.cells, ")", sep="")
+                                )
+                                
         #n.cells$label <- gsub(".", "\n", n.cells$label, fixed=TRUE)
         
         # Average
         ave <- tapply(df.small$psi, df.small$cell.type, function(x) {mean(x, na.rm=TRUE)})
         ave <- data.frame("cell.type.label"=names(ave), "average"=ave, stringsAsFactors=FALSE)
         row.names(ave) <- NULL
-        
+    
     ######################## DOWNSAMPLE JITTER DATA POINTS #############################
     
     # Add ids to trace entries
@@ -190,6 +213,37 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     df.small <- df.small[order(df.small$id), , drop=FALSE]
     df.small$id <- NULL
     
+    ######################## CENSOR LOW CELL NUMBER GROUP ##########################
+    
+    cell.type.labels <- levels(df.small$cell.type.label)
+    
+    .list <- list()
+    
+    for(i in 1:length(cell.type.labels)) {
+        
+        cell.type.label <- cell.type.labels[i]
+        
+        df.small. <- df.small[which(df.small$cell.type.label==cell.type.label), ]
+        
+        non.missing <- sum(!is.na(df.small.$psi))
+        
+        if(non.missing < min.cells) {
+            
+            df.small.$psi <- NA
+            df.small.$psi.downsampled <- NA
+            
+            .list[[i]] <- df.small.
+            
+        } else {
+        
+            .list[[i]] <- df.small.
+        
+        }
+        
+    }
+    
+    df.small <- do.call(rbind.data.frame, .list)
+    
     #################################### PLOT ######################################
     
     # Definition
@@ -222,7 +276,10 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         cols <- cell.group.colors
         
     }
-
+    
+    index <- which(n.cells$freq >= min.cells)
+    cols <- cols[index]
+    
     # Plot
     if(scale.y.log==FALSE) {
         

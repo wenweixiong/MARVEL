@@ -4,10 +4,12 @@
 \alias{CompareValues.Genes.10x}
 \title{Differential gene expression analysis}
 \usage{
-CompareValues.Genes.10x(MarvelObject)
+CompareValues.Genes.10x(MarvelObject, show.progress = TRUE)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{CompareValues.SJ.10x} function.}
+
+\item{show.progress}{Logical value. If set to \code{TRUE} (default), the progress bar will appear.}
 }
 \value{
 An object of class S3 with a updated slot \code{MarvelObject$DE$SJ$Table}.

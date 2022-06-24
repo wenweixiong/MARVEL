@@ -4,14 +4,16 @@
 \alias{ModalityChange}
 \title{Classify modality changes}
 \usage{
-ModalityChange(MarvelObject, method, psi.pval)
+ModalityChange(MarvelObject, method, psi.pval, psi.delta = 0)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{CompareValues} function.}
 
 \item{method}{Character string. The statistical method used for differential splicing analysis.}
 
-\item{psi.pval}{Numeric value. Adjusted p-value below which the splicing event is considered differentially spliced and included for isoform switching analysis.}
+\item{psi.pval}{Numeric value. Adjusted p-value below which the splicing event is considered differentially spliced and included for modality analysis.}
+
+\item{psi.delta}{Numeric value. The absolute difference between the means PSI values of cell group 1 and 2, above which, the splicing event is considered differentially spliced and included for modality analysis.}
 }
 \value{
 An object of class S3 with new slots \code{MarvelObject$DE$Modality$Table}, \code{MarvelObject$DE$Modality$Plot}, and \code{MarvelObject$DE$Modality$Plot.Stats}.

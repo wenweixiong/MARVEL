@@ -6,49 +6,34 @@
 \usage{
 RunPCA.Exp(
   MarvelObject,
-  cell.group.list,
-  min.cells = 25,
+  cell.group.column,
+  cell.group.order = NULL,
+  cell.group.colors = NULL,
   features,
+  min.cells = 25,
   point.size = 0.5,
   point.alpha = 0.75,
-  point.stroke = 0.1,
-  retrieve.non.outliers = FALSE,
-  pc1.min = NULL,
-  pc1.max = NULL,
-  pc2.min = NULL,
-  pc2.max = NULL,
-  remove.outliers = FALSE,
-  cell.group.colors = NULL
+  point.stroke = 0.1
 )
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}
 
-\item{cell.group.list}{List of character strings. Each element of the list is a vector of cell IDs corresponding to a cell group. The name of the element will be the cell group label.}
+\item{cell.group.column}{Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.}
 
-\item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.}
+\item{cell.group.order}{Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.}
+
+\item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.}
 
 \item{features}{Character string. Vector of \code{gene_id} for analysis. Should match \code{gene_id} column of \code{MarvelObject$GeneFeature}.}
+
+\item{min.cells}{Numeric value. The minimum no. of cells expressing the gene to be included for analysis.}
 
 \item{point.size}{Numeric value. Size of data points on reduced dimension space.}
 
 \item{point.alpha}{Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.}
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
-
-\item{retrieve.non.outliers}{Logical. If set to \code{TRUE}, this function will retrieve \code{sample.id} of non-outliers based on the intial PCA. Define the non-outliers based on the initial PCA coordinates. Use in conjunction with arguments \code{pc1.min}, \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc1.min}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc1.max}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc2.min}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc1.max}, and \code{pc2.max}.}
-
-\item{pc2.max}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.min}.}
-
-\item{remove.outliers}{Logical. If set to \code{TRUE}, re-run PCA by only including non-outliers. Use after running the function with \code{retrieve.non.outliers} set to \code{TRUE}.}
-
-\item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.}
 }
 \value{
 An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}.

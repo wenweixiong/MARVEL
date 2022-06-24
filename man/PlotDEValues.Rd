@@ -17,11 +17,13 @@ PlotDEValues(
   gene.log2fc = NULL,
   point.size = 1,
   xlabel.size = 8,
+  point.alpha = 1,
   anno = FALSE,
   anno.gene_short_name = NULL,
   anno.tran_id = NULL,
   label.size = 2.5,
-  y.upper.offset = 5
+  y.upper.offset = 5,
+  event.types = c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
 )
 }
 \arguments{
@@ -49,6 +51,8 @@ PlotDEValues(
 
 \item{xlabel.size}{Numeric value. Font size of the xtick labels. Default is \code{8}.}
 
+\item{point.alpha}{Numeric value. Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. Transpancy of data points. Default is \code{1}.}
+
 \item{anno}{Logical value. If set to \code{TRUE}, the specific gene names or splicing events will be annotated on the plot.}
 
 \item{anno.gene_short_name}{Vector of character strings. When \code{anno} set to \code{TRUE}, the gene names to be annotated on the plot.}
@@ -58,6 +62,8 @@ PlotDEValues(
 \item{label.size}{Numeric value. Only applicable if \code{anno} set to TRUE. Size of the gene name labels.}
 
 \item{y.upper.offset}{Numeric value. The value in -log10(p-value) to increase the upper limit of the y-axis. To be used when \code{anno} set to TRUE so that gene labels will not be truncated at the upper limit of the y-axis.}
+
+\item{event.types}{Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. The specific splicing event to plot. May take any one or more of the following values \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE"}, and  \code{"ALE"}.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]} when level set to \code{"splicing.mean"} or \code{"splicing.distance"} or \code{MarvelObject$DE$Exp.Global$Table} and \code{MarvelObject$DE$Exp.Global$Plot} when level set to \code{"gene.global"} or \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot} when level set to \code{"gene.spliced"}.

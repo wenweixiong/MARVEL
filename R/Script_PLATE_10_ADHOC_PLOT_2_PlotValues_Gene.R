@@ -37,7 +37,7 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- MarvelObject$GeneFeature
     #cell.group.list <- cell.group.list
-    #feature <- gene_ids[1]
+    #feature <- gene_id
     #maintitle <- "gene_short_name"
     #xlabels.size <- 8
     #cell.group.colors <- NULL
@@ -89,9 +89,12 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         
         n.cells <- join(freq.expr, freq.total, by="cell.type.label", type="left")
         
-        n.cells$pct.expr <- round(n.cells$freq.expr / n.cells$freq.total * 100, digits=1)
+        n.cells$pct.expr <- round(n.cells$freq.expr / n.cells$freq.total * 100, digits=0)
         
-        n.cells$label <- paste(n.cells$cell.type.label, "\n", "", n.cells$freq.expr, "/", n.cells$freq.total, " (", n.cells$pct.expr, "%)", sep="")
+        n.cells$label <- ifelse(n.cells$pct.expr > 1,
+                            paste(n.cells$cell.type.label, "\n", "", n.cells$freq.expr, "/", n.cells$freq.total, " (", n.cells$pct.expr, "%)", sep=""),
+                            paste(n.cells$cell.type.label, "\n", "", n.cells$freq.expr, "/", n.cells$freq.total, " (<1%)", sep="")
+                            )
         
         # Average
         ave <- tapply(df.small$exp, df.small$cell.type.label, function(x) {mean(x, na.rm=TRUE)})

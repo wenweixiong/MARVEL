@@ -4,7 +4,13 @@
 \alias{BioPathways.Plot}
 \title{Plot pathway enrichment analysis results}
 \usage{
-BioPathways.Plot(MarvelObject, go.terms, y.label.size = 10, offset = 0.5)
+BioPathways.Plot(
+  MarvelObject,
+  go.terms,
+  y.label.size = 10,
+  offset = 0.5,
+  x.axis = "enrichment"
+)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{BioPathways} function.}
@@ -14,6 +20,8 @@ BioPathways.Plot(MarvelObject, go.terms, y.label.size = 10, offset = 0.5)
 \item{y.label.size}{Numeric value. Size of y-axis tick labels, i.e. gene set names.}
 
 \item{offset}{Numeric value. The -log10(p-value) on the x-axis to substract or add to increase the plot margins.}
+
+\item{x.axis}{Character string. If set to \code{"enrichment"} (default) the pathway enrichment will be displayed on the x-axis while the color intensity of the data points will reflect the -log10(adjusted p-value). If set to \code{"pval"} the -log10(adjusted p-value) will be displayed on the x-axis while the color intensity of the data points will reflect the pathway enrichment.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$DE$BioPathways$Plot}.

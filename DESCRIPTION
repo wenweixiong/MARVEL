@@ -24,5 +24,5 @@ RoxygenNote: 7.2.0
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2022-06-09 09:52:21 UTC; seanwen
+Packaged: 2022-06-21 10:54:20 UTC; seanwen
 Depends: R (>= 3.5.0)

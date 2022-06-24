@@ -12,7 +12,8 @@ CompareValues.SJ.10x(
   min.pct.cells.sj = 10,
   seed = 1,
   n.iterations = 100,
-  downsample = FALSE
+  downsample = FALSE,
+  show.progress = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ CompareValues.SJ.10x(
 \item{n.iterations}{Numeric value. Number of times to shuffle the cell group labels when building the null distribution. Default is \code{100}.}
 
 \item{downsample}{Logical value. If set to \code{TRUE}, both cell groups will be down-sampled so that both cell groups will have the same number of cells. The number of cells to downsample will be based on the smallest cell group. Default is \code{FALSE}.}
+
+\item{show.progress}{Logical value. If set to \code{TRUE} (default), the progress bar will appear.}
 }
 \value{
 An object of class S3 with a new slots \code{MarvelObject$DE$SJ$Table}, \code{MarvelObject$DE$SJ$cell.group.g1}, and \code{MarvelObject$DE$SJ$cell.group.g2}.

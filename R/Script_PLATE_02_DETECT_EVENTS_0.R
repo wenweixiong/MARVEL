@@ -29,7 +29,7 @@ DetectEvents <- function(MarvelObject, min.cells=50, min.expr=1, track.progress=
         DetectEvents.ALE(MarvelObject=MarvelObject,
                          min.cells=min.cells,
                          min.expr=min.expr,
-                         track.progress=TRUE
+                         track.progress=track.progress
                          )
 
     } else if(EventType=="AFE") {
@@ -37,7 +37,7 @@ DetectEvents <- function(MarvelObject, min.cells=50, min.expr=1, track.progress=
         DetectEvents.AFE(MarvelObject=MarvelObject,
                          min.cells=min.cells,
                          min.expr=min.expr,
-                         track.progress=TRUE
+                         track.progress=track.progress
                          )
                       
     }

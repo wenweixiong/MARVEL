@@ -16,7 +16,7 @@
 #'
 #' @export
 
-PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_short_name, cell.group.colors=NULL, xlabels.size=8) {
+PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_short_name, cell.group.colors=NULL, xlabels.size=8, alpha=0.5) {
 
     # Example arguments
     MarvelObject <- MarvelObject
@@ -25,6 +25,7 @@ PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_s
     gene_short_name <- gene_short_name
     cell.group.colors <- cell.group.colors
     xlabels.size <- xlabels.size
+    alpha <- alpha
     
     # Example arguments
     #MarvelObject <- marvel
@@ -110,7 +111,7 @@ PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_s
         # Plot
         plot <- ggplot() +
             geom_violin(data, mapping=aes(x=x, y=y, fill=z), scale="width") +
-            geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.3, height=0), size=0.1, alpha=0.2) +
+            geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.3, height=0), size=0.1, alpha=alpha) +
             stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
             scale_fill_manual(values=cols) +
             scale_x_discrete(labels=xlabels) +

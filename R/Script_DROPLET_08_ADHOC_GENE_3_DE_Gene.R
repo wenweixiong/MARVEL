@@ -23,14 +23,15 @@ adhocGene.DE.Gene.10x <- function(MarvelObject) {
     #df <- MarvelObject$adhocGene$Expression$Gene$Table
     
     ##################################################################
-    
-    # Generate all possible group pairs
-    pairs <- combinations(n=length(df$group), r=2, v=df$group)
+        
+    # Generate all possible combinations
+    groups <- factor(levels(df$group), levels=levels(df$group))
+    pairs <- combinations(n=length(groups), r=2, v=as.numeric(groups), repeats.allowed=FALSE)
     pairs <- as.data.frame(pairs)
-    
+
     # Replace numeric values with actual factor levels
-    levels <- levels(df$group)
-    
+    levels <- levels(groups)
+
     for(i in 1:length(levels)) {
         
         pairs[pairs==i] <- levels[i]

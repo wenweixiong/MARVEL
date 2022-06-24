@@ -19,6 +19,7 @@
 #' @import methods
 #' @import ggplot2
 #' @importFrom grDevices hcl
+#' @import reshape2
 #'
 #' @export
 
@@ -38,10 +39,10 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
-    #psi.mean.diff <- 0
+    #psi.mean.diff <- 10
     #ylabels.size <- 8
     #barlabels.size <- 3
-    #mode <- "percentage"
+    #mode <- "absolute"
     #x.offset <- 1
     #direction.color <- c("blue", "red3")
     
@@ -68,7 +69,7 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     for(i in 1:length(method)) {
         
         # Retrieve DE result table
-        results <- MarvelObject$DE$PSI$Table[[method[1]]]
+        results <- MarvelObject$DE$PSI$Table[[method[i]]]
         
         # Subset sig events
         index.up <- which(results$p.val.adj < psi.pval[i] & results$mean.diff > psi.mean.diff & results$outliers==FALSE)
@@ -86,7 +87,7 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     
     results <- unique(do.call(rbind.data.frame, results.list))
     results <- unique(results)
-    results$direction <- ifelse(results$mean.diff > 0, "up", "down")
+    results$direction <- ifelse(results$mean.diff > psi.mean.diff, "up", "down")
     results.sig <- results
     
     # Retrieve all expressed events
@@ -155,7 +156,7 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
         results$id <- NULL
         
     # Set factor levels
-    results$direction <- factor(results$direction, levels=c("sig.up", "sig.down"), labels=c("down", "up"))
+    results$direction <- factor(results$direction, levels=c("sig.down", "sig.up"), labels=c("down", "up"))
 
     ###########################################################################
     

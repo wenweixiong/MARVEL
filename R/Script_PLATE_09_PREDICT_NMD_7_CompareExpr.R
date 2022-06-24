@@ -16,13 +16,13 @@ CompareExpr <- function(MarvelObject, xlabels.size=8) {
 
     # Define arguments
     df <- MarvelObject$NMD$Prediction
-    de.gene <- MarvelObject$DE$Exp$Table
+    de.gene <- MarvelObject$DE$Exp.Spliced$Table
     xlabels.size <- xlabels.size
     
     # Example arguments
     #MarvelObject <- marvel
     #df <- MarvelObject$NMD$Prediction
-    #de.gene <- MarvelObject$DE$Exp$Table
+    #de.gene <- MarvelObject$DE$Exp.Spliced$Table
     #xlabels.size <- 8
 
     # Set factor levels
@@ -93,8 +93,10 @@ CompareExpr <- function(MarvelObject, xlabels.size=8) {
     results$event_type <- factor(results$event_type, levels=levels)
     
     # Annotate gene log2fc
-    results <- join(results, de.gene[,c("gene_id", "log2fc")], by="gene_id", type="left")
-
+    results <- join(results, de.gene[,c("gene_id", "gene_short_name", "log2fc")], by="gene_id", type="left")
+    cols <- c("gene_id", "gene_short_name", "log2fc", "event_type", "NMD")
+    results <- results[,cols]
+    
     # Add sample size to xlabels
         # non-NMD
         . <- results[which(results$NMD=="FALSE"), ]

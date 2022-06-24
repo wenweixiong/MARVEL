@@ -10,6 +10,7 @@
 #' @param seed Numeric value. Random number generator to be fixed for permutations test and down-sampling.
 #' @param n.iterations Numeric value. Number of times to shuffle the cell group labels when building the null distribution. Default is \code{100}.
 #' @param downsample Logical value. If set to \code{TRUE}, both cell groups will be down-sampled so that both cell groups will have the same number of cells. The number of cells to downsample will be based on the smallest cell group. Default is \code{FALSE}.
+#' @param show.progress Logical value. If set to \code{TRUE} (default), the progress bar will appear.
 #'
 #' @return An object of class S3 with a new slots \code{MarvelObject$DE$SJ$Table}, \code{MarvelObject$DE$SJ$cell.group.g1}, and \code{MarvelObject$DE$SJ$cell.group.g2}.
 #'
@@ -18,7 +19,7 @@
 #'
 #' @export
 
-CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, seed=1, n.iterations=100, downsample=FALSE) {
+CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, seed=1, n.iterations=100, downsample=FALSE, show.progress=TRUE) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -34,6 +35,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     seed <- seed
     n.iterations <- n.iterations
     downsample <- downsample
+    show.progress <- show.progress
     
     # Example arguments
     #MarvelObject <- marvel
@@ -401,7 +403,11 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     # Set random num. generator
     set.seed(seed)
     
-    pb <- txtProgressBar(1, n.iterations, style=3)
+    if(show.progress==TRUE) {
+        
+        pb <- txtProgressBar(1, n.iterations, style=3)
+        
+    }
     
     .list.results.perm <- list()
     
@@ -597,9 +603,13 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
         results <- results[, "delta.perm", drop=FALSE]
         
         .list.results.perm[[i]] <- results
-              
-        # Track progress
-        setTxtProgressBar(pb, i)
+             
+        if(show.progress==TRUE) {
+        
+            # Track progress
+            setTxtProgressBar(pb, i)
+            
+        }
         
     }
         

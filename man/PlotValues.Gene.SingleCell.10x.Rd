@@ -10,7 +10,8 @@ PlotValues.Gene.SingleCell.10x(
   cell.group.list,
   gene_short_name,
   cell.group.colors = NULL,
-  xlabels.size = 8
+  xlabels.size = 8,
+  alpha = 0.5
 )
 }
 \arguments{

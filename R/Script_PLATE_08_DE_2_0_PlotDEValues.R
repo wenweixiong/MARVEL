@@ -19,6 +19,8 @@
 #' @param label.size Numeric value. Only applicable if \code{anno} set to TRUE. Size of the gene name labels.
 #' @param y.upper.offset Numeric value. The value in -log10(p-value) to increase the upper limit of the y-axis. To be used when \code{anno} set to TRUE so that gene labels will not be truncated at the upper limit of the y-axis.
 #' @param xlabel.size Numeric value. Font size of the xtick labels. Default is \code{8}.
+#' @param point.alpha Numeric value. Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. Transpancy of data points. Default is \code{1}.
+#' @param event.types Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. The specific splicing event to plot. May take any one or more of the following values \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE"}, and  \code{"ALE"}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]} when level set to \code{"splicing.mean"} or \code{"splicing.distance"} or \code{MarvelObject$DE$Exp.Global$Table} and \code{MarvelObject$DE$Exp.Global$Plot} when level set to \code{"gene.global"} or \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot} when level set to \code{"gene.spliced"}.
 #'
@@ -33,9 +35,9 @@
 PlotDEValues <- function(MarvelObject, method=NULL, pval, level,
                          delta=NULL, log2fc=NULL,
                          psi.pval=NULL, psi.delta=NULL, gene.pval=NULL, gene.log2fc=NULL,
-                         point.size=1, xlabel.size=8,
+                         point.size=1, xlabel.size=8, point.alpha=1,
                          anno=FALSE, anno.gene_short_name=NULL, anno.tran_id=NULL, label.size=2.5,
-                         y.upper.offset=5
+                         y.upper.offset=5, event.types=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
                          ) {
 
     
@@ -82,7 +84,6 @@ PlotDEValues <- function(MarvelObject, method=NULL, pval, level,
         
     } else if(level=="gene.spliced") {
         
-        
         PlotDEValues.Exp.Spliced(MarvelObject=MarvelObject,
                                  method=method,
                                  psi.pval=psi.pval,
@@ -97,6 +98,22 @@ PlotDEValues <- function(MarvelObject, method=NULL, pval, level,
                                  y.upper.offset=y.upper.offset
                                  )
                                 
+    } else if(level=="splicing.mean.g2vsg1") {
+        
+        PlotDEValues.PSI.Mean.g2vsg1(MarvelObject=MarvelObject,
+                                     method=method,
+                                     pval=pval,
+                                     delta=delta,
+                                     point.size=point.size,
+                                     xlabel.size=xlabel.size,
+                                     anno=anno,
+                                     anno.tran_id=anno.tran_id,
+                                     label.size=label.size,
+                                     event.types=event.types,
+                                     point.alpha=point.alpha
+                                     )
+        
+        
         
     }
 

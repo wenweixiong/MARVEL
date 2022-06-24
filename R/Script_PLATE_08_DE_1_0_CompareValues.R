@@ -18,6 +18,12 @@
 #' @param annotate.outliers Numeric value. Only applicable when \code{level} set to \code{"splicing"}. When set to \code{TRUE}, statistical difference in PSI values between the two cell groups that is driven by outlier cells will be annotated.
 #' @param n.cells.outliers Numeric value. Only applicable when \code{level} set to \code{"splicing"}. When \code{method} set to \code{"dts"}, the minimum number of cells with non-1 or non-0 PSI values for included-to-included or excluded-to-excluded modality change, respectively. The p-values will be re-coded to 1 when both cell groups have less than this minimum number of cells. This is to avoid false positive results.
 #' @param assign.modality Logical value. Only applicable when \code{level} set to \code{"splicing"}. If set to \code{TRUE} (default), modalities will be assigned to each cell group.
+#' @param custom.gene_ids Character string. Only applicable when \code{level} set to \code{"gene"}. Instead of specified the genes to include for DE analysis with \code{min.cells}, users may input a custom vector of gene IDs to include for DE analysis.
+#' @param psi.method Vector of character string(s). Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. To include significant events from these method(s) for differential gene expression analysis.
+#' @param psi.pval Vector of numeric value(s). Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. The adjusted p-value, below which, the splicing event is considered differentially spliced, and the corresponding genes will be included for differential gene expression analysis.
+#' @param psi.delta Numeric value. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. The absolute difference in mean PSI values between \code{cell.group.g1} and \code{cell.group.g1}, above which, the splicing event is considered differentially spliced, and the corresponding genes will be included for differential gene expression analysis.
+#' @param method.de.gene Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method}.
+#' @param method.adjust.de.gene Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method.adjust}.
 #'
 #' @return An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Table[["method"]]} or \code{MarvelObject$DE$Exp$Table} when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.
 #'
@@ -32,7 +38,7 @@
 #'
 #' @export
 
-CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", level, event.type=NULL, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE) {
+CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method=NULL, nboots=1000, n.permutations=1000, method.adjust="fdr", level, event.type=NULL, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE, custom.gene_ids=NULL, psi.method=NULL, psi.pval=NULL, psi.delta=NULL, method.de.gene=NULL, method.adjust.de.gene=NULL) {
 
     # Define arguments
     MarvelObject <- MarvelObject
@@ -51,6 +57,12 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
     annotate.outliers <- annotate.outliers
     n.cells.outliers <- n.cells.outliers
     assign.modality <- assign.modality
+    custom.gene_ids <- custom.gene_ids
+    psi.method <- psi.method
+    psi.pval <- psi.pval
+    psi.delta <- psi.delta
+    method.de.gene <- method.de.gene
+    method.adjust.de.gene <-  method.adjust.de.gene
     
     # Example arguments (splicing)
     #MarvelObject <- marvel
@@ -112,8 +124,23 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
                           method=method,
                           method.adjust=method.adjust,
                           nboots=nboots,
-                          show.progress=show.progress
+                          show.progress=show.progress,
+                          custom.gene_ids=custom.gene_ids
                           )
+        
+    } else if(level=="gene.spliced") {
+        
+        CompareValues.Exp.Spliced(MarvelObject=MarvelObject,
+                                  cell.group.g1=cell.group.g1,
+                                  cell.group.g2=cell.group.g2,
+                                  psi.method=psi.method,
+                                  psi.pval=psi.pval,
+                                  psi.delta=psi.delta,
+                                  method.de.gene=method.de.gene,
+                                  method.adjust.de.gene=method.adjust.de.gene,
+                                  downsample=downsample,
+                                  show.progress=show.progress
+                                  )
         
     }
     

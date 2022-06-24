@@ -24,7 +24,7 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     method <- method
     psi.pval <- psi.pval
     psi.delta <- psi.delta
-    de.exp <- MarvelObject$DE$Exp$Table
+    de.exp <- MarvelObject$DE$Exp.Spliced$Table
     gene.pval <- gene.pval
     gene.log2fc <- gene.log2fc
     
@@ -32,7 +32,7 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
-    #de.exp <- MarvelObject$DE$Exp$Table
+    #de.exp <- MarvelObject$DE$Exp.Spliced$Table
     #gene.pval <- 0.10
     #gene.log2fc <- 0.5
     #psi.delta <- 0
@@ -68,7 +68,6 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     de.psi <- unique(de.psi)
         
     # Annotate gene DE results
-    de.exp <- MarvelObject$DE$Exp$Table
     de.exp <- de.exp[, c("gene_id", "log2fc", "p.val.adj")]
     names(de.exp)[-1] <- paste(names(de.exp)[-1], ".gene", sep="")
     de <- join(de.psi, de.exp, by="gene_id", type="left")

@@ -1,21 +1,18 @@
-#' @title Plot differential gene expression analysis of differentially spliced genes
+#' @title Plot global differential gene expression analysis results
 #'
-#' @description Volcano plot of differential splicing analysis results based on differentially spliced genes between 2 groups of cells. x-axis represents the log2 fold change in gene expression. y-axis represents the adjusted p-values.
+#' @description Volcano plot of differential splicing analysis results based on all expressed genes between 2 groups of cells. x-axis represents the log2 fold change in gene expression. y-axis represents the adjusted p-values.
 #'
-#' @param MarvelObject S3 object generated from \code{CompareValues} function.
-#' @param method (Vector of) Character string(s). The \code{method} specified in \code{CompareValues} function when \code{level} option set to \code{"splicing"}.
-#' @param psi.pval Numeric value. The adjusted p-value from differential splicing analysis, below which, the splicing event is considered differentially spliced. Default is \code{0.1}.
-#' @param psi.delta Numeric value. The absolute differences in average PSI value between two cell groups from differential splicing analysis, above which, the splicing event is considered differentially spliced.  Default is \code{0}.
-#' @param gene.pval Numeric value. The adjusted p-value from differential gene expression analysis, below which, the gene is considered differentially expressed. Default is \code{0.1}.
-#' @param gene.log2fc Numeric value. The absolute log2 fold change in gene expression betwene two cell groups from differential splicing analysis, above which, the gene is considered differentially expressed. Default is \code{0.5}.
-#' @param point.size Numeric value. Size of data points. Default is \code{1}.
+#' @param MarvelObject Marvel object. S3 object generated from \code{CompareValues} function.
+#' @param pval Numeric value. Adjusted p-value below which the genes are considered as statistically significant and will consequently be color-annotated on the plot.
+#' @param log2fc Numeric value. The positive (and negative) value specified above (and below) which the genes are considered to be statistically significant and will consequently be color-annotated on the plot.
+#' @param point.size Numeric value. The point size for the data points. Default value is \code{1}.
 #' @param anno Logical value. If set to \code{TRUE}, the specific gene names will be annotated on the plot as defined in \code{anno.gene_short_name} option.
 #' @param anno.gene_short_name Vector of character strings. When \code{anno} set to \code{TRUE}, the gene names to be annotated on the plot.
 #' @param label.size Numeric value. Only applicable if \code{anno} set to TRUE. Size of the gene name labels.
 #' @param y.upper.offset Numeric value. The value in -log10(p-value) to increase the upper limit of the y-axis. To be used when \code{anno} set to TRUE so that gene labels will not be truncated at the upper limit of the y-axis.
 #' @param xlabel.size Numeric value. Font size of the xtick labels. Default is \code{8}.
 #'
-#' @return An object of class S3 with new slots \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot}.
+#' @return An object of class S3 with new slots \code{MarvelObject$DE$Exp.Global$Table}, \code{MarvelObject$DE$Exp.Global$Summary}, and \code{MarvelObject$DE$Exp.Global$Plot}
 #'
 #' @importFrom plyr join
 #' @import stats
@@ -25,69 +22,35 @@
 #'
 #' @export
 
-PlotDEValues.Exp.Spliced <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5, point.size=1, anno=FALSE, anno.gene_short_name=NULL, label.size=2.5, y.upper.offset=5, xlabel.size=8) {
+
+PlotDEValues.Exp.Global <- function(MarvelObject, pval=0.10, log2fc=0.5, point.size=1, anno=FALSE, anno.gene_short_name=NULL, label.size=2.5, y.upper.offset=5, xlabel.size=8) {
 
     # Define arguments
-    df.gene <- MarvelObject$DE$Exp$Table
-    method <- method
-    psi.pval <- psi.pval
-    psi.delta <- psi.delta
-    gene.pval <- gene.pval
-    gene.log2fc <- gene.log2fc
+    df <- MarvelObject$DE$Exp$Table
+    pval <- pval
+    log2fc <- log2fc
     point.size <- point.size
     anno <- anno
     anno.gene_short_name <- anno.gene_short_name
-    label.size <- label.size
     y.upper.offset <- y.upper.offset
     xlabel.size <- xlabel.size
     
     # Example arguments
     #MarvelObject <- marvel
-    #df.gene <- MarvelObject$DE$Exp$Table
-    #method <- c("ad", "dts")
-    #psi.pval <- c(0.1, 0.1)
-    #psi.delta <- 0
-    #gene.pval <- 0.10
-    #gene.log2fc <- 0.5
-    #point.size <- 0.1
-    #anno <- TRUE
-    #anno.gene_short_name <- c("WARS", "PICALM")
+    #df <- MarvelObject$DE$Exp$Table
+    #pval <- 0.10
+    #log2fc <- 0.5
+    #anno <- FALSE
+    #anno.gene_short_name <- gene_short_names
+    #label.size <- 2.5
+    #point.size <- 1
     #y.upper.offset <- 5
-    #xlabel.size <- 8
-    
-    # Tabulate sig events
-    .list <- list()
-    
-    for(i in 1:length(method)) {
-    
-        # Subset relevent splicing DE results
-        de.psi <- MarvelObject$DE$PSI$Table[[method[i]]]
-        
-        # Subset sig events
-        index <- which(abs(de.psi$mean.diff) > psi.delta & de.psi$p.val.adj < psi.pval[i] & de.psi$outlier==FALSE)
-        de.psi <- de.psi[index, ]
-        
-        # Subset gene metadata
-        cols <- c("gene_id", "gene_short_name", "gene_type")
-        de.psi <- de.psi[, cols]
-        
-        # Save into list
-        .list[[i]] <- de.psi
-        
-    }
-    
-    df <- do.call(rbind.data.frame, .list)
-    df <- unique(df)
-    
-    # Annotate gene pval, log2fc
-    df <- join(df, df.gene[,c("gene_id", "log2fc", "p.val.adj")], by="gene_id", type="left")
-    df$log2fc[is.na(df$log2fc)] <- 0
-    df$p.val.adj[is.na(df$p.val.adj)] <- 1
+    #xlabel.size <- 2.5
     
     # Indicate sig events and direction
     df$sig <- NA
-    df$sig[which(df$p.val.adj < gene.pval & df$log2fc > gene.log2fc)] <- "up"
-    df$sig[which(df$p.val.adj < gene.pval & df$log2fc < (gene.log2fc*-1))] <- "down"
+    df$sig[which(df$p.val.adj < pval & df$log2fc > log2fc)] <- "up"
+    df$sig[which(df$p.val.adj < pval & df$log2fc < (log2fc*-1))] <- "down"
     df$sig[is.na(df$sig)] <- "n.s."
     df$sig <- factor(df$sig, levels=c("up", "down", "n.s."))
     
@@ -116,8 +79,8 @@ PlotDEValues.Exp.Spliced <- function(MarvelObject, method, psi.pval=0.1, psi.del
     # Create labels
     if(anno==TRUE) {
         
-        df$label <- ifelse(df$gene_short_name %in% anno.gene_short_name, df$gene_short_name, "")
-
+       df$label <- ifelse(df$gene_short_name %in% anno.gene_short_name, df$gene_short_name, "")
+                           
        # Definition
        data <- df
        x <- data$log2fc
@@ -207,13 +170,18 @@ PlotDEValues.Exp.Spliced <- function(MarvelObject, method, psi.pval=0.1, psi.del
                         )
     
     }
-                          
-    ############################################################
     
+    # Summary
+    tbl <- as.data.frame(table(df$sig))
+    names(tbl) <- c("sig", "freq")
+    
+    ################################################
+
     # Save to new slot
-    MarvelObject$DE$Exp.Spliced$Table <- df
-    MarvelObject$DE$Exp.Spliced$Plot <- plot
-    
+    MarvelObject$DE$Exp.Global$Summary <- tbl
+    MarvelObject$DE$Exp.Global$Table <- df
+    MarvelObject$DE$Exp.Global$Plot <- plot
+
     # Return final object
     return(MarvelObject)
         

@@ -35,12 +35,12 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     seed <- seed
     
     # Example arguments
-    #MarvelObject <- marvel
+    #MarvelObject <- s3
     #psi <- do.call(rbind.data.frame, MarvelObject$PSI)
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
-    #sample.ids <- sample.ids
-    #min.cells <- 25
+    #sample.ids <- cell.group.list[[6]]
+    #min.cells <- 20
     #sigma.sq <- 0.001
     #bimodal.adjust <- TRUE
     #bimodal.adjust.fc <- 3.0
@@ -60,6 +60,17 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     # Subset events with sufficient cells
     . <- apply(psi, 1, function(x) {sum(!is.na(x))})
     index.keep <- . >= min.cells
+    
+    if(sum(index.keep) == 0) {
+        
+        print("No expressed events found")
+        
+        MarvelObject$Modality$Results <- NULL
+        
+        return(MarvelObject)
+    
+    }
+    
     psi <- psi[index.keep, , drop=FALSE]
     psi.feature <- psi.feature[index.keep, , drop=FALSE]
     
@@ -414,6 +425,8 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
             }
         
     }
+    
+    ########################################################################
     
     # Remove intermediate columns
     #psi.feature$alpha <- NULL

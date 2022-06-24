@@ -4,7 +4,8 @@
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{CompareValues} function.
 #' @param method Character string. The statistical method used for differential splicing analysis.
-#' @param psi.pval Numeric value. Adjusted p-value below which the splicing event is considered differentially spliced and included for isoform switching analysis.
+#' @param psi.pval Numeric value. Adjusted p-value below which the splicing event is considered differentially spliced and included for modality analysis.
+#' @param psi.delta Numeric value. The absolute difference between the means PSI values of cell group 1 and 2, above which, the splicing event is considered differentially spliced and included for modality analysis.
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$DE$Modality$Table}, \code{MarvelObject$DE$Modality$Plot}, and \code{MarvelObject$DE$Modality$Plot.Stats}.
 #'
@@ -15,16 +16,18 @@
 #'
 #' @export
 
-ModalityChange <- function(MarvelObject, method, psi.pval) {
+ModalityChange <- function(MarvelObject, method, psi.pval, psi.delta=0) {
     
     # Define arguments
     method <- method
     psi.pval <- psi.pval
+    psi.delta <- psi.delta
     
     # Example arguments
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
+    #psi.delta <- 5
     
     # Annotate modality change
     for(i in 1:length(method)) {
@@ -77,7 +80,7 @@ ModalityChange <- function(MarvelObject, method, psi.pval) {
         results <- MarvelObject$DE$PSI$Table[[method[i]]]
         
         # Subset sig events
-        index <- which(results$p.val.adj < psi.pval[i] & results$outlier==FALSE)
+        index <- which(results$p.val.adj < psi.pval[i] & abs(results$mean.diff) > psi.delta & results$outlier==FALSE)
         results.small <- results[index, ]
         
         # Subset relevant columns

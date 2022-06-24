@@ -4,7 +4,7 @@
 \alias{CountEvents}
 \title{Tabulate the number of expressed splicing events}
 \usage{
-CountEvents(MarvelObject, sample.ids, min.cells, event.group.colors)
+CountEvents(MarvelObject, sample.ids, min.cells, event.group.colors = NULL)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}

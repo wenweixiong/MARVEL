@@ -12,6 +12,7 @@
 #' @param method.adjust Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.
 #' @param show.progress Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.
 #' @param nboots Numeric value. When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.
+#' @param custom.gene_ids Character string. Instead of specified the genes to include for DE analysis with \code{min.cells}, users may input a custom vector of gene IDs to include for DE analysis.
 #'
 #' @return An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 #'
@@ -21,7 +22,7 @@
 #' @import utils
 #' @export
 
-CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, method.adjust, show.progress=TRUE, nboots=1000) {
+CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, method.adjust, show.progress=TRUE, nboots=1000, custom.gene_ids=NULL) {
 
     # Define arguments
     df <- MarvelObject$Exp
@@ -36,6 +37,7 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     method.adjust <- method.adjust
     show.progress <- show.progress
     nboots <- nboots
+    custom.gene_ids <- custom.gene_ids
     
     # Define arguments
     #df <- marvel$Exp
@@ -49,7 +51,8 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     #method <- "wilcox"
     #method.adjust <- "fdr"
     #show.progress <- TRUE
-        
+    #custom.gene_ids <- custom.gene_ids
+    
     # Create row names for matrix
     row.names(df) <- df$gene_id
     df$gene_id <- NULL
@@ -84,6 +87,8 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     }
     
     # Subset events with sufficient cells
+    if(is.null(custom.gene_ids[1])) {
+        
         # Group 1
         df.small <- df[, which(names(df) %in% sample.ids.1)]
         . <- apply(df.small, 1, function(x) {sum(x > 0)})
@@ -130,7 +135,15 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         print(paste(length(gene_ids.1), " expressed genes identified in Group 1", sep=""))
         print(paste(length(gene_ids.2), " expressed genes identified in Group 2", sep=""))
         print(paste(length(all), " expressed genes identified in EITHER Group 1 or Group 2", sep=""))
+    
+    } else {
         
+        df.feature <- df.feature[which(df.feature$gene_id %in% custom.gene_ids), ]
+        df <- df[df.feature$gene_id, ]
+        print(paste(length(custom.gene_ids), " custom genes specified", sep=""))
+        
+    }
+    
     # Statistical test
     gene_ids <- df.feature$gene_id
     
@@ -250,12 +263,20 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     results <- results[,c(cols.1, cols.2)]
     
     # Report result summary
-    print(paste(sum(results$p.val.adj < 0.10), " DE genes < 0.10 adjusted p-value", sep=""))
-    print(paste(sum(results$p.val.adj < 0.05), " DE genes < 0.05 adjusted p-value", sep=""))
-    print(paste(sum(results$p.val.adj < 0.01), " DE genes < 0.01 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.10), " DE genes < 0.10 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.05), " DE genes < 0.05 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.01), " DE genes < 0.01 adjusted p-value", sep=""))
     
     # Save to new slot
-    MarvelObject$DE$Exp$Table <- results
+    if(is.null(custom.gene_ids[1])) {
+        
+        MarvelObject$DE$Exp$Table <- results
+        
+    } else {
+        
+        MarvelObject$DE$Exp.Custom$Table <- results
+        
+    }
   
     return(MarvelObject)
         

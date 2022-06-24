@@ -8,6 +8,7 @@ BioPathways(
   MarvelObject,
   method = NULL,
   pval = NULL,
+  delta = 0,
   n.top = NULL,
   method.adjust = "fdr",
   custom.genes = NULL,
@@ -20,6 +21,8 @@ BioPathways(
 \item{method}{Character string. The statistical method used for differential splicing analysis.}
 
 \item{pval}{Numeric value. Alternative to \code{n.top} and \code{custom.genes}, i.e. choose one of these three options. Adjusted p-value below which the splicing events are considered differentially spliced and their corresponding genes are included for gene ontology analysis. If this argument is specified, then \code{n.top} must not be specified.}
+
+\item{delta}{Numeric value. The absolute difference between the means PSI values of cell group 1 and 2, above which, the splicing event is considered differentially spliced and their corresponding genes are included for gene ontology analysis.}
 
 \item{n.top}{Numeric value. Alternative to \code{pval} to \code{custom.genes}, i.e. choose one of these three options.. Indicate the top n splicing events with the smallest adjusted p-values are differentially spliced and their corresponding genes are included for gene ontology analysis. If this argument is specified, then \code{pval} must not be specified.}
 

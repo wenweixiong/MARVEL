@@ -14,7 +14,8 @@ CompareValues.Exp(
   method,
   method.adjust,
   show.progress = TRUE,
-  nboots = 1000
+  nboots = 1000,
+  custom.gene_ids = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ CompareValues.Exp(
 \item{show.progress}{Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.}
 
 \item{nboots}{Numeric value. When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.}
+
+\item{custom.gene_ids}{Character string. Instead of specified the genes to include for DE analysis with \code{min.cells}, users may input a custom vector of gene IDs to include for DE analysis.}
 }
 \value{
 An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.

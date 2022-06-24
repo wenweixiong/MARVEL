@@ -6,32 +6,31 @@
 \usage{
 RunPCA.PSI(
   MarvelObject,
-  cell.group.list,
-  min.cells = 25,
+  cell.group.column,
+  cell.group.order,
+  cell.group.colors = NULL,
   features,
+  min.cells = 25,
   point.size = 0.5,
   point.alpha = 0.75,
   point.stroke = 0.1,
-  event.type,
   seed = 1,
-  method.impute = "population.mean",
-  retrieve.non.outliers = FALSE,
-  pc1.min = NULL,
-  pc1.max = NULL,
-  pc2.min = NULL,
-  pc2.max = NULL,
-  remove.outliers = FALSE,
-  cell.group.colors = NULL
+  method.impute = "random",
+  cell.group.column.impute = NULL
 )
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}
 
-\item{cell.group.list}{List of character strings. Each element of the list is a vector of cell IDs corresponding to a cell group. The name of the element will be the cell group label.}
+\item{cell.group.column}{Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.}
 
-\item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.}
+\item{cell.group.order}{Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.}
+
+\item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.}
 
 \item{features}{Character string. Vector of \code{tran_id} for analysis. Should match \code{tran_id} column of \code{MarvelObject$ValidatedSpliceFeature}.}
+
+\item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.}
 
 \item{point.size}{Numeric value. Size of data points on reduced dimension space.}
 
@@ -39,28 +38,14 @@ RunPCA.PSI(
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
 
-\item{event.type}{Character string. Indicate which splicing event type to include for analysis. Can take value \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, or \code{"A3SS"} which represents skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS), respectively.}
-
 \item{seed}{Numeric value. Ensures imputed values for NA PSIs are reproducible.}
 
 \item{method.impute}{Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.}
 
-\item{retrieve.non.outliers}{Logical. If set to \code{TRUE}, this function will retrieve \code{sample.id} of non-outliers based on the intial PCA. Define the non-outliers based on the initial PCA coordinates. Use in conjunction with arguments \code{pc1.min}, \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc1.min}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc1.max}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.max}.}
-
-\item{pc2.min}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc1.max}, and \code{pc2.max}.}
-
-\item{pc2.max}{Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.min}.}
-
-\item{remove.outliers}{Logical. If set to \code{TRUE}, re-run PCA by only including non-outliers. Use after running the function with \code{retrieve.non.outliers} set to \code{TRUE}.}
-
-\item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.}
+\item{cell.group.column.impute}{Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.}
 }
 \value{
-An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results}, \code{MarvelObject$PCA$PSI$Plot}, and \code{MarvelObject$PCA$PSI$Plot.Elbow}.
+An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results} and  \code{MarvelObject$PCA$PSI$Plot}
 }
 \description{
 Performs principle component analysis using PSI values.

@@ -7,6 +7,9 @@
 #' @param cell.group.g2 Vector of character strings. Cell IDs corresponding to Group 2 of downstream differential splice junction analysis.
 #' @param min.pct.cells.genes Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function.
 #' @param min.pct.cells.sj Numeric value. Minimum percentage of cells in which the splice junction is expressed for that splice junction to be included for splice junction expression distribution analysis. Expressed splice junctions defined as splice junctions with raw UMI counts >= 1.
+#' @param downsample Logical value. If set to \code{TRUE}, the splice junctions will be downsampled so that only a smaller number of splice junctions will be included for expression exploration analysis here. Default value is \code{FALSE}.
+#' @param downsample.pct.sj Numeric value. If \code{downsample} set to \code{TRUE}, the minimum percentage of splice junctions to include for expression exploration analysis here.
+#' @param seed Numeric value. To ensure the splice junctions downsampled will always be reproducible.
 #'
 #' @return An object of class S3 with a new slots \code{MarvelObject$pct.cells.expr$SJ$Plot} and \code{MarvelObject$pct.cells.expr$SJ$Data}
 #'
@@ -15,7 +18,7 @@
 #'
 #' @export
 
-PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10) {
+PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, downsample=FALSE, downsample.pct.sj=10, seed=1) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -27,6 +30,9 @@ PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, 
     cell.group.g2 <- cell.group.g2
     min.pct.cells.genes <- min.pct.cells.genes
     min.pct.cells.sj <- min.pct.cells.sj
+    downsample <- downsample
+    downsample.pct.sj <- downsample.pct.sj
+    seed <- seed
     
     # Example arguments
     #MarvelObject <- marvel
@@ -38,6 +44,9 @@ PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, 
     #cell.group.g2 <- cell.ids.2
     #min.pct.cells.genes <- 10
     #min.pct.cells.sj <- 5
+    #downsample <- TRUE
+    #downsample.pct.sj <- 10
+    #seed <- 1
     
     ################################################################
     
@@ -84,6 +93,23 @@ PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, 
     
     # Save as new object
     results.genes <- results
+    
+    ####################### DOWN-SAMPLE SJ ###########################
+    
+    if(downsample==TRUE) {
+        
+        # Set seed
+        set.seed(1)
+        
+        # Find no. of SJ to downsample
+        size <- round(nrow(df.sj.count) * (downsample.pct.sj / 100), digit=0)
+        coord.introns <- sample(rownames(df.sj.count), size=size, replace=FALSE)
+        
+        # Subset
+        sj.metadata <- sj.metadata[which(sj.metadata$coord.intron %in% coord.introns), ]
+        df.sj.count <- df.sj.count[coord.introns, ]
+        
+    }
     
     ################################################################
     

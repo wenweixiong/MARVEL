@@ -61,15 +61,17 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     #cell.group.g1 <- cell.group.g1
     #cell.group.g2 <- cell.group.g2
     #downsample <- FALSE
-    #min.cells <- 50
+    #min.cells <- 15
     #pct.cells <- NULL
     #method <- "ad"
     #method.adjust <- "fdr"
-    #event.type <- c("SE")
+    #event.type <- c("A3SS")
     #show.progress <- TRUE
-    #annotate.outliers <- FALSE
+    #annotate.outliers <- TRUE
     #n.cells.outliers <- 10
-    #assign.modality <- FALSE
+    #assign.modality <- TRUE
+    
+    ############################################################
     
     # Create row names for matrix
     row.names(df) <- df$tran_id
@@ -470,39 +472,47 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
             index <- intersect(index.1, index.2)
             results.small <- results[index, ]
             
-            # Group 1
-                # Subset matrix
-                df.small <- df[results.small$tran_id, sample.ids.1]
-                
-                # Compute n cells
-                . <- apply(df.small, 1, function(x) {sum(x!=1, na.rm=TRUE)})
-                . <- data.frame("tran_id"=names(.), "n.cells.outliers.g1"=as.numeric(.), stringsAsFactors=FALSE)
-                
-                # Annotate result table
-                results.small <- join(results.small, ., by="tran_id", type="left")
-                
-            # Group 2
-                # Subset matrix
-                df.small <- df[results.small$tran_id, sample.ids.2]
-                
-                # Compute n cells
-                . <- apply(df.small, 1, function(x) {sum(x!=1, na.rm=TRUE)})
-                . <- data.frame("tran_id"=names(.), "n.cells.outliers.g2"=as.numeric(.), stringsAsFactors=FALSE)
-                
-                # Annotate result table
-                results.small <- join(results.small, ., by="tran_id", type="left")
-                
-            # Re-code p-values below threshold
-            index <- which(results.small$n.cells.outliers.g1 < n.cells.outliers & results.small$n.cells.outliers.g2 < n.cells.outliers)
+            if(length(index) != 0) {
             
-            #results.small$p.val.adj[index] <- 1
-            
-            # Indicate if outliers were adjusted for
-            results.small$outliers <- FALSE
-            results.small$outliers[index] <- TRUE
-            
-            # Save as new object
-            results.small.included <- results.small
+                # Group 1
+                    # Subset matrix
+                    df.small <- df[results.small$tran_id, sample.ids.1]
+                    
+                    # Compute n cells
+                    . <- apply(df.small, 1, function(x) {sum(x!=1, na.rm=TRUE)})
+                    . <- data.frame("tran_id"=names(.), "n.cells.outliers.g1"=as.numeric(.), stringsAsFactors=FALSE)
+                    
+                    # Annotate result table
+                    results.small <- join(results.small, ., by="tran_id", type="left")
+                    
+                # Group 2
+                    # Subset matrix
+                    df.small <- df[results.small$tran_id, sample.ids.2]
+                    
+                    # Compute n cells
+                    . <- apply(df.small, 1, function(x) {sum(x!=1, na.rm=TRUE)})
+                    . <- data.frame("tran_id"=names(.), "n.cells.outliers.g2"=as.numeric(.), stringsAsFactors=FALSE)
+                    
+                    # Annotate result table
+                    results.small <- join(results.small, ., by="tran_id", type="left")
+                    
+                # Re-code p-values below threshold
+                index <- which(results.small$n.cells.outliers.g1 < n.cells.outliers & results.small$n.cells.outliers.g2 < n.cells.outliers)
+                
+                #results.small$p.val.adj[index] <- 1
+                
+                # Indicate if outliers were adjusted for
+                results.small$outliers <- FALSE
+                results.small$outliers[index] <- TRUE
+                
+                # Save as new object
+                results.small.included <- results.small
+                
+            } else {
+                
+                results.small.included <- NULL
+                
+            }
         
         # Check num of cells !=0 for excluded -> excluded modality changes
             # Subset relevant modality changes
@@ -511,41 +521,51 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
             index <- intersect(index.1, index.2)
             results.small <- results[index, ]
             
-            # Group 1
-                # Subset matrix
-                df.small <- df[results.small$tran_id, sample.ids.1]
-                
-                # Compute n cells
-                . <- apply(df.small, 1, function(x) {sum(x!=0, na.rm=TRUE)})
-                . <- data.frame("tran_id"=names(.), "n.cells.outliers.g1"=as.numeric(.), stringsAsFactors=FALSE)
-                
-                # Annotate result table
-                results.small <- join(results.small, ., by="tran_id", type="left")
-                
-            # Group 2
-                # Subset matrix
-                df.small <- df[results.small$tran_id, sample.ids.2]
-                
-                # Compute n cells
-                . <- apply(df.small, 1, function(x) {sum(x!=0, na.rm=TRUE)})
-                . <- data.frame("tran_id"=names(.), "n.cells.outliers.g2"=as.numeric(.), stringsAsFactors=FALSE)
-                
-                # Annotate result table
-                results.small <- join(results.small, ., by="tran_id", type="left")
-                
-            # Re-code p-values below threshold
-            index <- which(results.small$n.cells.outliers.g1 < n.cells.outliers & results.small$n.cells.outliers.g2 < n.cells.outliers)
+            if(length(index) != 0) {
             
-            #results.small$p.val.adj[index] <- 1
-            
-            # Indicate if outliers
-            results.small$outliers <- FALSE
-            results.small$outliers[index] <- TRUE
-            
-            # Save as new object
-            results.small.excluded <- results.small
+                # Group 1
+                    # Subset matrix
+                    df.small <- df[results.small$tran_id, sample.ids.1]
+                    
+                    # Compute n cells
+                    . <- apply(df.small, 1, function(x) {sum(x!=0, na.rm=TRUE)})
+                    . <- data.frame("tran_id"=names(.), "n.cells.outliers.g1"=as.numeric(.), stringsAsFactors=FALSE)
+                    
+                    # Annotate result table
+                    results.small <- join(results.small, ., by="tran_id", type="left")
+                    
+                # Group 2
+                    # Subset matrix
+                    df.small <- df[results.small$tran_id, sample.ids.2]
+                    
+                    # Compute n cells
+                    . <- apply(df.small, 1, function(x) {sum(x!=0, na.rm=TRUE)})
+                    . <- data.frame("tran_id"=names(.), "n.cells.outliers.g2"=as.numeric(.), stringsAsFactors=FALSE)
+                    
+                    # Annotate result table
+                    results.small <- join(results.small, ., by="tran_id", type="left")
+                    
+                # Re-code p-values below threshold
+                index <- which(results.small$n.cells.outliers.g1 < n.cells.outliers & results.small$n.cells.outliers.g2 < n.cells.outliers)
+                
+                #results.small$p.val.adj[index] <- 1
+                
+                # Indicate if outliers
+                results.small$outliers <- FALSE
+                results.small$outliers[index] <- TRUE
+                
+                # Save as new object
+                results.small.excluded <- results.small
+                
+            } else {
+                
+                results.small.excluded <- NULL
+                
+            }
             
         # Merge
+        if(!is.null(results.small.included) | !is.null(results.small.excluded)) {
+            
             # Retrieve events not needing outlier adjustment
             tran_ids <- setdiff(results$tran_id, c(results.small.included$tran_id, results.small.excluded$tran_id))
         
@@ -561,6 +581,15 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         
             # Reorder by p-values
             results <- results[order(results$p.val), ]
+            
+        } else {
+            
+            # Match columns
+            results$n.cells.outliers.g1 <- 0
+            results$n.cells.outliers.g2 <- 0
+            results$outliers <- FALSE
+            
+        }
         
     } else {
         
@@ -580,9 +609,9 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     results$mean.diff <- results$mean.diff * 100
     
     # Report result summary
-    print(paste(sum(results$p.val.adj < 0.10), " DE splicing events < 0.10 adjusted p-value", sep=""))
-    print(paste(sum(results$p.val.adj < 0.05), " DE splicing events < 0.05 adjusted p-value", sep=""))
-    print(paste(sum(results$p.val.adj < 0.01), " DE splicing events < 0.01 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.10), " DE splicing events < 0.10 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.05), " DE splicing events < 0.05 adjusted p-value", sep=""))
+    #print(paste(sum(results$p.val.adj < 0.01), " DE splicing events < 0.01 adjusted p-value", sep=""))
  
     # Return result table (not new MARVEL object)
     return(results)

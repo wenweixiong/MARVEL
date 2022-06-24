@@ -18,7 +18,7 @@
 #'
 #' @export
 
-CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors) {
+CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=NULL) {
 
     # Define arguments
     psi <- do.call(rbind.data.frame, MarvelObject$PSI)

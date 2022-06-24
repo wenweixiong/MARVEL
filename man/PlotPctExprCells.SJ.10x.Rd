@@ -9,7 +9,10 @@ PlotPctExprCells.SJ.10x(
   cell.group.g1,
   cell.group.g2,
   min.pct.cells.genes = 10,
-  min.pct.cells.sj = 10
+  min.pct.cells.sj = 10,
+  downsample = FALSE,
+  downsample.pct.sj = 10,
+  seed = 1
 )
 }
 \arguments{
@@ -22,6 +25,12 @@ PlotPctExprCells.SJ.10x(
 \item{min.pct.cells.genes}{Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function.}
 
 \item{min.pct.cells.sj}{Numeric value. Minimum percentage of cells in which the splice junction is expressed for that splice junction to be included for splice junction expression distribution analysis. Expressed splice junctions defined as splice junctions with raw UMI counts >= 1.}
+
+\item{downsample}{Logical value. If set to \code{TRUE}, the splice junctions will be downsampled so that only a smaller number of splice junctions will be included for expression exploration analysis here. Default value is \code{FALSE}.}
+
+\item{downsample.pct.sj}{Numeric value. If \code{downsample} set to \code{TRUE}, the minimum percentage of splice junctions to include for expression exploration analysis here.}
+
+\item{seed}{Numeric value. To ensure the splice junctions downsampled will always be reproducible.}
 }
 \value{
 An object of class S3 with a new slots \code{MarvelObject$pct.cells.expr$SJ$Plot} and \code{MarvelObject$pct.cells.expr$SJ$Data}

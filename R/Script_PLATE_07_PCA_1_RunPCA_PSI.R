@@ -3,24 +3,19 @@
 #' @description Performs principle component analysis using PSI values.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{TransformExpValues} function.
-#' @param cell.group.list List of character strings. Each element of the list is a vector of cell IDs corresponding to a cell group. The name of the element will be the cell group label.
+#' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
+#' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
+#' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
 #' @param min.cells Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.
 #' @param features Character string. Vector of \code{tran_id} for analysis. Should match \code{tran_id} column of \code{MarvelObject$ValidatedSpliceFeature}.
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
 #' @param point.alpha Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.
 #' @param point.stroke Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.
-#' @param event.type Character string. Indicate which splicing event type to include for analysis. Can take value \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, or \code{"A3SS"} which represents skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS), respectively.
 #' @param seed Numeric value. Ensures imputed values for NA PSIs are reproducible.
 #' @param method.impute Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.
-#' @param retrieve.non.outliers Logical. If set to \code{TRUE}, this function will retrieve \code{sample.id} of non-outliers based on the intial PCA. Define the non-outliers based on the initial PCA coordinates. Use in conjunction with arguments \code{pc1.min}, \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.
-#' @param pc1.min Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc2.min}, and \code{pc2.max}.
-#' @param pc1.max Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC1 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.max}.
-#' @param pc2.min Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value above which to retrieve the sample IDs. Use in conjunction with \code{pc1.max}, \code{pc1.max}, and \code{pc2.max}.
-#' @param pc2.max Numeric value. When \code{retrieve.non.outliers} set to \code{TRUE}. To indicate the PC2 value below which to retrieve the sample IDs. Use in conjunction with \code{pc1.min}, \code{pc2.min}, and \code{pc2.min}.
-#' @param remove.outliers Logical. If set to \code{TRUE}, re-run PCA by only including non-outliers. Use after running the function with \code{retrieve.non.outliers} set to \code{TRUE}.
-#' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
+#' @param cell.group.column.impute Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.
 #'
-#' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results}, \code{MarvelObject$PCA$PSI$Plot}, and \code{MarvelObject$PCA$PSI$Plot.Elbow}.
+#' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results} and  \code{MarvelObject$PCA$PSI$Plot}
 #'
 #' @importFrom plyr join
 #' @import stats
@@ -32,55 +27,44 @@
 #'
 #' @export
 
-
-RunPCA.PSI <- function(MarvelObject, cell.group.list, min.cells=25, features,
+RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.group.colors=NULL,
+                       features, min.cells=25,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1,
-                       event.type, seed=1, method.impute="population.mean",
-                       retrieve.non.outliers=FALSE, pc1.min=NULL, pc1.max=NULL, pc2.min=NULL, pc2.max=NULL,
-                       remove.outliers=FALSE, cell.group.colors=NULL
+                       seed=1, method.impute="random", cell.group.column.impute=NULL
                        ) {
 
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
     df.pheno <- MarvelObject$SplicePheno
     df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
-    cell.group.list <- cell.group.list
-    min.cells <- min.cells
+    cell.group.column <- cell.group.column
+    cell.group.order <- cell.group.order
+    cell.group.colors <- cell.group.colors
     features <- features
+    min.cells <- min.cells
+    method.impute <- method.impute
+    cell.group.column.impute <- cell.group.column.impute
+    seed <- seed
     point.size <- point.size
     point.alpha <- point.alpha
     point.stroke <- point.stroke
-    seed <- seed
-    method.impute <- method.impute
-    event.type <- event.type
-    retrieve.non.outliers <- retrieve.non.outliers
-    pc1.min <- pc1.min
-    pc1.max <- pc1.max
-    pc2.min <- pc2.min
-    pc2.max <- pc2.max
-    remove.outliers <- remove.outliers
-    cell.group.colors <- cell.group.colors
     
     # Example arguments
-    #df <- do.call(rbind.data.frame, marvel$PSI)
-    #df.pheno <- marvel$SplicePheno
-    #df.feature <- do.call(rbind.data.frame, marvel$SpliceFeatureValidated)
-    #cell.group.list <- cell.group.list
-    #min.cells <- 25
-    #features <- tran_ids
-    #method.impute <- "random"
+    #MarvelObject <- marvel
+    #df <- do.call(rbind.data.frame, MarvelObject$PSI)
+    #df.pheno <- MarvelObject$SplicePheno
+    #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
+    #cell.group.column <- "group"
+    #cell.group.order <- cell.group.order
+    #cell.group.colors <- NULL
+    #features <- tran_ids.
+    #min.cells <- 15
+    #method.impute <- "population.mean"
+    #cell.group.column.impute <- "group.impute"
     #seed <- 1
-    #event.type <- c("SE", "MXE", "RI", "A5SS", "A3SS", "ALE", "AFE")
     #point.size <- 2.5
     #point.alpha <- 0.75
     #point.stroke <- 0.1
-    #retrieve.non.outliers <- FALSE
-    #pc1.min <- NULL
-    #pc1.max <- NULL
-    #pc2.min <- NULL
-    #pc2.max <- NULL
-    #cell.group.colors <- NULL
-    #remove.outliers <- FALSE
     
     ######################################################################
     
@@ -88,50 +72,51 @@ RunPCA.PSI <- function(MarvelObject, cell.group.list, min.cells=25, features,
     row.names(df) <- df$tran_id
     df$tran_id <- NULL
     
-    # Retrieve sample ids for each group
-    .list <- list()
+    # Rename cell group label/impute columns
+    names(df.pheno)[which(names(df.pheno)==cell.group.column)] <- "pca.cell.group.label"
     
-    for(i in 1:length(cell.group.list)) {
+    if(!is.null(cell.group.column.impute)) {
+      
+        names(df.pheno)[which(names(df.pheno)==cell.group.column.impute)] <- "pca.cell.group.impute"
         
+    } else {
         
-        .list[[i]] <- data.frame("sample.id"=cell.group.list[[i]],
-                                 "cell.type.label"=names(cell.group.list)[[i]],
-                                 stringsAsFactors=FALSE
-                                 )
+        df.pheno$pca.cell.group.impute <- df.pheno$pca.cell.group.label
         
     }
     
-    md <- do.call(rbind.data.frame, .list)
-       
-    # Set factor levels
-    md$cell.type.label <- factor(md$cell.type.label, levels=names(cell.group.list))
-    
     # Subset relevant cells
-    df.pheno <- df.pheno[which(df.pheno$sample.id %in% md$sample.id), ]
-    df.pheno <- join(df.pheno, md, by="sample.id", type="left")
-    df <- df[, which(names(df) %in% df.pheno$sample.id)]
+        # Check if cell group order is defined
+        if(is.null(cell.group.order[1])) {
+            
+            cell.group.order <- unique(df.pheno$pca.cell.group.label)
+            
+        }
+
+        # Cell group
+        index <- which(df.pheno$pca.cell.group.label %in% cell.group.order)
+        df.pheno <- df.pheno[index, ]
+        
+        # Subset matrix
+        df <- df[, df.pheno$sample.id]
+        
+    # Set factor levels
+    levels <- intersect(cell.group.order, unique(df.pheno$pca.cell.group.label))
+    df.pheno$pca.cell.group.label <- factor(df.pheno$pca.cell.group.label, levels=levels)
+
+    # Subset features to reduce
+    df.feature <- df.feature[which(df.feature$tran_id %in% features), ]
+    df <- df[df.feature$tran_id, ]
 
     # Subset relevant event type
-    df.feature <- df.feature[which(df.feature$event_type %in% event.type), ]
-    df <- df[df.feature$tran_id, ]
+    #df.feature <- df.feature[which(df.feature$event_type %in% event.type), ]
+    #df <- df[df.feature$tran_id, ]
     
     # Subset events with sufficient cells
     . <- apply(df, 1, function(x) {sum(!is.na(x))})
     index.keep <- which(. >= min.cells)
     df <- df[index.keep, ]
     df.feature <- df.feature[which(df.feature$tran_id %in% row.names(df)), ]
-    
-    # Subset features to reduce
-    df.feature <- df.feature[which(df.feature$tran_id %in% features), ]
-    df <- df[df.feature$tran_id, ]
-    
-    # Remove outliers (previously identified)
-    if(remove.outliers==TRUE) {
-        
-        df.pheno <- df.pheno[which(df.pheno$sample.id %in% MarvelObject$PCA$PSI$sample.ids.non.outliers), ]
-        df <- df[, df.pheno$sample.id]
-        
-    }
     
     # Impute missing values
     if(method.impute=="random") {
@@ -142,24 +127,67 @@ RunPCA.PSI <- function(MarvelObject, cell.group.list, min.cells=25, features,
     } else if(method.impute=="population.mean"){
         
         # Define cell groups
-        cell.type.labels <- unique(md$cell.type.label)
+        groups <- unique(df.pheno$pca.cell.group.impute)
         
+        # Subset events with sufficient cells
         .list <- list()
         
-        for(i in 1:length(cell.type.labels)) {
+        for(i in 1:length(groups)) {
             
-            # Define cell group
-            cell.type.label <- cell.type.labels[i]
+            # Define cell groups
+            group <- groups[i]
             
             # Subset cell group
-            sample.ids <- md[which(md$cell.type.label==cell.type.label), "sample.id"]
+            sample.ids <- df.pheno[which(df.pheno$pca.cell.group.impute==group), "sample.id"]
+            df.small <- df[, sample.ids]
+            
+            # Retrieve expressed events
+            . <- apply(df.small, 1, function(x) {sum(!is.na(x))})
+            tran_ids <- names(.)[which(. >= min.cells)]
+            #print(length(tran_ids))
+            
+            # Save into list
+            .list[[i]] <- tran_ids
+            
+        }
+        
+        tran_ids <- Reduce(intersect, .list)
+
+        df.feature <- df.feature[which(df.feature$tran_id %in% tran_ids), ]
+        df <- df[df.feature$tran_id ,]
+        
+        # Impute values for each cell group
+        for(i in 1:length(groups)) {
+            
+            # Define cell groups
+            group <- groups[i]
+            
+            # Subset cell group
+            sample.ids <- df.pheno[which(df.pheno$pca.cell.group.impute==group), "sample.id"]
             df.small <- df[, sample.ids]
             
             # Impute
+            set.seed(seed)
+            
             df.small <- apply(df.small, 1, function(x) {
-                
+                            
+                            # Example
                             #x <- as.numeric(df.small[4, ])
-                            x[is.na(x)] <- mean(x, na.rm=TRUE)
+                            
+                            # Find mean, std
+                            ave <- mean(x[!is.na(x)], na.rm=TRUE)
+                            std.dev <- sd(x[!is.na(x)], na.rm=TRUE)
+                            
+                            # Impute
+                            values <- rnorm(sum(is.na(x)), mean=ave, sd=std.dev)
+                            
+                            # Jitter values
+                            #values <- jitter(values)
+                            
+                            # Re-code missing values
+                            x[is.na(x)] <- values
+                            
+                            # Return values
                             return(x)
                             
                         })
@@ -173,57 +201,25 @@ RunPCA.PSI <- function(MarvelObject, cell.group.list, min.cells=25, features,
             
         }
         
-        df.imputed <- do.call(cbind.data.frame, .list)
+        df <- do.call(cbind.data.frame, .list)
         
-        # Impute values for population-specific events
-        set.seed(seed)
-        df.imputed[is.na(df.imputed)] <- runif(n=sum(is.na(df.imputed)), min=0, max=1)
-        
-        # Remove non-expressed population-specific events
-        #. <- apply(df.small, 1, function(x) { sum(is.na(x)) })
-        #index <- which(. == 0)
-        #df.imputed <- df.imputed[index, ]
-        #df.feature <- df.feature[which(df.feature$tran_id %in% row.names(df.imputed)), ]
-        
-        # Check alignment
-        table(names(df.imputed)==names(df))
-        
-        # Fix alignment
-        df.imputed <- df.imputed[, names(df)]
-        table(names(df.imputed)==names(df))
-        
-        # Save as new object
-        df <- df.imputed
+        # Match matrix column to phenoData
+        df <- df[, df.pheno$sample.id]
     
     }
+
     
     ##############################################
     
     # Reduce dimension
     res.pca <- PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
     
-    if(retrieve.non.outliers==TRUE) {
-        
-        # Retrieve coordinates
-        . <- as.data.frame(res.pca$ind$coord)
-        
-        # Subset PC1
-        . <- .[which(.$Dim.1 > pc1.min & .$Dim.1 < pc1.max), ]
-        
-        # Subset PC2
-        . <- .[which(.$Dim.2 > pc2.min & .$Dim.2 < pc2.max), ]
-        
-        # Save non-outliers
-        MarvelObject$PCA$PSI$sample.ids.non.outliers <- row.names(.)
-        
-    }
-    
     # Scatterplot
         # Definition
         data <- as.data.frame(res.pca$ind$coord)
         x <- data[,1]
         y <- data[,2]
-        z <- df.pheno$cell.type.label
+        z <- df.pheno$pca.cell.group.label
         maintitle <- paste(nrow(df), " splicing events", sep="")
         xtitle <- paste("PC1 (", round(get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")
         ytitle <- paste("PC2 (", round(get_eigenvalue(res.pca)[2,2], digits=1), "%)" ,sep="")
@@ -260,47 +256,14 @@ RunPCA.PSI <- function(MarvelObject, cell.group.list, min.cells=25, features,
                 axis.text=element_text(size=10, colour="black"),
                 legend.title=element_text(size=8),
                 legend.text=element_text(size=8)
-                )
-    
-    # Elbow plot
-        # Definition
-        if(length(features) < 20) {
-            
-            data.2 <- as.data.frame(get_eigenvalue(res.pca)[c(1:length(features)),])
-            
-        } else {
-            
-            data.2 <- as.data.frame(get_eigenvalue(res.pca)[c(1:20),])
-            
-        }
-        
-        
-        x.2 <- c(1:nrow(data.2))
-        y.2 <- data.2$variance.percent
-        maintitle.2 <- ""
-        xtitle.2 <- "PC"
-        ytitle.2 <- "Variance Explained (%)"
-        
-        # Plot
-        plot.2 <- ggplot() +
-            geom_point(data.2, mapping=aes(x=x.2, y=y.2), size=1, pch=21) +
-            labs(title=maintitle.2, x=xtitle.2, y=ytitle.2) +
-            theme(panel.grid.major=element_blank(),
-                panel.grid.minor=element_blank(),
-                panel.background=element_blank(),
-                plot.title = element_text(size=12, hjust=0.5),
-                axis.line=element_line(colour = "black"),
-                axis.title=element_text(size=12),
-                axis.text.x=element_text(size=10, colour="black"),
-                axis.text.y=element_text(size=10, colour="black"),
-                legend.title=element_text(size=8),
-                legend.text=element_text(size=8)
-                )
-                          
+                )  +
+        guides(fill = guide_legend(override.aes=list(size=2, alpha=point.alpha, stroke=point.stroke), ncol=1))
+     
+    ##############################################
+     
     # Save to new slot
     MarvelObject$PCA$PSI$Results <- res.pca
     MarvelObject$PCA$PSI$Plot <- plot
-    MarvelObject$PCA$PSI$Plot.Elbow <- plot.2
     
     return(MarvelObject)
         

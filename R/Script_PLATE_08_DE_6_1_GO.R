@@ -5,6 +5,7 @@
 #' @param MarvelObject Marvel object. S3 object generated from \code{CompareValues} function.
 #' @param method Character string. The statistical method used for differential splicing analysis.
 #' @param pval Numeric value. Alternative to \code{n.top} and \code{custom.genes}, i.e. choose one of these three options. Adjusted p-value below which the splicing events are considered differentially spliced and their corresponding genes are included for gene ontology analysis. If this argument is specified, then \code{n.top} must not be specified.
+#' @param delta Numeric value. The absolute difference between the means PSI values of cell group 1 and 2, above which, the splicing event is considered differentially spliced and their corresponding genes are included for gene ontology analysis.
 #' @param n.top Numeric value. Alternative to \code{pval} to \code{custom.genes}, i.e. choose one of these three options.. Indicate the top n splicing events with the smallest adjusted p-values are differentially spliced and their corresponding genes are included for gene ontology analysis. If this argument is specified, then \code{pval} must not be specified.
 #' @param method.adjust Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.
 #' @param custom.genes Character strings. Alternative to \code{pval} and \code{n.top}, i.e. choose one of these three options.. Vector of gene names to be assessed for enrichment of biological pathways.
@@ -23,11 +24,12 @@
 #'
 #' @export
 
-BioPathways <- function(MarvelObject, method=NULL, pval=NULL, n.top=NULL, method.adjust="fdr", custom.genes=NULL, species="human") {
+BioPathways <- function(MarvelObject, method=NULL, pval=NULL, delta=0, n.top=NULL, method.adjust="fdr", custom.genes=NULL, species="human") {
     
     # Define arguments
     method <- method
     pval <- pval
+    delta <- delta
     n.top <- n.top
     method.adjust <- method.adjust
     custom.genes <- custom.genes
@@ -37,6 +39,7 @@ BioPathways <- function(MarvelObject, method=NULL, pval=NULL, n.top=NULL, method
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #pval <- 0.10
+    #delta <- delta
     #n.top <- NULL
     #method.adjust <- "fdr"
     #custom.genes <- NULL
@@ -54,7 +57,7 @@ BioPathways <- function(MarvelObject, method=NULL, pval=NULL, n.top=NULL, method
             # Define sig genes
             if(!is.null(pval)) {
                 
-                index <- which(de$p.val.adj < pval & de$outlier==FALSE)
+                index <- which(de$p.val.adj < pval & abs(de$mean.diff) > delta & de$outlier==FALSE)
                 gene_short_names <- de[index, "gene_short_name"]
                 
             } else if(!is.null(n.top)) {
