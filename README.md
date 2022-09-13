@@ -63,7 +63,7 @@ install.packages("twosamples")
 
 Please install the modified wiggleplotr R package from here: http://datashare.molbiol.ox.ac.uk/public/wwen/wiggleplotr_1.18.0_master.tar.gz
 ```
-install.packages("wiggleplotr_1.18.0.tar.gz", repos=NULL, type="source")
+install.packages("wiggleplotr_1.18.0_master.tar.gz", repos=NULL, type="source")
 ```
 
 Finally, please install MARVEL from this repository.
