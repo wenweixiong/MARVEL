@@ -12,6 +12,7 @@
 #' @param method.de.gene Character string. Same as \code{method} in \code{CompareValues} function.
 #' @param method.adjust.de.gene Character string. Same as \code{method} in \code{CompareValues} function.
 #' @param show.progress Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.
+# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
 #'
 #' @return An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 #'
@@ -21,7 +22,7 @@
 #' @import utils
 #' @export
 
-CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1, cell.group.g2, psi.method, psi.pval, psi.delta, method.de.gene="wilcox", method.adjust.de.gene="fdr", downsample=FALSE, show.progress=TRUE) {
+CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NULL, psi.method, psi.pval, psi.delta, method.de.gene="wilcox", method.adjust.de.gene="fdr", downsample=FALSE, show.progress=TRUE, use.downsampled.data=FALSE) {
 
     # Define arguments
     MarvelObject <- MarvelObject
@@ -34,6 +35,7 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1, cell.group.g2
     method.adjust.de.gene <- method.adjust.de.gene
     downsample <- downsample
     show.progress <- show.progress
+    use.downsampled.data <- use.downsampled.data
     
     # Example arguments
     #MarvelObject <- marvel
@@ -41,11 +43,14 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1, cell.group.g2
     #cell.group.g2 <- cell.group.g2
     #psi.method <- c("ad", "dts")
     #psi.pval <- c(0.1, 0.1)
-    #psi.delta <- 0
+    #psi.delta <- 10
     #method.de.gene <- "wilcox"
     #method.adjust.de.gene <- "fdr"
     #downsample <- FALSE
     #show.progress <- TRUE
+    #use.downsampled.data <- TRUE
+    
+    ##################################################
     
     # Tabulate sig events
     .list <- list()
@@ -70,6 +75,17 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1, cell.group.g2
     
     df <- do.call(rbind.data.frame, .list)
     df <- unique(df)
+    
+    # Use downsampled cells based on no. of genes expressed
+    if(use.downsampled.data==TRUE){
+        
+        df.downsampled <- MarvelObject$DE$Exp$Downsampled.Data$Table
+        
+        cell.group.g1 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g1"), "sample.id"]
+        
+        cell.group.g2 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g2"), "sample.id"]
+        
+    }
     
     # Perform DE analysis
     object <- CompareValues(MarvelObject=marvel,

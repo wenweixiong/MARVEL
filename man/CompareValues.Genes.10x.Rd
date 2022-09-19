@@ -4,10 +4,16 @@
 \alias{CompareValues.Genes.10x}
 \title{Differential gene expression analysis}
 \usage{
-CompareValues.Genes.10x(MarvelObject, show.progress = TRUE)
+CompareValues.Genes.10x(
+  MarvelObject,
+  log2.transform = TRUE,
+  show.progress = TRUE
+)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{CompareValues.SJ.10x} function.}
+
+\item{log2.transform}{Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to analysis.}
 
 \item{show.progress}{Logical value. If set to \code{TRUE} (default), the progress bar will appear.}
 }

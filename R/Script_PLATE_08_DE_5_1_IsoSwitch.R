@@ -8,6 +8,7 @@
 #' @param psi.delta Numeric value. The absolute mininum difference in PSI values between the two cell groups above which the splicing event is considered differentially spliced nd included for isoform switching analysis. To be used in conjunction with \code{psi.pval}. Specify \code{0} (default) to switch this threshold off.
 #' @param gene.pval Numeric value. Adjusted p-value below which the gene is considered differentially expressed. Default value is \code{0.1}.
 #' @param gene.log2fc Numeric value. The absolute log2 fold change in mean gene expression values between the two cell groups above which the gene is considered differentially expressed. To be used in conjunction with \code{gene.pval}. Specify \code{0} to switch this threshold off. Default value is \code{0.5}.
+#' @param event.type Character string. Indicate which splicing event type to include for analysis. Can take any combination of values: \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE}, or \code{"ALE}.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$DE$Cor$Table}, \code{MarvelObject$DE$Cor$Plot}, and \code{MarvelObject$DE$Cor$Plot.Stats}.
 #'
@@ -18,7 +19,7 @@
 #'
 #' @export
 
-IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5) {
+IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5, event.type=NULL) {
 
     # Define arguments
     method <- method
@@ -32,10 +33,11 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
+    #psi.delta <- 10
     #de.exp <- MarvelObject$DE$Exp.Spliced$Table
     #gene.pval <- 0.10
     #gene.log2fc <- 0.5
-    #psi.delta <- 0
+    #event.type <- c("A3SS")
     
     # Tabulate sig events
     .list <- list()
@@ -57,8 +59,14 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
         de.psi <- de.psi[which(de.psi$direction.psi %in% c("Up", "Down")), ]
         
         # Subset relevant columns
-        de.psi <- de.psi[,c("tran_id", "event_type", "gene_id", "gene_short_name", "gene_type", "direction.psi")]
+        de.psi <- de.psi[,c("tran_id", "event_type", "gene_id", "gene_short_name", "gene_type", "mean.diff", "direction.psi")]
         
+        # Subset relevent event type
+        if(!is.null(event.type[1])) {
+            
+            de.psi <- de.psi[which(de.psi$event_type %in% event.type), ]
+            
+        }
         # Save into list
         .list[[j]] <- de.psi
         
@@ -102,53 +110,80 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     # psi-gene cor: duplicate entries
         # Subset duplicate gene ids
         gene_ids <- freq[which(freq$freq != 1), "gene_id"]
-                        
-        gene_ids <- unique(gene_ids)
-        de.small <- de[which(de$gene_id %in% gene_ids), ]
         
-        # Stratify cor
-        de.small$cor <- NA
-        de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="Up")] <- "Coordinated"
-        de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="Down")] <- "Coordinated"
-        de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="Down")] <- "Opposing"
-        de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="Up")] <- "Opposing"
-        de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="No change")] <- "Iso-Switch"
-        de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="No change")] <- "Iso-Switch"
-        
-        # Stratify cor: Find mixed correlation
-        .list <- list()
-        
-        for(i in 1:length(gene_ids)) {
+        if(length(gene_ids) != 0) {
             
-            de.small. <- de.small[which(de.small$gene_id==gene_ids[i]), ]
-                          
-            cor.type <- unique(de.small.$cor)
+            gene_ids <- unique(gene_ids)
+            de.small <- de[which(de$gene_id %in% gene_ids), ]
             
-            if(length(cor.type)==1) {
+            # Stratify cor
+            de.small$cor <- NA
+            de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="Up")] <- "Coordinated"
+            de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="Down")] <- "Coordinated"
+            de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="Down")] <- "Opposing"
+            de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="Up")] <- "Opposing"
+            de.small$cor[which(de.small$direction.psi=="Up" & de.small$direction.gene=="No change")] <- "Iso-Switch"
+            de.small$cor[which(de.small$direction.psi=="Down" & de.small$direction.gene=="No change")] <- "Iso-Switch"
+            
+            # Stratify cor: Find mixed correlation
+            .list <- list()
+            
+            for(i in 1:length(gene_ids)) {
                 
-                de.small.$cor <- cor.type
-                .list[[i]] <- de.small.
+                de.small. <- de.small[which(de.small$gene_id==gene_ids[i]), ]
+                              
+                cor.type <- unique(de.small.$cor)
                 
-            } else if(length(cor.type) >= 2) {
-                
-                de.small.$cor <- "Complex"
-                .list[[i]] <- de.small.
+                if(length(cor.type)==1) {
+                    
+                    de.small.$cor <- cor.type
+                    .list[[i]] <- de.small.
+                    
+                } else if(length(cor.type) >= 2) {
+                    
+                    de.small.$cor <- "Complex"
+                    .list[[i]] <- de.small.
+                    
+                }
                 
             }
             
-        }
+            # Save as new object
+            de.multi <- do.call(rbind.data.frame, .list)
         
-        # Save as new object
-        de.multi <- do.call(rbind.data.frame, .list)
-    
-        # Merge
-        de <- rbind.data.frame(de.single, de.multi)
+            # Merge
+            de <- rbind.data.frame(de.single, de.multi)
+            
+        } else {
+            
+            de <- de.single
+            
+        }
     
     # Save gene data only
     cols <- c("gene_id", "gene_short_name", "gene_type", "cor")
     results <- de[, cols]
     results <- unique(results)
-
+    
+    # Set factor levels
+    levels.complete <- c("Coordinated", "Opposing", "Iso-Switch", "Complex")
+    levels <- intersect(levels.complete, unique(results$cor))
+    results$cor <- factor(results$cor, levels=levels)
+    
+    # Define color scheme
+    gg_color_hue <- function(n) {
+      hues = seq(15, 375, length = n + 1)
+      hcl(h = hues, l = 65, c = 100)[1:n]
+    }
+    
+    cols.complete = gg_color_hue(4)
+    
+    color.df <- data.frame("level"=levels.complete,
+                           "color"=cols.complete
+                           )
+    color.df <- color.df[which(color.df$level %in% levels), ]
+    colors <- color.df$color
+    
     # Doughnut plot
         # Tabulate freq (for gene, not splicing)
         #. <- as.data.frame(table(de$psi.gene.cor), stringsAsFactors=FALSE)
@@ -158,8 +193,9 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
         .$pct <- .$freq / sum(.$freq) * 100
         
         # Set factor levels
-        levels <- intersect(c("Coordinated", "Opposing", "Iso-Switch", "Complex"), unique(.$cor))
-        .$cor <- factor(.$cor, levels=c("Coordinated", "Opposing", "Iso-Switch", "Complex"))
+        #levels <- intersect(c("Coordinated", "Opposing", "Iso-Switch", "Complex"), unique(.$cor))
+        #.$cor <- factor(.$cor, levels=c("Coordinated", "Opposing", "Iso-Switch", "Complex"))
+        .$cor <- factor(.$cor, levels=.$cor)
         . <- .[order(.$cor), ]
         
         # Compute statistics for plot
@@ -184,7 +220,7 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
             geom_rect(data=data, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=z), color="black") +
             coord_polar(theta="y") +
             xlim(c(2, 4)) +
-            #scale_fill_manual(values=colors) +
+            scale_fill_manual(values=colors) +
             labs(title=maintitle, x=xtitle, y=ytitle, fill=legendtitle) +
             theme(panel.grid.major = element_blank(),
                 panel.grid.minor = element_blank(),
@@ -198,12 +234,17 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
                 legend.title=element_text(size=9),
                 legend.text=element_text(size=9)
                 )
-        
+                
+    ######################################################
+    
     # Save to new slots
+    MarvelObject$DE$Cor$Table_Raw <- de
     MarvelObject$DE$Cor$Table <- results
     MarvelObject$DE$Cor$Plot <- plot
     MarvelObject$DE$Cor$Plot.Stats <- .[,c("cor", "freq", "pct")]
-  
+    MarvelObject$DE$Cor$param$psi.delta <- psi.delta
+    MarvelObject$DE$Cor$param$gene.log2fc <- gene.log2fc
+    
     return(MarvelObject)
         
 }

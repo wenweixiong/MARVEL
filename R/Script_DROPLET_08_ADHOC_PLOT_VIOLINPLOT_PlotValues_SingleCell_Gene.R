@@ -5,6 +5,7 @@
 #' @param MarvelObject Marvel object. S3 object generated from \code{CheckAlignment.10x} function.
 #' @param cell.group.list List of character strings. Each element in the list is a cell group. The label of each element of the list represents the cell group label.
 #' @param gene_short_name Character string. Gene name whose expression will be plotted.
+#' @param log2.transform Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to plotting.
 #' @param cell.group.colors Vector of character strings. Colors of cell groups and should be same length as \code{cell.group.list}. Default \code{ggplot2} colors are used.
 #' @param xlabels.size Numeric value. Font size of x-tick labels. Default is \code{10}.
 #'
@@ -16,7 +17,7 @@
 #'
 #' @export
 
-PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_short_name, cell.group.colors=NULL, xlabels.size=8, alpha=0.5) {
+PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_short_name, log2.transform=TRUE, cell.group.colors=NULL, xlabels.size=8, alpha=0.5) {
 
     # Example arguments
     MarvelObject <- MarvelObject
@@ -26,6 +27,7 @@ PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_s
     cell.group.colors <- cell.group.colors
     xlabels.size <- xlabels.size
     alpha <- alpha
+    log2.transform <- log2.transform
     
     # Example arguments
     #MarvelObject <- marvel
@@ -84,10 +86,16 @@ PlotValues.Gene.SingleCell.10x <- function(MarvelObject, cell.group.list, gene_s
         # Definition
         data <- results
         x <- data$cell.group
-        y <- log2(data$exp + 1)
+        
+        if(log2.transform==TRUE) {
+            
+            y <- log2(data$exp + 1)
+            
+        }
+        
         z <- data$cell.group
         maintitle <- ""
-        ytitle <- "log2(Norm. UMI counts + 1)"
+        ytitle <- "Norm. expression"
         xtitle <- ""
         xlabels <- xlabels
 

@@ -35,12 +35,12 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     
     # Example arguments
     #MarvelObject <- marvel
-    #coord.intron <- coord.introns[1]
+    #coord.intron <- coord.intron
     #sj.metadata <- MarvelObject$sj.metadata
     #gtf <- MarvelObject$gtf
     #coord.intron.ext <- 10
-    #rescale_introns <- FALSE
-    #show.protein.coding.only <- TRUE
+    #rescale_introns <- TRUE
+    #show.protein.coding.only <- FALSE
     #anno.label.size <- 3
     #anno.colors <- c("black", "gray", "red")
     
@@ -123,7 +123,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         
     # Annotate transcripts with ORF status
     anno <- unique(gtf[,c("transcript_id", "transcript_biotype")])
-    anno <- anno[grep("ENST", anno$transcript_id, fixed=TRUE), ]
+    anno <- anno[grep("ENST|ENSMUST", anno$transcript_id), ]
     
     # Report progress
     print(paste(nrow(anno), " transcripts identified", sep=""))

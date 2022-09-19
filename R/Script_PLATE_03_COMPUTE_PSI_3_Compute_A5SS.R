@@ -19,6 +19,12 @@ ComputePSI.A5SS <- function(MarvelObject, CoverageThreshold) {
     sj <- MarvelObject$SpliceJunction
     CoverageThreshold <- CoverageThreshold
     
+    # Example arguments
+    #MarvelObject <- marvel
+    #df <- MarvelObject$SpliceFeature$A5SS
+    #sj <- MarvelObject$SpliceJunction
+    #CoverageThreshold <- 10
+    
     print(paste(nrow(df), " splicing events found", sep=""))
     
     #########################################################################
@@ -39,102 +45,122 @@ ComputePSI.A5SS <- function(MarvelObject, CoverageThreshold) {
         # Subset events
         df.pos <- df[grep(":+@", df$tran_id, fixed=TRUE), , drop=FALSE]
 
-        # Subset chr
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
-        
-        # Subset included sj
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        start <- as.numeric(sapply(exon.1, function(x) {x[2]})) + 1
-        
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
-
-        coord.included <- paste(chr, start, end, sep=":")
+        if(nrow(df.pos) !=0) {
             
-        # Subset excluded sj
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        exon.1 <- sapply(exon.1, function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.1, function(x) {x[3]})) + 1
-        
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
+            # Subset chr
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
+            
+            # Subset included sj
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            start <- as.numeric(sapply(exon.1, function(x) {x[2]})) + 1
+            
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
 
-        coord.excluded <- paste(chr, start, end, sep=":")
-        
-        # Check for sj record
-        index.keep.coord.included <- coord.included %in% row.names(sj)
-        index.keep.coord.excluded <- coord.excluded %in% row.names(sj)
-        index.keep <- (index.keep.coord.included == TRUE) &
-                      (index.keep.coord.excluded == TRUE)
-        table(index.keep.coord.included); table(index.keep.coord.excluded) ; table(index.keep)
+            coord.included <- paste(chr, start, end, sep=":")
+                
+            # Subset excluded sj
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            exon.1 <- sapply(exon.1, function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.1, function(x) {x[3]})) + 1
+            
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
 
-        # Subset events
-        df.pos <- df.pos[index.keep, , drop=FALSE]
+            coord.excluded <- paste(chr, start, end, sep=":")
+            
+            # Check for sj record
+            index.keep.coord.included <- coord.included %in% row.names(sj)
+            index.keep.coord.excluded <- coord.excluded %in% row.names(sj)
+            index.keep <- (index.keep.coord.included == TRUE) &
+                          (index.keep.coord.excluded == TRUE)
+            table(index.keep.coord.included); table(index.keep.coord.excluded) ; table(index.keep)
+
+            # Subset events
+            df.pos <- df.pos[index.keep, , drop=FALSE]
+            
+        }
         
     # -ve strand
         # Subset events
         df.neg <- df[grep(":-@", df$tran_id, fixed=TRUE), , drop=FALSE]
 
-        # Retrieve coordinates
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        
-        # Subset chr
-        . <- strsplit(df.neg$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
-        
-        # Subset included sj
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        exon.1 <- sapply(exon.1, function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.1, function(x) {x[3]})) - 1
-        
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
+        if(nrow(df.neg) !=0) {
+            
+            # Retrieve coordinates
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            
+            # Subset chr
+            . <- strsplit(df.neg$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
+            
+            # Subset included sj
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            exon.1 <- sapply(exon.1, function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.1, function(x) {x[3]})) - 1
+            
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
 
-        coord.included <- paste(chr, start, end, sep=":")
+            coord.included <- paste(chr, start, end, sep=":")
+            
+            # Subset excluded sj
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            end <- as.numeric(sapply(exon.1, function(x) {x[2]})) - 1
+
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
+
+            coord.excluded <- paste(chr, start, end, sep=":")
+            
+            # Check for sj record
+            index.keep.coord.included <- coord.included %in% row.names(sj)
+            index.keep.coord.excluded <- coord.excluded %in% row.names(sj)
+            index.keep <- (index.keep.coord.included == TRUE) &
+                          (index.keep.coord.excluded == TRUE)
+            table(index.keep.coord.included); table(index.keep.coord.excluded) ; table(index.keep)
+
+            # Subset events
+            df.neg <- df.neg[index.keep, , drop=FALSE]
         
-        # Subset excluded sj
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        end <- as.numeric(sapply(exon.1, function(x) {x[2]})) - 1
-
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
-
-        coord.excluded <- paste(chr, start, end, sep=":")
-        
-        # Check for sj record
-        index.keep.coord.included <- coord.included %in% row.names(sj)
-        index.keep.coord.excluded <- coord.excluded %in% row.names(sj)
-        index.keep <- (index.keep.coord.included == TRUE) &
-                      (index.keep.coord.excluded == TRUE)
-        table(index.keep.coord.included); table(index.keep.coord.excluded) ; table(index.keep)
-
-        # Subset events
-        df.neg <- df.neg[index.keep, , drop=FALSE]
+        }
 
     # Merge
-    df <- rbind.data.frame(df.pos, df.neg)
+    if(nrow(df.pos) !=0 & nrow(df.neg) !=0) {
+        
+        df <- rbind.data.frame(df.pos, df.neg)
 
+    } else if(nrow(df.pos) !=0 & nrow(df.neg)==0) {
+        
+        df <- df.pos
+        
+    } else if(nrow(df.pos) == 0 & nrow(df.neg) != 0) {
+        
+        df <- df.neg
+        
+    }
+    
     ######################################################################
     ############################ COMPUTE PSI #############################
     ######################################################################
@@ -143,120 +169,140 @@ ComputePSI.A5SS <- function(MarvelObject, CoverageThreshold) {
         # Subset events
         df.pos <- df[grep(":+@", df$tran_id, fixed=TRUE), , drop=FALSE]
 
-        # Retrieve coordinates
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        
-        # Subset chr
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
-        
-        # Subset included sj
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        start <- as.numeric(sapply(exon.1, function(x) {x[2]})) + 1
-        
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
-
-        coord.included <- paste(chr, start, end, sep=":")
+        if(nrow(df.pos) != 0){
             
-        # Subset excluded sj
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        exon.1 <- sapply(exon.1, function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.1, function(x) {x[3]})) + 1
-        
-        . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
+            # Retrieve coordinates
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            
+            # Subset chr
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
+            
+            # Subset included sj
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            start <- as.numeric(sapply(exon.1, function(x) {x[2]})) + 1
+            
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
 
-        coord.excluded <- paste(chr, start, end, sep=":")
+            coord.included <- paste(chr, start, end, sep=":")
+                
+            # Subset excluded sj
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            exon.1 <- sapply(exon.1, function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.1, function(x) {x[3]})) + 1
+            
+            . <- strsplit(df.pos$tran_id, split=":+@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.2, function(x) {x[2]})) - 1
 
-        # Retrieve sj counts
-        sj.included <- sj[coord.included, ]
-        sj.excluded <- sj[coord.excluded, ]
-        
-        # Compute PSI
-        psi <- sj.included / (sj.included + sj.excluded)
-        psi[is.na(psi)] <- NA
-        
-        # Censor low coverage
-        cov <- (sj.included >= CoverageThreshold) | (sj.excluded >= CoverageThreshold)
-        psi[!cov] <- NA
-        
-        # Annotate tran_id
-        row.names(psi) <- df.pos$tran_id
-        
-        # Save as new object
-        psi.pos <- psi
+            coord.excluded <- paste(chr, start, end, sep=":")
+
+            # Retrieve sj counts
+            sj.included <- sj[coord.included, ]
+            sj.excluded <- sj[coord.excluded, ]
+            
+            # Compute PSI
+            psi <- sj.included / (sj.included + sj.excluded)
+            psi[is.na(psi)] <- NA
+            
+            # Censor low coverage
+            cov <- (sj.included >= CoverageThreshold) | (sj.excluded >= CoverageThreshold)
+            psi[!cov] <- NA
+            
+            # Annotate tran_id
+            row.names(psi) <- df.pos$tran_id
+            
+            # Save as new object
+            psi.pos <- psi
+            
+        }
         
     # -ve strand
         # Subset events
         df.neg <- df[grep(":-@", df$tran_id, fixed=TRUE), , drop=FALSE]
 
-        # Retrieve coordinates
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        
-        # Subset chr
-        . <- strsplit(df.neg$tran_id, split=":+@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
-        
-        # Subset included sj
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        exon.1 <- sapply(exon.1, function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
-        end <- as.numeric(sapply(exon.1, function(x) {x[3]})) - 1
-        
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
+        if(nrow(df.neg) != 0){
+            
+            # Retrieve coordinates
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            
+            # Subset chr
+            . <- strsplit(df.neg$tran_id, split=":+@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            chr <- sapply(strsplit(exon.1, ":"), function(x) {x[1]})
+            
+            # Subset included sj
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            exon.1 <- sapply(exon.1, function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split=":", fixed=TRUE)
+            end <- as.numeric(sapply(exon.1, function(x) {x[3]})) - 1
+            
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
 
-        coord.included <- paste(chr, start, end, sep=":")
-        
-        # Subset excluded sj
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.1 <- sapply(., function(x) {x[1]})
-        exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
-        end <- as.numeric(sapply(exon.1, function(x) {x[2]})) - 1
+            coord.included <- paste(chr, start, end, sep=":")
+            
+            # Subset excluded sj
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.1 <- sapply(., function(x) {x[1]})
+            exon.1 <- strsplit(exon.1, split="|", fixed=TRUE)
+            end <- as.numeric(sapply(exon.1, function(x) {x[2]})) - 1
 
-        . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
-        exon.2 <- sapply(., function(x) {x[2]})
-        exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
-        start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
+            . <- strsplit(df.neg$tran_id, split=":-@", fixed=TRUE)
+            exon.2 <- sapply(., function(x) {x[2]})
+            exon.2 <- strsplit(exon.2, split=":", fixed=TRUE)
+            start <- as.numeric(sapply(exon.2, function(x) {x[3]})) + 1
 
-        coord.excluded <- paste(chr, start, end, sep=":")
+            coord.excluded <- paste(chr, start, end, sep=":")
 
-        # Retrieve sj counts
-        sj.included <- sj[coord.included, ]
-        sj.excluded <- sj[coord.excluded, ]
-        
-        # Compute PSI
-        psi <- sj.included / (sj.included + sj.excluded)
-        psi[is.na(psi)] <- NA
-        
-        # Censor low coverage
-        cov <- (sj.included >= CoverageThreshold) | (sj.excluded >= CoverageThreshold)
-        psi[!cov] <- NA
-        
-        # Annotate tran_id
-        row.names(psi) <- df.neg$tran_id
-        
-        # Save as new object
-        psi.neg <- psi
+            # Retrieve sj counts
+            sj.included <- sj[coord.included, ]
+            sj.excluded <- sj[coord.excluded, ]
+            
+            # Compute PSI
+            psi <- sj.included / (sj.included + sj.excluded)
+            psi[is.na(psi)] <- NA
+            
+            # Censor low coverage
+            cov <- (sj.included >= CoverageThreshold) | (sj.excluded >= CoverageThreshold)
+            psi[!cov] <- NA
+            
+            # Annotate tran_id
+            row.names(psi) <- df.neg$tran_id
+            
+            # Save as new object
+            psi.neg <- psi
+            
+        }
 
     # Merge
-    psi <- rbind.data.frame(psi.pos, psi.neg)
+    if(nrow(df.pos) !=0 & nrow(df.neg) !=0) {
+        
+        psi <- rbind.data.frame(psi.pos, psi.neg)
+
+    } else if(nrow(df.pos) !=0 & nrow(df.neg)==0) {
+        
+        psi <- psi.pos
+        
+    } else if(nrow(df.pos) == 0 & nrow(df.neg) != 0) {
+        
+        psi <- psi.neg
+        
+    }
     psi <- psi[df$tran_id, ]
     table(row.names(psi)==df$tran_id)
 

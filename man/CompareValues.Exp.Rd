@@ -6,8 +6,8 @@
 \usage{
 CompareValues.Exp(
   MarvelObject,
-  cell.group.g1,
-  cell.group.g2,
+  cell.group.g1 = NULL,
+  cell.group.g2 = NULL,
   downsample = FALSE,
   min.cells = 25,
   pct.cells = NULL,
@@ -15,7 +15,8 @@ CompareValues.Exp(
   method.adjust,
   show.progress = TRUE,
   nboots = 1000,
-  custom.gene_ids = NULL
+  custom.gene_ids = NULL,
+  use.downsampled.data = FALSE
 )
 }
 \arguments{

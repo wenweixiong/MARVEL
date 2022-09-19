@@ -23,7 +23,7 @@
 #'
 #' @export
 
-PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.column, y.column, x.levels, y.levels, xlabels.size=8, ylabels.size=8, min.pct.cells.gene.expr=10, min.n.cells=10) {
+PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.column, y.column, x.levels, y.levels, xlabels.size=8, ylabels.size=8, min.pct.cells.gene.expr=10, min.n.cells.gene.expr=10, min.gene.counts.total=3) {
 
     # Example arguments
     MarvelObject <- MarvelObject
@@ -39,7 +39,8 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
     ylabels.size <- ylabels.size
     xlabels.size <- xlabels.size
     min.pct.cells.gene.expr <- min.pct.cells.gene.expr
-    min.n.cells <- min.n.cells
+    min.n.cells.gene.expr <- min.n.cells.gene.expr
+    min.gene.counts.total <- min.gene.counts.total
     
     # Example arguments
     #MarvelObject <- marvel
@@ -47,7 +48,7 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
     #sj.metadata <- MarvelObject$sj.metadata
     #df.sj.count <- MarvelObject$sj.count.matrix
     #df.gene.count <- MarvelObject$gene.count.matrix
-    #coord.intron <- coord.intron
+    #coord.intron <- "chr6:90560235:90561621"
     #y.column <- y.column
     #x.column <- x.column
     #y.levels <- y.levels
@@ -55,6 +56,8 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
     #ylabels.size <- 8
     #xlabels.size <- 8
     #min.pct.cells.gene.expr <- 10
+    #min.n.cells.gene.expr <- 10
+    #min.gene.counts.total <- 3
     
     ##########################################################################
     
@@ -108,7 +111,7 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
             psi <- sj.counts.total/gene.counts.total * 100
             
             # Censor PSI if gene not expressed
-            index.l <- pct.cells.gene.expr < min.pct.cells.gene.expr | is.na(pct.cells.gene.expr) | n.cells < min.n.cells
+            index.l <- pct.cells.gene.expr < min.pct.cells.gene.expr | is.na(pct.cells.gene.expr) | n.cells.gene.expr < min.n.cells.gene.expr | gene.counts.total < min.gene.counts.total
             
             if(index.l) {
                 

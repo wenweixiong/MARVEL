@@ -6,6 +6,7 @@
 \usage{
 RunPCA.PSI(
   MarvelObject,
+  sample.ids = NULL,
   cell.group.column,
   cell.group.order,
   cell.group.colors = NULL,
@@ -21,6 +22,8 @@ RunPCA.PSI(
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}
+
+\item{sample.ids}{Character strings. Specific cells to plot.}
 
 \item{cell.group.column}{Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.}
 

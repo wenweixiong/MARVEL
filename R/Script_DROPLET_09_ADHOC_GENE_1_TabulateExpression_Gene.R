@@ -5,6 +5,7 @@
 #' @param MarvelObject Marvel object. S3 object generated from \code{CheckAlignment.10x} function.
 #' @param cell.group.list List of character strings. Each element of the list is a vector of cell IDs corresponding to a cell group.
 #' @param gene_short_name Character string. Gene names whose expression will be plotted.
+#' @param log2.transform Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to plotting.
 #' @param min.pct.cells Numeric value. Percentage of cell expressing the gene in a cell group, below which, the value be re-coded as missing and appear will be omitted from the plot. A gene is considered to be expressed in a given cell if it has non-zero normalised count.
 #' @param downsample Logical value. If set to \code{TRUE}, the number of cells in each cell group will be down-sampled so that all cell groups will have the same number of cells. The number of cells to down-sample will be based on the smallest cell group. Default is \code{FALSE}.
 #' @param seed Numeric value. Random number generator to be fixed for down-sampling.
@@ -16,7 +17,7 @@
 #'
 #' @export
 
-adhocGene.TabulateExpression.Gene.10x <- function(MarvelObject, cell.group.list, gene_short_name, min.pct.cells=10, downsample=FALSE, seed=1) {
+adhocGene.TabulateExpression.Gene.10x <- function(MarvelObject, cell.group.list, gene_short_name, log2.transform=TRUE, min.pct.cells=10, downsample=FALSE, seed=1) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -26,6 +27,7 @@ adhocGene.TabulateExpression.Gene.10x <- function(MarvelObject, cell.group.list,
     min.pct.cells <- min.pct.cells
     downsample <- downsample
     seed <- seed
+    log2.transform <- log2.transform
     
     # Example arguments
     #MarvelObject <- marvel
@@ -76,8 +78,11 @@ adhocGene.TabulateExpression.Gene.10x <- function(MarvelObject, cell.group.list,
     row.names(df.gene.norm) <- NULL
     
     # Tranform values
+    if(log2.transform==TRUE) {
+        
+        df.gene.norm$exp.gene.norm <- log2(df.gene.norm$exp.gene.norm + 1)
     
-    df.gene.norm$exp.gene.norm <- log2(df.gene.norm$exp.gene.norm + 1)
+    }
     
     # Annotate cell groups
         # Create ref table

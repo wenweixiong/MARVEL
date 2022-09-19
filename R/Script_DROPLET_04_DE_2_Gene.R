@@ -3,6 +3,7 @@
 #' @description Performs differential gene expression analysis between two groups of cells. Only among cells and genes previously included for splice junction analysis.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{CompareValues.SJ.10x} function.
+#' @param log2.transform Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to analysis.
 #' @param show.progress Logical value. If set to \code{TRUE} (default), the progress bar will appear.
 #'
 #' @return An object of class S3 with a updated slot \code{MarvelObject$DE$SJ$Table}.
@@ -12,7 +13,7 @@
 #'
 #' @export
 
-CompareValues.Genes.10x <- function(MarvelObject, show.progress=TRUE) {
+CompareValues.Genes.10x <- function(MarvelObject, log2.transform=TRUE, show.progress=TRUE) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -22,6 +23,7 @@ CompareValues.Genes.10x <- function(MarvelObject, show.progress=TRUE) {
     cell.group.g1 <- MarvelObject$DE$SJ$cell.group.g1
     cell.group.g2 <- MarvelObject$DE$SJ$cell.group.g2
     show.progress <- show.progress
+    log2.transform <- log2.transform
     
     # Example arguments
     #MarvelObject <- marvel
@@ -43,9 +45,13 @@ CompareValues.Genes.10x <- function(MarvelObject, show.progress=TRUE) {
     df.gene.norm.g2 <- df.gene.norm[gene_short_names, cell.group.g2]
     
     # log2 transform values
-    df.gene.norm.g1 <- log2(df.gene.norm.g1 + 1)
-    df.gene.norm.g2 <- log2(df.gene.norm.g2 + 1)
+    if(log2.transform==TRUE) {
+        
+        df.gene.norm.g1 <- log2(df.gene.norm.g1 + 1)
+        df.gene.norm.g2 <- log2(df.gene.norm.g2 + 1)
             
+    }
+    
     # Tabulate expression: Group 1
         # Compute group size
         n.cells.total <- length(cell.group.g1)

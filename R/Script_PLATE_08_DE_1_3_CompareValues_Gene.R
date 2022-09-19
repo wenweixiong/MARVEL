@@ -13,6 +13,7 @@
 #' @param show.progress Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.
 #' @param nboots Numeric value. When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.
 #' @param custom.gene_ids Character string. Instead of specified the genes to include for DE analysis with \code{min.cells}, users may input a custom vector of gene IDs to include for DE analysis.
+# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
 #'
 #' @return An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 #'
@@ -22,7 +23,7 @@
 #' @import utils
 #' @export
 
-CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, method.adjust, show.progress=TRUE, nboots=1000, custom.gene_ids=NULL) {
+CompareValues.Exp <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NULL, downsample=FALSE, min.cells=25, pct.cells=NULL, method, method.adjust, show.progress=TRUE, nboots=1000, custom.gene_ids=NULL, use.downsampled.data=FALSE) {
 
     # Define arguments
     df <- MarvelObject$Exp
@@ -38,6 +39,7 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     show.progress <- show.progress
     nboots <- nboots
     custom.gene_ids <- custom.gene_ids
+    use.downsampled.data <- use.downsampled.data
     
     # Define arguments
     #df <- marvel$Exp
@@ -56,7 +58,18 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     # Create row names for matrix
     row.names(df) <- df$gene_id
     df$gene_id <- NULL
-    
+  
+    # Use downsampled cells based on no. of genes expressed
+    if(use.downsampled.data==TRUE){
+      
+        df.downsampled <- MarvelObject$DE$Exp$Downsampled.Data$Table
+      
+        cell.group.g1 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g1"), "sample.id"]
+      
+        cell.group.g2 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g2"), "sample.id"]
+      
+    }
+  
     # Retrieve sample ids
         # Group 1
         sample.ids.1 <- cell.group.g1

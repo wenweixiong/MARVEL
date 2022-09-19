@@ -37,10 +37,10 @@ PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendti
     # Example aruguments
     #MarvelObject <- marvel
     #df <- MarvelObject$pca
-    #cell.group.list <- cell.group.list
+    #cell.group.list <- cell.group.list[1]
     #legendtitle <- "Cell type"
     #alpha <- 0.75
-    #point.size <- 1.0
+    #point.size <- 0.2
     #point.stroke <- 0
     #point.colors <- NULL
     #point.size.legend <- 2
@@ -80,7 +80,7 @@ PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendti
         
     } else {
         
-        print(paste(n.anno.missing, " cells defined with coordinates found", sep=""))
+        print(paste(n.anno.missing, " cells defined with no coordinates found", sep=""))
         
     }
     
@@ -117,8 +117,23 @@ PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendti
 
     }
 
-      # Plot (with legends)
-      plot <- ggplot() +
+    # No. of columns for legend
+    if(length(unique(z)) > 20) {
+
+        ncol.legend <- 3
+
+    } else if(length(unique(z)) > 10) {
+        
+        ncol.legend <- 2
+    
+    } else if(length(unique(z)) <= 10) {
+        
+        ncol.legend <- 1
+        
+    }
+    
+    # Plot (with legends)
+    plot <- ggplot() +
           geom_point(data, mapping=aes(x=x, y=y, fill=z), color="black", pch=21, size=point.size, alpha=alpha, stroke=point.stroke) +
           scale_fill_manual(values=point.colors) +
           labs(title=NULL, x=xtitle, y=ytitle, fill=legendtitle) +
@@ -133,7 +148,7 @@ PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendti
               legend.title=element_text(size=8),
               legend.text=element_text(size=8)
               ) +
-           guides(fill = guide_legend(override.aes=list(size=point.size.legend, alpha=alpha, stroke=point.stroke), ncol=1))
+           guides(fill = guide_legend(override.aes=list(size=point.size.legend, alpha=alpha, stroke=point.stroke), ncol=ncol.legend))
 
     ##########################################################################
 

@@ -4,10 +4,12 @@
 \alias{ValidateSJ.10x}
 \title{Validate splice junctions}
 \usage{
-ValidateSJ.10x(MarvelObject)
+ValidateSJ.10x(MarvelObject, keep.novel.sj = FALSE)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{AnnotateSJ.10x} function.}
+
+\item{keep.novel.sj}{Logical value. If set to \code{TRUE}, novel splice junctions will be retained for downstream analysis. Novel splice junctions are defined as splice junctions with one end reported in GTF while the other was not reported in GTF. Default value is \code{FALSE}.}
 }
 \value{
 An object of class S3 containing the updated slots \code{MarvelObject$sj.metadata} and \code{MarvelObject$sj.count.matrix}.

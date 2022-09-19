@@ -12,7 +12,8 @@ BioPathways.10x(
   min.gene.norm = 0,
   method.adjust = "fdr",
   custom.genes = NULL,
-  species = "human"
+  species = "human",
+  remove.ribo = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ BioPathways.10x(
 \item{custom.genes}{Character strings. Alternative to \code{pval} and \code{delta}. Vector of gene names to be assessed for enrichment of biological pathways.}
 
 \item{species}{Character strings. Takes the value \code{"human"} or \code{"mouse"}, which corresponds to human and mouse genes, respectively. Default value is \code{"human"}.}
+
+\item{remove.ribo}{Logical value. If set to \code{TRUE}, ribosomal genes will be removed prior to GO analysis. This may prevent high-expressing ribosomal genes from overshadowing more biological relevant genes for GO analysis. Default value is \code{FALSE}.}
 
 \item{method}{Character string. The statistical method used for differential splicing analysis.}
 }

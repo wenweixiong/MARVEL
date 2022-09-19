@@ -10,7 +10,8 @@ PlotValues.Exp(
   feature,
   maintitle = "gene_short_name",
   xlabels.size = 8,
-  cell.group.colors = NULL
+  cell.group.colors = NULL,
+  point.alpha = 0.2
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ PlotValues.Exp(
 \item{xlabels.size}{Numeric value. Size of x-axis labels as per \code{ggplot2} function. Default is 8.}
 
 \item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.}
+
+\item{point.alpha}{Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$adhocPlot$Exp}.

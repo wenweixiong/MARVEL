@@ -16,6 +16,7 @@
 #' @param modality.column Character string. Can take the value \code{"modality"}, \code{"modality.var"} or \code{"modality.bimodal.adj"}. Please refer to \code{AssignModality} function help page for more details. Default is \code{"modality.bimodal.adj"}.
 #' @param scale.y.log Logical value. Only applicable when \code{level} set to \code{"splicing"}. If set to \code{TRUE}, the y-axis of will log10-scaled. Useful when most PSI values are extremely small (< 0.02) or big (> 0.98). Default is \code{FALSE}.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
+#' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.
 #'
@@ -24,11 +25,12 @@
 #' @import methods
 #' @import ggplot2
 #' @import scales
+#' @import ggnewscale
 #' @importFrom grDevices hcl
 #'
 #' @export
 
-PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL) {
+PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2) {
     
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -45,6 +47,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     modality.column <- modality.column
     scale.y.log <- scale.y.log
     cell.group.colors <- cell.group.colors
+    point.alpha <- point.alpha
     
     # Example arguments
     #MarvelObject <- marvel
@@ -52,18 +55,18 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #cell.group.list <- cell.group.list
-    #feature=tran_ids[1]
-    #maintitle="gene_short_name"
+    #feature <- tran_id
+    #maintitle <- "gene_short_name"
     #xlabels.size=8.5
     #max.cells.jitter=10000
     #max.cells.jitter.seed=1
-    #min.cells=15
+    #min.cells=10
     #sigma.sq=0.001
     #bimodal.adjust=TRUE
     #seed=1
     #modality.column="modality.bimodal.adj"
-    #scale.y.log <- TRUE
-    #cell.group.colors <- cell.group.colors
+    #scale.y.log <- FALSE
+    #cell.group.colors <- NULL
     
     ############################################################
     
@@ -215,34 +218,34 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     
     ######################## CENSOR LOW CELL NUMBER GROUP ##########################
     
-    cell.type.labels <- levels(df.small$cell.type.label)
+    #cell.type.labels <- levels(df.small$cell.type.label)
     
-    .list <- list()
+    #.list <- list()
     
-    for(i in 1:length(cell.type.labels)) {
+    #for(i in 1:length(cell.type.labels)) {
         
-        cell.type.label <- cell.type.labels[i]
+        #cell.type.label <- cell.type.labels[i]
         
-        df.small. <- df.small[which(df.small$cell.type.label==cell.type.label), ]
+        #df.small. <- df.small[which(df.small$cell.type.label==cell.type.label), ]
         
-        non.missing <- sum(!is.na(df.small.$psi))
+        #non.missing <- sum(!is.na(df.small.$psi))
         
-        if(non.missing < min.cells) {
+        #if(non.missing < min.cells) {
             
-            df.small.$psi <- NA
-            df.small.$psi.downsampled <- NA
+            #df.small.$psi <- NA
+            #df.small.$psi.downsampled <- NA
             
-            .list[[i]] <- df.small.
+            #.list[[i]] <- df.small.
             
-        } else {
+        #} else {
         
-            .list[[i]] <- df.small.
+            #.list[[i]] <- df.small.
         
-        }
+        #}
         
-    }
+    #}
     
-    df.small <- do.call(rbind.data.frame, .list)
+    #df.small <- do.call(rbind.data.frame, .list)
     
     #################################### PLOT ######################################
     
@@ -259,35 +262,71 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     data.2 <- df.small[which(!is.na(df.small$psi.downsampled)), ]
     x.jitter <- data.2$cell.type
     y.jitter <- data.2$psi.downsampled * 100
-    
+    z.2 <- data.2$cell.type.label
+        
     # Color scheme
-    if(is.null(cell.group.colors[1])) {
-    
-        gg_color_hue <- function(n) {
-          hues = seq(15, 375, length = n + 1)
-          hcl(h = hues, l = 65, c = 100)[1:n]
+        # Reference (Complete)
+        if(is.null(cell.group.colors[1])) {
+        
+            gg_color_hue <- function(n) {
+              hues = seq(15, 375, length = n + 1)
+              hcl(h = hues, l = 65, c = 100)[1:n]
+            }
+            
+            n = length(levels(z))
+            cols = gg_color_hue(n)
+        
+        } else {
+            
+            cols <- cell.group.colors
+            
         }
         
-        n = length(levels(z))
-        cols = gg_color_hue(n)
-    
-    } else {
+        # Identify cell groups with at least 2 cells (for violin)
+        index.cells.expr_violin <- which(n.cells$freq >= 3)
+
+        # Identify cell groups with at least 1 cell (for points, and average)
+        index.cells.expr_point <- which(n.cells$freq >= 1)
         
-        cols <- cell.group.colors
+        # Identify cell groups below user-defined threshold
+        index.low.expr <- which(n.cells$freq < min.cells)
+
+        # Violin fill
+        cols.violin.fill <- cols
+        cols.violin.fill[index.low.expr] <- NA
+        cols.violin.fill <- cols.violin.fill[index.cells.expr_violin]
         
-    }
+        # Violin border
+        cols.violin.border <- cols.violin.fill
+        cols.violin.border[!is.na(cols.violin.border)] <- "gray"
     
-    index <- which(n.cells$freq >= min.cells)
-    cols <- cols[index]
+        # Jitter points
+        cols.points <- cols
+        cols.points[index.low.expr] <- NA
+        cols.points[!is.na(cols.points)] <- "black"
+        cols.points <- cols.points[index.cells.expr_point]
     
+        # Mean icon fill
+        cols.ave.icon.fill <- cols
+        cols.ave.icon.fill[index.low.expr] <- NA
+        cols.ave.icon.fill[!is.na(cols.ave.icon.fill)] <- "red"
+        cols.ave.icon.fill <- cols.ave.icon.fill[index.cells.expr_point]
+        
+        # Mean icon border
+        cols.ave.icon.border <- cols.ave.icon.fill
+        cols.ave.icon.border[which(cols.ave.icon.border=="red")] <- "black"
+        
     # Plot
     if(scale.y.log==FALSE) {
         
         plot <- ggplot() +
-            geom_violin(data, mapping=aes(x=x, y=y, fill=z), color="gray", scale="width") +
-            geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter), position=position_jitter(width=0.1, height=0), size=0.001) +
-            stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
-            scale_fill_manual(values=cols) +
+            geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
+                scale_fill_manual(values=cols.violin.fill) +
+                scale_color_manual(values=cols.violin.border) +
+                new_scale_color() +
+            geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+                scale_color_manual(values=cols.points) +
+            stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
             scale_x_discrete(labels=xlabels) +
             scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
             labs(title=maintitle, x=xtitle, y=ytitle) +
@@ -324,10 +363,13 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
             ytitle <- "PSI (log10 Scale)"
             
             plot <- ggplot() +
-                geom_violin(data, mapping=aes(x=x, y=y, fill=z), color="gray", scale="width") +
-                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter), position=position_jitter(width=0.1, height=0), size=0.001) +
-                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
-                scale_fill_manual(values=cols) +
+                geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
+                    scale_fill_manual(values=cols.violin.fill) +
+                    scale_color_manual(values=cols.violin.border) +
+                    new_scale_color() +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+                    scale_color_manual(values=cols.points) +
+                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
                 scale_x_discrete(labels=xlabels) +
                 scale_y_log10(breaks=c(1, 2.5, 5, 10, 100), labels=c(0, 2.5, 5, 10, 100), limits=c(1, 100)) +
                 labs(title=maintitle, x=xtitle, y=ytitle) +
@@ -366,11 +408,13 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
             }
             
             plot <- ggplot() +
-                geom_violin(data, mapping=aes(x=x, y=y, fill=z), color="gray", scale="width") +
-                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter), position=position_jitter(width=0.1, height=0), size=0.001) +
-                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
-                scale_fill_manual(values=cols) +
-                scale_x_discrete(labels=xlabels) +
+                geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
+                    scale_fill_manual(values=cols.violin.fill) +
+                    scale_color_manual(values=cols.violin.border) +
+                    new_scale_color() +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+                    scale_color_manual(values=cols.points) +
+                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
                 scale_y_continuous(trans = reverselog_trans(10), breaks=c(1, 2.5, 5, 10, 100), labels=c(100, 97.5, 95, 90, 0), limits=c(100,1)) +
                 labs(title=maintitle, x=xtitle, y=ytitle) +
                 theme(panel.grid.major = element_blank(),

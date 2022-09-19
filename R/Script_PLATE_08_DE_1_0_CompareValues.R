@@ -24,6 +24,8 @@
 #' @param psi.delta Numeric value. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. The absolute difference in mean PSI values between \code{cell.group.g1} and \code{cell.group.g1}, above which, the splicing event is considered differentially spliced, and the corresponding genes will be included for differential gene expression analysis.
 #' @param method.de.gene Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method}.
 #' @param method.adjust.de.gene Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method.adjust}.
+# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
+
 #'
 #' @return An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Table[["method"]]} or \code{MarvelObject$DE$Exp$Table} when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.
 #'
@@ -38,7 +40,7 @@
 #'
 #' @export
 
-CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method=NULL, nboots=1000, n.permutations=1000, method.adjust="fdr", level, event.type=NULL, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE, custom.gene_ids=NULL, psi.method=NULL, psi.pval=NULL, psi.delta=NULL, method.de.gene=NULL, method.adjust.de.gene=NULL) {
+CompareValues <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NULL, downsample=FALSE, min.cells=25, pct.cells=NULL, method=NULL, nboots=1000, n.permutations=1000, method.adjust="fdr", level, event.type=NULL, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE, custom.gene_ids=NULL, psi.method=NULL, psi.pval=NULL, psi.delta=NULL, method.de.gene=NULL, method.adjust.de.gene=NULL, use.downsampled.data=FALSE) {
 
     # Define arguments
     MarvelObject <- MarvelObject
@@ -63,6 +65,7 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
     psi.delta <- psi.delta
     method.de.gene <- method.de.gene
     method.adjust.de.gene <-  method.adjust.de.gene
+    use.downsampled.data <- use.downsampled.data
     
     # Example arguments (splicing)
     #MarvelObject <- marvel
@@ -102,7 +105,8 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
                                          annotate.outliers=annotate.outliers,
                                          n.cells.outliers=n.cells.outliers,
                                          show.progress=show.progress,
-                                         assign.modality=assign.modality
+                                         assign.modality=assign.modality,
+                                         use.downsampled.data=use.downsampled.data
                                          )
                         
             # Save to new slot
@@ -125,7 +129,8 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
                           method.adjust=method.adjust,
                           nboots=nboots,
                           show.progress=show.progress,
-                          custom.gene_ids=custom.gene_ids
+                          custom.gene_ids=custom.gene_ids,
+                          use.downsampled.data=use.downsampled.data
                           )
         
     } else if(level=="gene.spliced") {
@@ -139,7 +144,8 @@ CompareValues <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample
                                   method.de.gene=method.de.gene,
                                   method.adjust.de.gene=method.adjust.de.gene,
                                   downsample=downsample,
-                                  show.progress=show.progress
+                                  show.progress=show.progress,
+                                  use.downsampled.data=use.downsampled.data
                                   )
         
     }
