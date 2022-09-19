@@ -17,6 +17,7 @@
 #' @param annotate.outliers Numeric value. When set to \code{TRUE}, statistical difference in PSI values between the two cell groups that is driven by outlier cells will be annotated.
 #' @param n.cells.outliers Numeric value. When \code{annotate.outliers} set to \code{TRUE}, the minimum number of cells with non-1 or non-0 PSI values for included-to-included or excluded-to-excluded modality change, respectively. The p-values will be re-coded to 1 when both cell groups have less than this minimum number of cells. This is to avoid false positive results.
 #' @param assign.modality Logical value. If set to \code{TRUE} (default), modalities will be assigned to each cell group.
+# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
 #'
 #' @return An object of class data frame containing the output of the differential splicing analysis.
 #'
@@ -32,7 +33,7 @@
 #'
 #' @export
 
-CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE) {
+CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE, use.downsampled.data=FALSE) {
 
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -52,6 +53,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     annotate.outliers <- annotate.outliers
     n.cells.outliers <- n.cells.outliers
     assign.modality <- assign.modality
+    use.downsampled.data <- use.downsampled.data
     
     # Example arguments
     #MarvelObject <- marvel
@@ -61,14 +63,14 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     #cell.group.g1 <- cell.group.g1
     #cell.group.g2 <- cell.group.g2
     #downsample <- FALSE
-    #min.cells <- 15
+    #min.cells <- 10
     #pct.cells <- NULL
     #method <- "ad"
     #method.adjust <- "fdr"
     #event.type <- c("A3SS")
     #show.progress <- TRUE
     #annotate.outliers <- TRUE
-    #n.cells.outliers <- 10
+    #n.cells.outliers <- 5
     #assign.modality <- TRUE
     
     ############################################################
@@ -80,6 +82,17 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     # Subset relevant events
     df.feature <- df.feature[which(df.feature$event_type %in% event.type), ]
     df <- df[df.feature$tran_id,]
+    
+    # Use downsampled cells based on no. of genes expressed
+    if(use.downsampled.data==TRUE){
+      
+        df.downsampled <- MarvelObject$DE$Exp$Downsampled.Data$Table
+      
+        cell.group.g1 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g1"), "sample.id"]
+      
+        cell.group.g2 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g2"), "sample.id"]
+      
+    }
     
     # Retrieve sample ids
         # Group 1
@@ -428,7 +441,8 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                                        sample.ids=cell.group.g1,
                                        min.cells=min.cells,
                                        bimodal.adjust=TRUE,
-                                       seed=1
+                                       seed=1,
+                                       tran_ids=results$tran_id
                                        )
                                 
            modality.g1 <- modality$Modality$Results
@@ -438,7 +452,8 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                                       sample.ids=cell.group.g2,
                                       min.cells=min.cells,
                                       bimodal.adjust=TRUE,
-                                      seed=1
+                                      seed=1,
+                                      tran_ids=results$tran_id
                                       )
                                
            modality.g2 <- modality$Modality$Results
@@ -566,21 +581,53 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         # Merge
         if(!is.null(results.small.included) | !is.null(results.small.excluded)) {
             
-            # Retrieve events not needing outlier adjustment
-            tran_ids <- setdiff(results$tran_id, c(results.small.included$tran_id, results.small.excluded$tran_id))
-        
-            results.small.. <- results[which(results$tran_id %in% tran_ids), ]
+            if(is.null(results.small.included) & nrow(results.small.excluded) == nrow(results)) {
+                    
+                results <- results.small.excluded
+                
+            } else if(is.null(results.small.included) & nrow(results.small.excluded) != nrow(results)) {
+                
+                tran_ids <- setdiff(results$tran_id, results.small.excluded$tran_id)
+                results.small.. <- results[which(results$tran_id %in% tran_ids), ]
+                results.small..$n.cells.outliers.g1 <- 0
+                results.small..$n.cells.outliers.g2 <- 0
+                results.small..$outliers <- FALSE
+                
+                results <- rbind.data.frame(results.small.., results.small.excluded)
             
-            # Match columns
-            results.small..$n.cells.outliers.g1 <- 0
-            results.small..$n.cells.outliers.g2 <- 0
-            results.small..$outliers <- FALSE
+            } else if(nrow(results.small.included) == nrow(results) & is.null(results.small.excluded)) {
+                
+                results <- results.small.included
+                
+            } else if(nrow(results.small.included) == nrow(results) & is.null(results.small.excluded)) {
+                
+                tran_ids <- setdiff(results$tran_id, results.small.included$tran_id)
+                results.small.. <- results[which(results$tran_id %in% tran_ids), ]
+                results.small..$n.cells.outliers.g1 <- 0
+                results.small..$n.cells.outliers.g2 <- 0
+                results.small..$outliers <- FALSE
+                
+                results <- rbind.data.frame(results.small.., results.small.included)
+                
+            } else if(!is.null(results.small.included) & !is.null(results.small.excluded)){
+                
+                # Retrieve events not needing outlier adjustment
+                tran_ids <- setdiff(results$tran_id, c(results.small.included$tran_id, results.small.excluded$tran_id))
             
-            # Merge
-            results <- rbind.data.frame(results.small.., results.small.included, results.small.excluded)
-        
-            # Reorder by p-values
-            results <- results[order(results$p.val), ]
+                results.small.. <- results[which(results$tran_id %in% tran_ids), ]
+                
+                # Match columns
+                results.small..$n.cells.outliers.g1 <- 0
+                results.small..$n.cells.outliers.g2 <- 0
+                results.small..$outliers <- FALSE
+                
+                # Merge
+                results <- rbind.data.frame(results.small.., results.small.included, results.small.excluded)
+            
+                # Reorder by p-values
+                results <- results[order(results$p.val), ]
+                
+            }
             
         } else {
             

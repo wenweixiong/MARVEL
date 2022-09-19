@@ -9,6 +9,7 @@ RunPCA(
   cell.group.column,
   cell.group.order = NULL,
   cell.group.colors = NULL,
+  sample.ids = NULL,
   min.cells = 25,
   features,
   point.size = 0.5,
@@ -28,6 +29,8 @@ RunPCA(
 \item{cell.group.order}{Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.}
 
 \item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.}
+
+\item{sample.ids}{Character strings. Specific cells to plot.}
 
 \item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event or gene for the event or gene, respectively, to be included for analysis.}
 

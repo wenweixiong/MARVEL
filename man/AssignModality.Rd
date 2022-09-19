@@ -13,7 +13,8 @@ AssignModality(
   bimodal.adjust = TRUE,
   bimodal.adjust.fc = 3,
   bimodal.adjust.diff = 50,
-  seed = 1
+  seed = 1,
+  tran_ids = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ AssignModality(
 \item{bimodal.adjust.diff}{Numeric value. The difference between the percentage of cells with >0.75 PSI vs <0.25 PSI (and vice versa) below which the splicing event will be classified as bimodal. Only applicable when \code{bimodal.adjust} set to \code{TRUE}. To be used in conjunction with \code{bimodal.adjust.fc}.}
 
 \item{seed}{Numeric value. Ensure the \code{fitdist} function returns the same values for alpha and beta paramters each time this function is executed using the same random number generator.}
+
+\item{tran_ids}{Character strings. Specific vector of transcript IDs for modality assignment. This will be a subset of all transcripts expressed in sufficient number of cells as defined in \code{min.cells} option.}
 }
 \value{
 An object of class S3 containing with new slot \code{MarvelObject$Modality$Results}.

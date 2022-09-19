@@ -6,6 +6,7 @@
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
+#' @param sample.ids Character strings. Specific cells to plot.
 #' @param min.cells Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.
 #' @param features Character string. Vector of \code{tran_id} for analysis. Should match \code{tran_id} column of \code{MarvelObject$ValidatedSpliceFeature}.
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
@@ -27,7 +28,7 @@
 #'
 #' @export
 
-RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.group.colors=NULL,
+RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order, cell.group.colors=NULL,
                        features, min.cells=25,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1,
                        seed=1, method.impute="random", cell.group.column.impute=NULL
@@ -37,6 +38,7 @@ RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.g
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
     df.pheno <- MarvelObject$SplicePheno
     df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
+    sample.ids <- sample.ids
     cell.group.column <- cell.group.column
     cell.group.order <- cell.group.order
     cell.group.colors <- cell.group.colors
@@ -54,13 +56,14 @@ RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.g
     #df <- do.call(rbind.data.frame, MarvelObject$PSI)
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
-    #cell.group.column <- "group"
+    #sample.ids <- sample.ids
+    #cell.group.column <- "genotype"
     #cell.group.order <- cell.group.order
-    #cell.group.colors <- NULL
-    #features <- tran_ids.
-    #min.cells <- 15
-    #method.impute <- "population.mean"
-    #cell.group.column.impute <- "group.impute"
+    #cell.group.colors <- cell.group.colors
+    #features <- tran_ids
+    #min.cells <- 20
+    #method.impute <- "random"
+    #cell.group.column.impute <- "genotype.impute"
     #seed <- 1
     #point.size <- 2.5
     #point.alpha <- 0.75
@@ -73,15 +76,25 @@ RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.g
     df$tran_id <- NULL
     
     # Rename cell group label/impute columns
-    names(df.pheno)[which(names(df.pheno)==cell.group.column)] <- "pca.cell.group.label"
+    #names(df.pheno)[which(names(df.pheno)==cell.group.column)] <- "pca.cell.group.label"
+    df.pheno$pca.cell.group.label <- df.pheno[[cell.group.column]]
     
     if(!is.null(cell.group.column.impute)) {
       
-        names(df.pheno)[which(names(df.pheno)==cell.group.column.impute)] <- "pca.cell.group.impute"
+        #names(df.pheno)[which(names(df.pheno)==cell.group.column.impute)] <- "pca.cell.group.impute"
+        df.pheno$pca.cell.group.impute <- df.pheno[[cell.group.column.impute]]
         
     } else {
         
+        #df.pheno$pca.cell.group.impute <- df.pheno$pca.cell.group.label
         df.pheno$pca.cell.group.impute <- df.pheno$pca.cell.group.label
+        
+    }
+    
+    # Subset relevant cells: overall
+    if(!is.null(sample.ids[1])) {
+        
+        df.pheno <- df.pheno[which(df.pheno$sample.id %in% sample.ids), ]
         
     }
     
@@ -117,7 +130,7 @@ RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.g
     index.keep <- which(. >= min.cells)
     df <- df[index.keep, ]
     df.feature <- df.feature[which(df.feature$tran_id %in% row.names(df)), ]
-    
+        
     # Impute missing values
     if(method.impute=="random") {
         
@@ -208,7 +221,6 @@ RunPCA.PSI <- function(MarvelObject, cell.group.column, cell.group.order, cell.g
     
     }
 
-    
     ##############################################
     
     # Reduce dimension

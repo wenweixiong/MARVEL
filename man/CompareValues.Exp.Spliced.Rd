@@ -7,15 +7,16 @@
 \usage{
 CompareValues.Exp.Spliced(
   MarvelObject,
-  cell.group.g1,
-  cell.group.g2,
+  cell.group.g1 = NULL,
+  cell.group.g2 = NULL,
   psi.method,
   psi.pval,
   psi.delta,
   method.de.gene = "wilcox",
   method.adjust.de.gene = "fdr",
   downsample = FALSE,
-  show.progress = TRUE
+  show.progress = TRUE,
+  use.downsampled.data = FALSE
 )
 }
 \arguments{

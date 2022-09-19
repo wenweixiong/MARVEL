@@ -6,6 +6,7 @@
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
+#' @param sample.ids Character strings. Specific cells to plot.
 #' @param min.cells Numeric value. The minimum no. of cells expressing the splicing event or gene for the event or gene, respectively, to be included for analysis.
 #' @param features Character string. Vector of \code{tran_id} or \code{gene_id} for analysis. Should match \code{tran_id} or \code{gene_id} column of \code{MarvelObject$ValidatedSpliceFeature} or \code{MarvelObject$GeneFeature} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
@@ -29,6 +30,7 @@
 #' @export
 
 RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
+                   sample.ids=NULL,
                    min.cells=25, features,
                    point.size=0.5, point.alpha=0.75, point.stroke=0.1,
                    seed=1, method.impute="random", cell.group.column.impute=NULL,
@@ -42,6 +44,7 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    cell.group.column=cell.group.column,
                    cell.group.order=cell.group.order,
                    cell.group.colors=cell.group.colors,
+                   sample.ids=sample.ids,
                    min.cells=min.cells,
                    features=features,
                    point.size=point.size,
@@ -58,6 +61,7 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    cell.group.column=cell.group.column,
                    cell.group.order=cell.group.order,
                    cell.group.colors=cell.group.colors,
+                   sample.ids=sample.ids,
                    min.cells=min.cells,
                    features=features,
                    point.size=point.size,

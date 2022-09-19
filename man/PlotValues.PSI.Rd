@@ -18,7 +18,8 @@ PlotValues.PSI(
   seed = 1,
   modality.column = "modality.bimodal.adj",
   scale.y.log = FALSE,
-  cell.group.colors = NULL
+  cell.group.colors = NULL,
+  point.alpha = 0.2
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ PlotValues.PSI(
 \item{scale.y.log}{Logical value. Only applicable when \code{level} set to \code{"splicing"}. If set to \code{TRUE}, the y-axis of will log10-scaled. Useful when most PSI values are extremely small (< 0.02) or big (> 0.98). Default is \code{FALSE}.}
 
 \item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.}
+
+\item{point.alpha}{Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.

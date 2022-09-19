@@ -130,6 +130,9 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     # Set factor levels
     results$event_type <- factor(results$event_type, levels=rev(event_types))
     results <- results[order(results$event_type), ]
+    
+    # Save into new slots
+    MarvelObject$DE$AbsASE$Table <- results
       
     # Indicate n total events in x-labels
     xlabels <- paste(results$event_type, " (n=", results$n.total, ")", sep="")
@@ -272,7 +275,6 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
         results.small <- results.small[order(results.small$event_type, decreasing=TRUE, results.small$direction), ]
          
         # Save into new slots
-        MarvelObject$DE$AbsASE$Table <- results
         MarvelObject$DE$AbsASE$Plot <- plot
         
     }

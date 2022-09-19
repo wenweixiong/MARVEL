@@ -10,6 +10,7 @@ CompareValues.SJ.10x(
   cell.group.g2,
   min.pct.cells.genes = 10,
   min.pct.cells.sj = 10,
+  min.gene.norm = 1,
   seed = 1,
   n.iterations = 100,
   downsample = FALSE,
@@ -26,6 +27,8 @@ CompareValues.SJ.10x(
 \item{min.pct.cells.genes}{Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.}
 
 \item{min.pct.cells.sj}{Numeric value. Minimum percentage of cells in which the splice junction is expressed for that splice junction to be included for splice junction expression distribution analysis. Expressed splice junctions defined as splice junctions with raw UMI counts >= 1. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.}
+
+\item{min.gene.norm}{Numeric value. The average normalised gene expression across the two cell groups above which the splice junction will be included for analysis. Default is \code{1.0}.}
 
 \item{seed}{Numeric value. Random number generator to be fixed for permutations test and down-sampling.}
 

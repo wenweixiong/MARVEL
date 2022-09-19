@@ -168,6 +168,16 @@ ModalityChange <- function(MarvelObject, method, psi.pval, psi.delta=0) {
                 legend.text=element_text(size=9)
                 )
     
+    # Annotate event metadata
+    df.feature <- MarvelObject$DE$PSI$Table[[method[1]]]
+    cols <- c("tran_id", "event_type", "gene_id", "gene_short_name", "gene_type", "modality.bimodal.adj.g1", "modality.bimodal.adj.g2")
+    df.feature <- df.feature[,cols]
+    
+    results <- join(results, df.feature, by="tran_id", type="left")
+    col.1 <- "modality.change"
+    col.2 <- setdiff(names(results), col.1)
+    results <- results[,c(col.2, col.1)]
+    
     # Save into new slow
     MarvelObject$DE$Modality$Table <- results
     MarvelObject$DE$Modality$Plot <- plot

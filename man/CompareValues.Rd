@@ -6,8 +6,8 @@
 \usage{
 CompareValues(
   MarvelObject,
-  cell.group.g1,
-  cell.group.g2,
+  cell.group.g1 = NULL,
+  cell.group.g2 = NULL,
   downsample = FALSE,
   min.cells = 25,
   pct.cells = NULL,
@@ -26,7 +26,8 @@ CompareValues(
   psi.pval = NULL,
   psi.delta = NULL,
   method.de.gene = NULL,
-  method.adjust.de.gene = NULL
+  method.adjust.de.gene = NULL,
+  use.downsampled.data = FALSE
 )
 }
 \arguments{

@@ -11,6 +11,7 @@
 #' @param method.adjust Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.
 #' @param custom.genes Character strings. Alternative to \code{pval} and \code{delta}. Vector of gene names to be assessed for enrichment of biological pathways.
 #' @param species Character strings. Takes the value \code{"human"} or \code{"mouse"}, which corresponds to human and mouse genes, respectively. Default value is \code{"human"}.
+#' @param remove.ribo Logical value. If set to \code{TRUE}, ribosomal genes will be removed prior to GO analysis. This may prevent high-expressing ribosomal genes from overshadowing more biological relevant genes for GO analysis. Default value is \code{FALSE}.
 #'
 #' @return An object of class S3 containing new slot \code{MarvelObject$DE$BioPathways$Table}.
 #'
@@ -25,7 +26,7 @@
 #'
 #' @export
 
-BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.gene.norm=0, method.adjust="fdr", custom.genes=NULL, species="human") {
+BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.gene.norm=0, method.adjust="fdr", custom.genes=NULL, species="human", remove.ribo=FALSE) {
     
     # Define arguments
     MarvelObject <- MarvelObject
@@ -37,6 +38,7 @@ BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.g
     custom.genes <- custom.genes
     species <- species
     min.gene.norm <- min.gene.norm
+    remove.ribo <- remove.ribo
     
     # Example arguments
     #MarvelObject <- marvel
@@ -45,16 +47,17 @@ BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.g
     #delta <- 10
     #log2fc <- NULL
     #method.adjust <- "fdr"
-    #custom.genes <- NULL
+    #custom.genes <- gene_short_names
     #species <- "human"
     #min.gene.norm <- 1
+    #remove.ribo <- TRUE
     
     #############################################################
     
-    # Subset expressed genes
-    df <- df[which(df$mean.expr.gene.norm.g1.g2 > min.gene.norm), ]
-    
     if(is.null(custom.genes[1])) {
+        
+        # Subset expressed genes
+        df <- df[which(df$mean.expr.gene.norm.g1.g2 > min.gene.norm), ]
             
         # Indicate sig events and direction
         if(!is.null(log2fc)) {
@@ -88,6 +91,11 @@ BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.g
         
     }
     
+    # Remove ribo genes
+    gene_short_names <- grep("^RP[S/L]", gene_short_names, value=TRUE, invert=TRUE)
+    gene_short_names <- grep("^rp[s/l]", gene_short_names, value=TRUE, invert=TRUE)
+
+    # Print progress
     print(paste(length(gene_short_names), " unique genes identified for GO analysis", sep=""))
     
     # Retrieve entrez IDs

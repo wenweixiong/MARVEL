@@ -7,9 +7,12 @@
 #' @param coord.intron Character string. Coordinates of splice junction whose expression will be plotted.
 #' @param cell.group.colors Vector of character strings. Colors of cell groups and should be same length as \code{cell.group.list}. Default \code{ggplot2} colors are used.
 #' @param xlabels.size Numeric value. Font size of x-tick labels. Default is \code{10}.
-#' @param min.pct.cells.gene.expr Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting.
+#' @param min.pct.cells.gene.expr Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.
+#' @param min.n.cells.gene.expr Numeric value. Number of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
+#' @param min.gene.counts.total Numeric value. Totol gene counts in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
+#' @param p.adjust.method Character string. Method for multiple testing adjustment as per \code{method} option of \code{p.adjust} function. Default is \code{"fdr"}.
 #'
-#' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Plot} and \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Data}.
+#' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Plot}, \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Stats}, and \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Data}.
 #'
 #' @importFrom plyr join
 #' @importFrom Matrix colSums
@@ -18,9 +21,9 @@
 #'
 #' @export
 
-PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.intron, cell.group.colors=NULL, xlabels.size=10, min.pct.cells.gene.expr=10) {
+PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.intron, cell.group.colors=NULL, xlabels.size=10, min.pct.cells.gene.expr=10, min.n.cells.gene.expr=3, min.gene.counts.total=3, p.adjust.method="fdr") {
 
-    # Example arguments
+    # Define arguments
     MarvelObject <- MarvelObject
     sj.metadata <- MarvelObject$sj.metadata
     df.sj.count <- MarvelObject$sj.count.matrix
@@ -30,6 +33,9 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
     cell.group.colors <- cell.group.colors
     xlabels.size <- xlabels.size
     min.pct.cells.gene.expr <- min.pct.cells.gene.expr
+    min.n.cells.gene.expr <- min.n.cells.gene.expr
+    min.gene.counts.total <- min.gene.counts.total
+    p.adjust.method <- p.adjust.method
     
     # Example arguments
     #MarvelObject <- marvel
@@ -37,10 +43,13 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
     #df.sj.count <- MarvelObject$sj.count.matrix
     #df.gene.count <- MarvelObject$gene.count.matrix
     #cell.group.list <- group.list
-    #coord.intron <- c("chr7:148818118:148819595")
-    #cell.group.colors <- c("grey90", "red3")
+    #coord.intron <- "chr2:190975888:190976839"
+    #cell.group.colors <- NULL
     #xlabels.size <- 10
     #min.pct.cells.gene.expr <- 10
+    #min.n.cells.gene.expr <- 10
+    #min.gene.counts.total <- 3
+    #p.adjust.method <- "none"
     
     ##########################################################################
     
@@ -123,64 +132,94 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
     results$cell.group <- factor(results$cell.group, levels)
     
     # Censor cell groups not expressing gene
-    results$psi[which(results$pct.cells.gene.expr < min.pct.cells.gene.expr)] <- NA
-
-    # Boxplot
-        # Definition
-        data <- results
-        x <- data$cell.group
-        y <- data$psi
-        z <- data$cell.group
-        maintitle <- ""
-        ytitle <- "Pseudobulk PSI (%)"
-        xtitle <- ""
-        xlabels <- levels(x)
-        
-        # Color scheme
-        if(is.null(cell.group.colors[1])) {
-        
-            gg_color_hue <- function(n) {
-              hues = seq(15, 375, length = n + 1)
-              hcl(h = hues, l = 65, c = 100)[1:n]
-            }
-            
-            n = length(levels(z))
-            cols = gg_color_hue(n)
-        
-        } else {
-            
-            cols <- cell.group.colors
-            
-        }
-
-        # Plot
-        plot <- ggplot() +
-            geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
-            geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.1, height=0), size=1) +
-            stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
-            scale_fill_manual(values=cols) +
-            scale_x_discrete(labels=xlabels) +
-            #scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +
-            labs(title=maintitle, x=xtitle, y=ytitle) +
-            theme(panel.grid.major = element_blank(),
-                panel.grid.minor = element_blank(),
-                panel.background = element_blank(),
-                panel.border=element_blank(),
-                plot.title=element_text(hjust = 0.5, size=12),
-                plot.subtitle=element_text(hjust = 0.5, size=12),
-                axis.line.y.left = element_line(color="black"),
-                axis.line.x = element_line(color="black"),
-                axis.title=element_text(size=12),
-                axis.text.x=element_text(size=xlabels.size, colour="black"),
-                axis.text.y=element_text(size=10, colour="black"),
-                legend.position="none"
-                )
+    index <- which(results$pct.cells.gene.expr < min.pct.cells.gene.expr | results$n.cells.gene.expr < min.n.cells.gene.expr | results$gene.counts.total < min.gene.counts.total)
+    results$psi[index] <- NA
     
-    ##########################################################################
+    # Compute sample size
+    results.small <- results[!is.na(results$psi), ]
+    . <- as.data.frame(table(results.small$cell.group))
+    xlabels <- paste(.[,1], "\n(n=", .[,2], ")" , sep="")
+    
+    # Ensure there are at least two groups with at least one expressing cell
+    n.cell.groups.expr <- sum(.[,2] != 0)
+    
+    if(n.cell.groups.expr >= 2) {
 
-    # Save into new slots
-    MarvelObject$adhocPlot$Boxplot$Pseudobulk$Plot <- plot
-    MarvelObject$adhocPlot$Boxplot$Pseudobulk$Data <- results
+        # Boxplot
+            # Definition
+            data <- results
+            x <- data$cell.group
+            y <- data$psi
+            z <- data$cell.group
+            maintitle <- ""
+            ytitle <- "Pseudobulk PSI (%)"
+            xtitle <- ""
+            xlabels <- xlabels
+            
+            # Color scheme
+            if(is.null(cell.group.colors[1])) {
+            
+                gg_color_hue <- function(n) {
+                  hues = seq(15, 375, length = n + 1)
+                  hcl(h = hues, l = 65, c = 100)[1:n]
+                }
+                
+                n = length(levels(z))
+                cols = gg_color_hue(n)
+            
+            } else {
+                
+                cols <- cell.group.colors
+                
+            }
+
+            # Plot
+            plot <- ggplot() +
+                geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
+                geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.1, height=0), size=1) +
+                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
+                scale_fill_manual(values=cols) +
+                scale_x_discrete(labels=xlabels) +
+                #scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +
+                labs(title=maintitle, x=xtitle, y=ytitle) +
+                theme(panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.border=element_blank(),
+                    plot.title=element_text(hjust = 0.5, size=12),
+                    plot.subtitle=element_text(hjust = 0.5, size=12),
+                    axis.line.y.left = element_line(color="black"),
+                    axis.line.x = element_line(color="black"),
+                    axis.title=element_text(size=12),
+                    axis.text.x=element_text(size=xlabels.size, colour="black"),
+                    axis.text.y=element_text(size=10, colour="black"),
+                    legend.position="none"
+                    )
+        
+        # Statistical test
+        stats <- pairwise.wilcox.test(x=y, g=x, p.adjust.method=p.adjust.method)
+        stats <- stats$p.value
+        . <- data.frame("V1"=row.names(stats))
+        stats <- cbind.data.frame(., stats)
+        names(stats)[1] <- ""
+        row.names(stats) <- NULL
+        
+        ##########################################################################
+
+        # Save into new slots
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Plot <- plot
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Stats <- stats
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Data <- results
+        
+    } else {
+        
+        print("No cells expressing gene for plotting")
+        
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Plot <- NULL
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Stats <- NULL
+        MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Data <- results
+        
+    }
     
     # Return final object
     return(MarvelObject)

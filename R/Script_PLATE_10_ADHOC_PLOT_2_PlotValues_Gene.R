@@ -8,6 +8,7 @@
 #' @param maintitle Character string. Column to use as plot main title as per \code{MarvelObject$GeneFeature}. Default is \code{"gene_short_name"} column.
 #' @param xlabels.size Numeric value. Size of x-axis labels as per \code{ggplot2} function. Default is 8.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
+#' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$Exp}.
 #'
@@ -15,11 +16,12 @@
 #' @import stats
 #' @import methods
 #' @import ggplot2
+#' @import scales
 #' @importFrom grDevices hcl
 #'
 #' @export
 
-PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, cell.group.colors=NULL) {
+PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, cell.group.colors=NULL, point.alpha=0.2) {
     
     # Define arguments
     df <- MarvelObject$Exp
@@ -30,6 +32,7 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     maintitle <- maintitle
     xlabels.size <- xlabels.size
     cell.group.colors <- cell.group.colors
+    point.alpha <- point.alpha
     
     # Example arguments
     #MarvelObject <- marvel
@@ -41,6 +44,7 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #maintitle <- "gene_short_name"
     #xlabels.size <- 8
     #cell.group.colors <- NULL
+    #point.alpha <- 0.2
     
     ###############################################################
     
@@ -133,11 +137,11 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         # Plot
         plot <- ggplot() +
             geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.size=0.1) +
-            #geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.1, height=0), size=0.001) +
+            geom_jitter(data, mapping=aes(x=x, y=y), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
             stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill="red", col="black", size=2, shape=23) +
             scale_fill_manual(values=cols) +
             scale_x_discrete(labels=xlabels) +
-            #scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +
+            scale_y_continuous(breaks= pretty_breaks()) +
             labs(title=maintitle, x=xtitle, y=ytitle) +
             theme(panel.grid.major = element_blank(),
                 panel.grid.minor = element_blank(),

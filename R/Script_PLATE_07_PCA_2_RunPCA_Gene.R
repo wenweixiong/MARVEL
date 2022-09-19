@@ -3,6 +3,7 @@
 #' @description Performs principle component analysis using gene expression values.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{TransformExpValues} function.
+#' @param sample.ids Character strings. Specific cells to plot.
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
@@ -24,7 +25,7 @@
 #'
 #' @export
 
-RunPCA.Exp <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
+RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
                        features, min.cells=25,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1
                        ) {
@@ -34,6 +35,7 @@ RunPCA.Exp <- function(MarvelObject, cell.group.column, cell.group.order=NULL, c
     df <- MarvelObject$Exp
     df.pheno <- MarvelObject$SplicePheno
     df.feature <- MarvelObject$GeneFeature
+    sample.ids <- sample.ids
     cell.group.column <- cell.group.column
     cell.group.order <- cell.group.order
     cell.group.colors <- cell.group.colors
@@ -65,6 +67,13 @@ RunPCA.Exp <- function(MarvelObject, cell.group.column, cell.group.order=NULL, c
     
     # Rename cell group label/impute columns
     names(df.pheno)[which(names(df.pheno)==cell.group.column)] <- "pca.cell.group.label"
+    
+    # Subset relevant cells: overall
+    if(!is.null(sample.ids[1])) {
+        
+        df.pheno <- df.pheno[which(df.pheno$sample.id %in% sample.ids), ]
+        
+    }
     
     # Subset relevant cells
         # Check if cell group order is defined

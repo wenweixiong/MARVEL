@@ -7,6 +7,7 @@
 #' @param cell.group.g2 Vector of character strings. Cell IDs corresponding to Group 2.
 #' @param min.pct.cells.genes Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.
 #' @param min.pct.cells.sj Numeric value. Minimum percentage of cells in which the splice junction is expressed for that splice junction to be included for splice junction expression distribution analysis. Expressed splice junctions defined as splice junctions with raw UMI counts >= 1. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.
+#' @param min.gene.norm Numeric value. The average normalised gene expression across the two cell groups above which the splice junction will be included for analysis. Default is \code{1.0}.
 #' @param seed Numeric value. Random number generator to be fixed for permutations test and down-sampling.
 #' @param n.iterations Numeric value. Number of times to shuffle the cell group labels when building the null distribution. Default is \code{100}.
 #' @param downsample Logical value. If set to \code{TRUE}, both cell groups will be down-sampled so that both cell groups will have the same number of cells. The number of cells to downsample will be based on the smallest cell group. Default is \code{FALSE}.
@@ -19,7 +20,7 @@
 #'
 #' @export
 
-CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, seed=1, n.iterations=100, downsample=FALSE, show.progress=TRUE) {
+CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, min.gene.norm=1.0, seed=1, n.iterations=100, downsample=FALSE, show.progress=TRUE) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -36,6 +37,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     n.iterations <- n.iterations
     downsample <- downsample
     show.progress <- show.progress
+    min.gene.norm <- min.gene.norm
     
     # Example arguments
     #MarvelObject <- marvel
@@ -50,7 +52,9 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     #min.pct.cells.sj <- 98
     #seed <- 1
     #n.iterations <- 100
-    #downsample <- FALSE
+    #downsample <- TRUE
+    #min.gene.norm <- 1
+    #show.progress <- TRUE
     
     #################################################################
     ######################## DOWNSAMPLE #############################
@@ -83,7 +87,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     table(colnames(df.gene.count)==colnames(df.sj.count))
 
     #################################################################
-    ##################### SUBSET EXPRESSED GENES ####################
+    ################## SUBSET EXPRESSED GENES (1) ###################
     #################################################################
     
     # Compute num. of cells in which gene is expressed: Group 1
@@ -136,6 +140,28 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     print(paste(length(gene_short.names.1), " genes expressed in cell group 1", sep=""))
     print(paste(length(gene_short.names.2), " genes expressed in cell group 2", sep=""))
     print(paste(length(gene_short_names), " genes expressed in BOTH cell group and retained", sep=""))
+    
+    #################################################################
+    ################## SUBSET EXPRESSED GENES (2) ###################
+    #################################################################
+    
+    # Subset expressed genes from part 1
+    df.gene.norm.small <- df.gene.norm[gene_short_names, ]
+    
+    # Compute combined average
+    . <- apply(df.gene.norm.small, 1, function(x) {mean(log2(x + 1))})
+    mean.combined.df <- data.frame("gene_short_name"=names(.),
+                                   "mean.expr.gene.norm.g1.g2"=as.numeric(.),
+                                   stringsAsFactors=FALSE
+                                   )
+    
+    # Subset expressed genes
+    index <- which(mean.combined.df$mean.expr.gene.norm.g1.g2 > min.gene.norm)
+    mean.combined.df <- mean.combined.df[index, ]
+    gene_short_names <- mean.combined.df$gene_short_name
+    
+    # Report progress
+    print(paste(length(gene_short_names), " with mean log2(expression + 1) > ", min.gene.norm, " retained", sep=""))
     
     #################################################################
     ###################### SUBSET EXPRESSED SJ ######################
@@ -648,17 +674,20 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
                     delta.obs <- x[index.delta.obs]
                     delta.perm <- x[index.delta.perm]
                     
-                    # Compute pval
-                    if(delta.obs < 0) {
+                    # Compute pval (1-sided)
+                    #if(delta.obs < 0) {
                         
-                        pval <- sum(delta.perm < delta.obs) / n.iterations
+                        #pval <- sum(delta.perm < delta.obs) / n.iterations
                         
-                    } else if(delta.obs >= 0) {
+                    #} else if(delta.obs >= 0) {
                         
-                        pval <- sum(delta.perm > delta.obs) / n.iterations
+                        #pval <- sum(delta.perm > delta.obs) / n.iterations
                         
-                    }
+                    #}
                     
+                    # Compute pval (2-sided)
+                    pval <- sum(abs(delta.perm) > abs(delta.obs)) / n.iterations
+                        
                     return(pval)
                     
                 })
@@ -676,14 +705,14 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     ################################################################
 
     # Compute mean norm gene expression
-    . <- apply(df.gene.norm, 1, function(x) {mean(log2(x + 1))})
-    . <- data.frame("gene_short_name"=names(.),
-                    "mean.expr.gene.norm.g1.g2"=as.numeric(.),
-                    stringsAsFactors=FALSE
-                    )
+    #. <- apply(df.gene.norm, 1, function(x) {mean(log2(x + 1))})
+    #. <- data.frame("gene_short_name"=names(.),
+                    #"mean.expr.gene.norm.g1.g2"=as.numeric(.),
+                    #stringsAsFactors=FALSE
+                    #)
     
     # Annotate
-    results.obs <- join(results.obs, ., by="gene_short_name", type="left")
+    results.obs <- join(results.obs, mean.combined.df, by="gene_short_name", type="left")
     
     ################################################################
  

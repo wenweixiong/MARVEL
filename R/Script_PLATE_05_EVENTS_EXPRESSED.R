@@ -34,7 +34,7 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
     #sample.ids <- sample.ids
-    #min.cells <- 25
+    #min.cells <- 2
     #event.group.colors <- NULL
     
     ####################################################

@@ -10,6 +10,7 @@
 #' @param bimodal.adjust.fc Numeric value. The ratio between the proportion of cells with >0.75 PSI vs <0.25 PSI (and vice versa) below which the splicing event will be classified as bimodal. Only applicable when \code{bimodal.adjust} set to \code{TRUE}. To be used in conjunction with \code{bimodal.adjust.diff}.
 #' @param bimodal.adjust.diff Numeric value. The difference between the percentage of cells with >0.75 PSI vs <0.25 PSI (and vice versa) below which the splicing event will be classified as bimodal. Only applicable when \code{bimodal.adjust} set to \code{TRUE}. To be used in conjunction with \code{bimodal.adjust.fc}.
 #' @param seed Numeric value. Ensure the \code{fitdist} function returns the same values for alpha and beta paramters each time this function is executed using the same random number generator.
+#' @param tran_ids Character strings. Specific vector of transcript IDs for modality assignment. This will be a subset of all transcripts expressed in sufficient number of cells as defined in \code{min.cells} option.
 #'
 #' @return An object of class S3 containing with new slot \code{MarvelObject$Modality$Results}.
 #'
@@ -20,7 +21,7 @@
 #'
 #' @export
 
-AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, bimodal.adjust.fc=3, bimodal.adjust.diff=50, seed=1) {
+AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, bimodal.adjust.fc=3, bimodal.adjust.diff=50, seed=1, tran_ids=NULL) {
 
     # Define arguments
     psi <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -35,17 +36,18 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     seed <- seed
     
     # Example arguments
-    #MarvelObject <- s3
+    #MarvelObject <- marvel
     #psi <- do.call(rbind.data.frame, MarvelObject$PSI)
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
-    #sample.ids <- cell.group.list[[6]]
-    #min.cells <- 20
+    #sample.ids <- cell.group.g1
+    #min.cells <- 10
     #sigma.sq <- 0.001
     #bimodal.adjust <- TRUE
     #bimodal.adjust.fc <- 3.0
     #bimodal.adjust.diff <- 50.0
     #seed <- 1
+    #tran_ids <- results$tran_id
     
     ######################################################################
     
@@ -73,6 +75,15 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     
     psi <- psi[index.keep, , drop=FALSE]
     psi.feature <- psi.feature[index.keep, , drop=FALSE]
+    
+    # Subset user-defined events
+    if(!is.null(tran_ids[1])) {
+        
+        index <- which(psi.feature$tran_id %in% tran_ids)
+        psi.feature <- psi.feature[index, , drop=FALSE]
+        psi <- psi[psi.feature$tran_id, , drop=FALSE]
+        
+    }
     
     # Compute num. of cells analysed
     n.cells <- apply(psi, 1, function(x) {sum(!is.na(x))})

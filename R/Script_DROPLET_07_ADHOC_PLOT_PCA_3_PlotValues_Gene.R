@@ -1,91 +1,63 @@
-#' @title Annotate reduced dimension space with PSI values
+#' @title Annotate reduced dimension space with gene expression values
 #'
-#' @description Annotates reduced dimension space, e.g., UMAP and tSNE, with PSI values.
+#' @description Annotates reduced dimension space, e.g., UMAP and tSNE, with gene expression values. Values will be automatically be log2-transformed prior to plotting.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{CheckAlignment.10x} function.
-#' @param coord.intron Character string. Coordinates of splice junction whose expression will be plotted.
-#' @param min.gene.count Numeric value. Minimum raw gene count, above which, the PSI value will be calculate for the cell. Default is \code{3}.
+#' @param cell.ids Vector of character strings. Specify specific cells to plot.
+#' @param gene_short_name Character string. Gene name whose expression will be plotting.
+#' @param log2.transform Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to analysis.
 #' @param point.size Numeric value. Size of data points. Default is \code{1}.
-#' @param log2.transform Logical value. If set to \code{TRUE}, PSI values will be log2-transformed. Useful for highlighting small changes in PSI values between cell groups. Default is \code{FALSE}.
 #' @param color.gradient Vector of character strings. Colors to indicate low, moderate, and high expression. Default is \code{c("grey90","blue","red")}.
 #' @param type Character string. Type of reduced dimension space. Options are \code{"umap"} and \code{"tsne"}.
 #'
-#' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PCA$PSI}.
+#' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PCA$Gene}.
 #'
 #' @importFrom plyr join
 #' @import ggplot2
 #'
 #' @export
 
-PlotValues.PCA.PSI.10x <- function(MarvelObject, coord.intron, min.gene.count=3, point.size=0.1, log2.transform=FALSE, color.gradient=c("grey90","blue","red"), type) {
+PlotValues.PCA.Gene.10x <- function(MarvelObject, cell.ids=NULL, gene_short_name, log2.transform=TRUE, point.size=0.1, color.gradient=c("grey90","blue","red"), type) {
 
     # Example aruguments
     MarvelObject <- MarvelObject
     df.coord <- MarvelObject$pca
-    sj.metadata <- MarvelObject$sj.metadata
-    df.gene.count <- MarvelObject$gene.count.matrix
-    df.sj.count <- MarvelObject$sj.count.matrix
-    coord.intron <- coord.intron
-    min.gene.count <- min.gene.count
+    df.gene.norm <- MarvelObject$gene.norm.matrix
+    cell.ids <- cell.ids
+    gene_short_name <- gene_short_name
     point.size <- point.size
-    log2.transform <- log2.transform
     color.gradient <- color.gradient
     type <- type
+    log2.transform <- log2.transform
     
     # Example aruguments
     #MarvelObject <- marvel
     #df.coord <- MarvelObject$pca
-    #sj.metadata <- MarvelObject$sj.metadata
-    #df.gene.count <- MarvelObject$gene.count.matrix
-    #df.sj.count <- MarvelObject$sj.count.matrix
-    #coord.intron <- coord.introns[5]
-    #min.gene.count <- 3
+    #df.gene.norm <- MarvelObject$gene.norm.matrix
+    #cell.ids <- cell.ids
+    #gene_short_name <- "SYT1"
     #point.size <- 0.1
-    #log2.transform <- FALSE
     #color.gradient <- c("grey","cyan","green","yellow","red")
     #type <- "tsne"
+    #log2.transform <- TRUE
     
     ##########################################################################
-    ####################### ANNOTATE SJ COUNTS ###############################
+    ###################### ANNOTATE EXPRESSION ###############################
     ##########################################################################
     
     # Subset relevant SJ
-    df.sj.count <- df.sj.count[coord.intron, ]
+    df.gene.norm <- df.gene.norm[gene_short_name, ]
     
     # Tabulate counts
-    df.sj.count  <- data.frame("cell.id"=names(df.sj.count),
-                               "sj.count"=as.numeric(df.sj.count),
-                               stringsAsFactors=FALSE
-                               )
+    df.gene.norm  <- data.frame("cell.id"=names(df.gene.norm),
+                                "expr.gene.norm"=as.numeric(df.gene.norm),
+                                stringsAsFactors=FALSE
+                                )
     
     # Annotate coordinate table
-    df.coord <- join(df.coord, df.sj.count, by="cell.id", type="left")
+    df.coord <- join(df.coord, df.gene.norm, by="cell.id", type="left")
     
-    ##########################################################################
-    ####################### ANNOTATE SJ COUNTS ###############################
-    ##########################################################################
-    
-    # Retrieve gene
-    gene_short_name <- sj.metadata[which(sj.metadata$coord.intron==coord.intron), "gene_short_name.start"]
-    
-    # Subset relevant gene
-    df.gene.count <- df.gene.count[gene_short_name, ]
-    
-    # Tabulate counts
-    df.gene.count  <- data.frame("cell.id"=names(df.gene.count),
-                                 "gene.count"=as.numeric(df.gene.count),
-                                  stringsAsFactors=FALSE
-                                  )
-    
-    # Annotate coordinate table
-    df.coord <- join(df.coord, df.gene.count, by="cell.id", type="left")
-    
-    ##########################################################################
-    ############################# COMPUTE PSI ################################
-    ##########################################################################
-    
-    df.coord$psi <- df.coord$sj.count / df.coord$gene.count * 100
-    
+
     ##########################################################################
     ####################### SET THRESHOLD FOR COUNTS #########################
     ##########################################################################
@@ -105,17 +77,26 @@ PlotValues.PCA.PSI.10x <- function(MarvelObject, coord.intron, min.gene.count=3,
     #}
     
     # Censor lowly expressed gene
-    df.coord$psi[which(df.coord$gene.count < min.gene.count)] <- NA
+    #df.coord$expr.gene.norm[which(df.coord$gene.count < min.gene.count)] <- NA
     
     # Remove non-expressing/lowly expressed gene
-    df.coord <- df.coord[!is.na(df.coord$psi), ]
-        
+    #df.coord <- df.coord[!is.na(df.coord$expr.gene.norm), ]
+    
+    
+    
     ##########################################################################
     ################################ PLOT ####################################
     ##########################################################################
+    
+    # Subset relevant cells
+    if(!is.null(cell.ids[1])) {
+        
+        df.coord <- df.coord[which(df.coord$cell.id %in% cell.ids), ]
+        
+    }
    
     # Reorder by expression
-    df.coord <- df.coord[order(df.coord$psi), ]
+    df.coord <- df.coord[order(df.coord$expr.gene.norm), ]
         
     # Definitions
     data <- df.coord
@@ -124,14 +105,9 @@ PlotValues.PCA.PSI.10x <- function(MarvelObject, coord.intron, min.gene.count=3,
     
     if(log2.transform==TRUE) {
         
-        z <- log2(data$psi + 1)
-        
-    } else {
-    
-        z <- data$psi
+        z <- log2(data$expr.gene.norm + 1)
     
     }
-    
     
     if(type=="umap"){
         
@@ -145,16 +121,8 @@ PlotValues.PCA.PSI.10x <- function(MarvelObject, coord.intron, min.gene.count=3,
     
     }
     
-    if(log2.transform==TRUE) {
-        
-        legendtitle <- "log2(PSI)"
-        
-    } else {
+    legendtitle <- "log2(expr)"
     
-        legendtitle <- "PSI"
-    
-    }
-            
     # Plot
     plot <- ggplot() +
         geom_point(data, mapping=aes(x=x, y=y, color=z), size=point.size) +
@@ -183,7 +151,7 @@ PlotValues.PCA.PSI.10x <- function(MarvelObject, coord.intron, min.gene.count=3,
     ##########################################################################
 
     # Save into new slot
-    MarvelObject$adhocPlot$PCA$PSI <- plot
+    MarvelObject$adhocPlot$PCA$Gene <- plot
 
     # Return final object
     return(MarvelObject)
