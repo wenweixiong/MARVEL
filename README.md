@@ -13,6 +13,9 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 # Workflow for plate-based splicing analysis
 ![](inst/extdata/Cover_Figure.png)
 
+# Bioconductor/CRAN
+We are in the process for preparing our package for submission to Bioconductor/CRAN. In the meantime, MARVEL is available for installation from this repository.
+
 # Installation
 Please install the following pre-requisite R packages from Bioconductor prior to installing MARVEL.
 ```
