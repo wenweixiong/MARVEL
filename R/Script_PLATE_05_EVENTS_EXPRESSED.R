@@ -9,14 +9,31 @@
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$N.Events$Table} and \code{MarvelObject$N.Events$Plot}.
 #'
-#' @importFrom fitdistrplus fitdist
+#' @importFrom plyr join
 #' @import methods
 #' @import ggplot2
-#' @importFrom plyr join
 #' @import scales
 #' @importFrom grDevices hcl
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define cell group for analysis
+#' df.pheno <- marvel.demo$SplicePheno
+#' sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#'
+#' # Tabulate expressed events
+#' marvel.demo <- CountEvents(MarvelObject=marvel.demo,
+#'                            sample.ids=sample.ids,
+#'                            min.cells=5,
+#'                            event.group.colors=NULL
+#'                            )
+#'
+#' # Check outputs
+#' marvel.demo$N.Events$Table
+#' marvel.demo$N.Events$Plot
 
 CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=NULL) {
 
@@ -33,8 +50,8 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     #psi <- do.call(rbind.data.frame, MarvelObject$PSI)
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
-    #sample.ids <- sample.ids
-    #min.cells <- 2
+    #sample.ids <- sample.id
+    #min.cells <- 1
     #event.group.colors <- NULL
     
     ####################################################
@@ -44,8 +61,15 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     psi$tran_id <- NULL
     
     # Subset relevant cells
-    psi.pheno <- psi.pheno[psi.pheno$sample.id %in% sample.ids, ]
-    psi <- psi[, which(names(psi) %in% psi.pheno$sample.id)]
+    psi.pheno <- psi.pheno[psi.pheno$sample.id %in% sample.ids, , drop=FALSE]
+    psi <- psi[, which(names(psi) %in% psi.pheno$sample.id), drop=FALSE]
+    
+    if(nrow(psi)==0) {
+        
+        warning("No cells identified")
+        return(MarvelObject)
+        
+    }
     
     # Compute number of expressed events
     event_types <- unique(psi.feature$event_type)
@@ -55,8 +79,8 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     for(i in 1:length(event_types)) {
         
         # Subset relevant event
-        psi.feature.small <- psi.feature[which(psi.feature$event_type==event_types[i]), ]
-        psi.small <- psi[psi.feature.small$tran_id,]
+        psi.feature.small <- psi.feature[which(psi.feature$event_type==event_types[i]), , drop=FALSE]
+        psi.small <- psi[psi.feature.small$tran_id, , drop=FALSE]
         
         # Subset expressed events
         . <- apply(psi.small, 1, function(x) {sum(!is.na(x))})

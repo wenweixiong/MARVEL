@@ -18,10 +18,21 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PlotDEValues.PSI.Mean(MarvelObject=marvel.demo,
+#'                                      method="ad",
+#'                                      pval=0.10,
+#'                                      delta=5
+#'                                      )
+#'
+#' # Check output
+#' marvel.demo$DE$PSI$Plot[["ad"]]
 
 PlotDEValues.PSI.Mean <- function(MarvelObject, method, pval=0.1, delta=5, point.size=1, xlabel.size=8, anno=FALSE, anno.tran_id=NULL, label.size=2.5, y.upper.offset=5) {
 
@@ -111,7 +122,7 @@ PlotDEValues.PSI.Mean <- function(MarvelObject, method, pval=0.1, delta=5, point
        # Plot
        plot <- ggplot() +
                   geom_point(data, mapping=aes(x=x, y=y, color=z), shape=20, alpha = 0.75, size=point.size) +
-                  geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
+                  ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
                   scale_colour_manual(values=col.breaks) +
                   scale_x_continuous(breaks=seq(xmin, xmax, by=xinterval), limits=c(xmin, xmax)) +
                   scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +

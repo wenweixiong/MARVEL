@@ -15,3 +15,15 @@ An object of class S3 with new slots \code{MarvelObject$adhocGene$DE$PSI$Data}.
 \description{
 Performs differential splice junction analysis specified gene across for all possible pairs of cell groups. The gene and cell groups were defined earlier in \code{adhocGene.TabulateExpression.Gene.10x} function.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- adhocGene.DE.PSI.10x(MarvelObject=marvel.demo.10x)
+
+# Check output
+marvel.demo.10x$adhocGene$DE$PSI$Data
+}

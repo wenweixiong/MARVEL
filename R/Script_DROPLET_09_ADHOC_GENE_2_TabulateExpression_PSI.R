@@ -9,8 +9,25 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # SJ usage profiling
+#' marvel.demo.10x <- adhocGene.TabulateExpression.PSI.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         min.pct.cells=10
+#'                         )
+#'
+#' # Check output
+#' marvel.demo.10x$adhocGene$Expression$PSI$Plot
 
 adhocGene.TabulateExpression.PSI.10x <- function(MarvelObject, min.pct.cells=10) {
         

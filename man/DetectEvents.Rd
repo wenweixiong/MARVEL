@@ -29,3 +29,13 @@ An object of class S3 with new slot \code{MarvelObject$SpliceFeature$ALE} or \co
 \description{
 Detects splicing events, specifically alternative first and last exons (AFE, ALE) from GTF. This is a wrapper function for \code{DetectEvents.ALE} and \code{DetectEvents.AFE} functions.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- DetectEvents(MarvelObject=marvel.demo,
+                            min.cells=5,
+                            min.expr=1,
+                            track.progress=FALSE,
+                            EventType="AFE"
+                            )
+}

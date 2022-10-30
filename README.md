@@ -8,18 +8,37 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 6. Splicing-associated nonsense-mediated decay (NMD) prediction.
 7. Multiple visualisation functions for exploring splicing and gene expression across cell populations.
 8. Supports both plate-based (e.g., Smart-seq2) and droplet-based (e.g., 10x Genomics) single-cell RNA-sequencing data analysis. 
-9. In principle,  also applicable to bulk RNA-sequencing data analysis.
+9. In principle, also applicable to bulk RNA-sequencing data analysis.
 
 # Workflow for plate-based splicing analysis
 ![](inst/extdata/Cover_Figure.png)
 
-# Bioconductor/CRAN
-We are in the process for preparing our package for submission to Bioconductor/CRAN. In the meantime, MARVEL is available for installation from this repository.
 
 # Installation
-Please install the following pre-requisite R packages from Bioconductor prior to installing MARVEL.
+Please install the following pre-requisite R packages from CRAN prior to installing MARVEL.
 ```
-# Install required Bioconductor packages
+install.packages("ggplot2")
+install.packages("Matrix")
+install.packages("plyr")
+install.packages("scales")
+```
+
+MARVEL is available on CRAN.
+```
+install.packages("MARVEL")
+library(MARVEL)
+```
+
+Alternatively, MARVEL may be installed from Github, which includes several functionalities in beta-testing phase.
+```
+library(devtools)
+install_github("wenweixiong/MARVEL")
+library(MARVEL)
+```
+
+# Install adjunct Bioconductor packages
+The following packages are not mandatory for MARVEL installation, but are highly recommended to support the functionalities of MARVEL.
+```
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
@@ -29,16 +48,14 @@ BiocManager::install("BSgenome")
 BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
 BiocManager::install("clusterProfiler")
 BiocManager::install("GenomicRanges")
-BiocManager::install("GenomicScores")
-BiocManager::install("GO.db")
 BiocManager::install("IRanges")
 BiocManager::install("org.Hs.eg.db")
 BiocManager::install("org.Mm.eg.db")
 BiocManager::install("phastCons100way.UCSC.hg38")
-BiocManager::install("waddR")
 ```
  
-Please install the following pre-requisite R packages from CRAN prior to installing MARVEL.
+# Install adjunct CRAN packages
+The following packages are not mandatory for MARVEL installation, but are highly recommended to support the functionalities of MARVEL.
 ```
 install.packages("factoextra")
 install.packages("FactoMineR")
@@ -46,19 +63,11 @@ install.packages("fitdistrplus")
 install.packages("ggplot2")
 install.packages("ggrepel")
 install.packages("gtools")
-install.packages("kableExtra")
-install.packages("knitr")
 install.packages("kSamples")
-install.packages("kuiper.2samp")
-install.packages("markdown")
-install.packages("Matrix")
 install.packages("pheatmap")
-install.packages("plyr")
 install.packages("reshape2")
-install.packages("rmarkdown")
 install.packages("S4Vectors")
 install.packages("scales")
-install.packages("scran")
 install.packages("stringr")
 install.packages("textclean")
 install.packages("twosamples")
@@ -79,12 +88,9 @@ install_github("wenweixiong/MARVEL")
 library(MARVEL)
 ```
 
-
 # Tutorial
 Single-cell plate-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Plate.html  
 Single-cell droplet-based alternative splicing analysis: https://wenweixiong.github.io/MARVEL_Droplet.html
-
-# Preprint
 
 # Contact
 Sean Wen <wei.wen@imm.ox.ac.uk>

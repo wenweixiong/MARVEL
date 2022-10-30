@@ -29,3 +29,12 @@ An object of class S3 with new slots \code{$SpliceFeatureValidated$RI} and \code
 \description{
 Validate RI splicing events and subsequently computes percent spliced-in (PSI) values these high-quality splicing events.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI.RI(MarvelObject=marvel.demo,
+                             CoverageThreshold=10,
+                             IntronCounts=marvel.demo$IntronCounts,
+                             thread=1
+                             )
+}

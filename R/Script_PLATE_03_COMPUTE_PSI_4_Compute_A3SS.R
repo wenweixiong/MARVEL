@@ -9,9 +9,17 @@
 #'
 #' @return An object of class S3 containing with new slots \code{$SpliceFeatureValidated$A3SS} and \code{$PSI$A3SS}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.A3SS(MarvelObject=marvel.demo,
+#'                                CoverageThreshold=10
+#'                                )
 
 ComputePSI.A3SS <- function(MarvelObject, CoverageThreshold) {
 
@@ -26,7 +34,7 @@ ComputePSI.A3SS <- function(MarvelObject, CoverageThreshold) {
     #sj <- MarvelObject$SpliceJunction
     #CoverageThreshold <- 10
     
-    print(paste(nrow(df), " splicing events found", sep=""))
+    message(paste(nrow(df), " splicing events found", sep=""))
     
     #########################################################################
     ############################# PREPARE INPUTS ############################
@@ -312,7 +320,7 @@ ComputePSI.A3SS <- function(MarvelObject, CoverageThreshold) {
     row.names(psi) <- NULL
     
     # Print progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
 
     ######################################################################
     ###################### RETURN FINAL OBJECTS ##########################

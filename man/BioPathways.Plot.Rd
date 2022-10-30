@@ -32,3 +32,19 @@ Plots user-specified enriched pathways.
 \details{
 This function plots selected gene sets returned from gene ontology analysis performed previously using \code{BioPathways}
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define go terms to plot
+df <- marvel.demo$DE$BioPathways$Table
+go.terms <- df$Description[c(1:10)]
+
+# Plot
+marvel.demo <- BioPathways.Plot(MarvelObject=marvel.demo,
+                                go.terms=go.terms,
+                                offset=10
+                                )
+
+# Check output
+marvel.demo$DE$BioPathways$Plot
+}

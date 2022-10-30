@@ -45,3 +45,17 @@ An object of class S3 containing with new slot \code{$Modality$Prop$DoughnutChar
 \description{
 Tabulates and plots the proportion of each modality. This is a wrapper function for \code{PropModality.Doughnut} and \code{PropModality.Bar} functions.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PropModality(MarvelObject=marvel.demo,
+                            modality.column="modality.bimodal.adj",
+                            modality.type="extended",
+                            event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                            across.event.type=FALSE
+                            )
+
+# Check outputs
+marvel.demo$Modality$Prop$DoughnutChart$Table
+marvel.demo$Modality$Prop$DoughnutChart$Plot
+}

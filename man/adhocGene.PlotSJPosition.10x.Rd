@@ -36,3 +36,18 @@ An object of class S3 with new slots \code{MarvelObject$adhocGene$SJPosition$Plo
 \description{
 Plots the locations of specified splice junction relative to isoforms. List of isoforms are retrieved from GTF.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- adhocGene.PlotSJPosition.10x(
+                        MarvelObject=marvel.demo.10x,
+                        coord.intron="chr1:100:1001",
+                        rescale_introns=FALSE,
+                        show.protein.coding.only=TRUE,
+                        anno.label.size=1.5
+                        )
+}

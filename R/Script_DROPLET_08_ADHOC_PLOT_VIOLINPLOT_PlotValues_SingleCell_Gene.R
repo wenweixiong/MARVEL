@@ -8,12 +8,14 @@
 #' @param log2.transform Logical value. If set to \code{TRUE} (default), normalised gene expression values will be off-set by 1 and then log2-transformed prior to plotting.
 #' @param cell.group.colors Vector of character strings. Colors of cell groups and should be same length as \code{cell.group.list}. Default \code{ggplot2} colors are used.
 #' @param xlabels.size Numeric value. Font size of x-tick labels. Default is \code{10}.
+#' @param alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.5}.
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$ViolinPlot$SingleCell$Plot} and \code{MarvelObject$adhocPlot$ViolinPlot$SingleCell$Data}.
 #'
 #' @importFrom plyr join
 #' @import ggplot2
 #' @importFrom grDevices hcl
+#' @import Matrix
 #'
 #' @export
 

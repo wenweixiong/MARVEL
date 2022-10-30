@@ -14,8 +14,46 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define cell groups
+#'     # Retrieve sample metadata
+#'     sample.metadata <- marvel.demo.10x$sample.metadata
+#'
+#'     # iPSC
+#'     index <- which(sample.metadata$cell.type=="iPSC")
+#'     cell.ids.1 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.1)
+#'
+#'     # Cardio day 10
+#'     index <- which(sample.metadata$cell.type=="Cardio day 10")
+#'     cell.ids.2 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.2)
+#'
+#'     # Save into list
+#'     cell.group.list <- list("iPSC"=cell.ids.1,
+#'                             "Cardio d10"=cell.ids.2
+#'                             )
+#'
+#' # Plot expression
+#' marvel.demo.10x <- PlotValues.PCA.Gene.10x(
+#'                       MarvelObject=marvel.demo.10x,
+#'                       gene_short_name="TPM2",
+#'                       color.gradient=c("grey","cyan","green","yellow","red"),
+#'                       type="tsne"
+#'                       )
+#'
+#' # Check output
+#' marvel.demo.10x$adhocPlot$PCA$Gene
 
 PlotValues.PCA.Gene.10x <- function(MarvelObject, cell.ids=NULL, gene_short_name, log2.transform=TRUE, point.size=0.1, color.gradient=c("grey90","blue","red"), type) {
 

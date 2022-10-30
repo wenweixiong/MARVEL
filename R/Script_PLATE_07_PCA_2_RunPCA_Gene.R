@@ -18,12 +18,30 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import methods
-#' @import FactoMineR
-#' @import factoextra
 #' @import ggplot2
 #' @importFrom grDevices hcl
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define genes for analysis
+#' gene_ids <- marvel.demo$Exp$gene_id
+#'
+#' # PCA
+#' marvel.demo <- RunPCA.Exp(MarvelObject=marvel.demo,
+#'                           sample.ids=marvel.demo$SplicePheno$sample.id,
+#'                           cell.group.column="cell.type",
+#'                           cell.group.order=c("iPSC", "Endoderm"),
+#'                           min.cells=5,
+#'                           features=gene_ids,
+#'                           point.size=2
+#'                           )
+#'
+#' # Check outputs
+#' head(marvel.demo$PCA$Exp$Results$ind$coord)
+#' marvel.demo$PCA$Exp$Plot
 
 RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
                        features, min.cells=25,
@@ -105,7 +123,7 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     df.feature <- df.feature[which(df.feature$gene_id %in% row.names(df)), ]
  
     # Reduce dimension
-    res.pca <- PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
+    res.pca <- FactoMineR::PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
     
     # Scatterplot
         # Definition
@@ -114,8 +132,8 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
         y <- data[,2]
         z <- df.pheno$pca.cell.group.label
         maintitle <- paste(nrow(df), " genes", sep="")
-        xtitle <- paste("PC1 (", round(get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")
-        ytitle <- paste("PC2 (", round(get_eigenvalue(res.pca)[2,2], digits=1), "%)" ,sep="")
+        xtitle <- paste("PC1 (", round(factoextra::get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")
+        ytitle <- paste("PC2 (", round(factoextra::get_eigenvalue(res.pca)[2,2], digits=1), "%)" ,sep="")
         legendtitle <- "Group"
         
         # Color scheme

@@ -7,9 +7,19 @@
 #'
 #' @return An object of class S3 with updated slot \code{MarvelObject$SplicePheno}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' sample.ids <- sample(marvel.demo$SplicePheno$sample.id, size=10)
+#'
+#' marvel.demo <- SubsetSamples(MarvelObject=marvel.demo,
+#'                              sample.ids=sample.ids
+#'                              )
 
 SubsetSamples <- function(MarvelObject, sample.ids) {
         
@@ -24,14 +34,14 @@ SubsetSamples <- function(MarvelObject, sample.ids) {
     #sample.id <- sample.ids
     
     # Track progress
-    print(paste(length(df.pheno$sample.id), " samples identified in sample metadata", sep=""))
+    message(paste(length(df.pheno$sample.id), " samples identified in sample metadata", sep=""))
     
     # Subset overlapping samples in sample metadata
     overlap <- intersect(df.pheno$sample.id, sample.ids)
     df.pheno <- df.pheno[which(df.pheno$sample.id %in% overlap), ]
     
     # Track progress
-    print(paste(length(df.pheno$sample.id), " samples retained in sample metadata", sep=""))
+    message(paste(length(df.pheno$sample.id), " samples retained in sample metadata", sep=""))
     
     #########################################################################
     

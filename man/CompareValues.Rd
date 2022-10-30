@@ -9,6 +9,7 @@ CompareValues(
   cell.group.g1 = NULL,
   cell.group.g2 = NULL,
   downsample = FALSE,
+  seed = 1,
   min.cells = 25,
   pct.cells = NULL,
   method = NULL,
@@ -27,7 +28,8 @@ CompareValues(
   psi.delta = NULL,
   method.de.gene = NULL,
   method.adjust.de.gene = NULL,
-  use.downsampled.data = FALSE
+  mast.method = "bayesglm",
+  mast.ebayes = TRUE
 )
 }
 \arguments{
@@ -39,11 +41,13 @@ CompareValues(
 
 \item{downsample}{Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.}
 
+\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment which will be performed automatically.}
+
 \item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event or genes for the event or genes to be included for differential splicing analysis.}
 
 \item{pct.cells}{Numeric value. The minimum percentage of cells expressing the splicing event or genes for the event or genes to be included for differential splicing analysis. If \code{pct.cells} is specified, then \code{pct.cells} will be used as threshold instead of \code{min.cells}.}
 
-\item{method}{Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, and \code{"t.test"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, and t-test, respectively.}
+\item{method}{Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, and \code{"t.test"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, and t-test, respectively. Additional \code{"mast"} option is available for differential gene expression analysis. If \code{"mast"} is specified, the log2fc and p-values will be corrected using the gene detection rate as per the \code{MAST} package tutorial.}
 
 \item{nboots}{Numeric value.Only applicable when \code{level} set to \code{"splicing"}.  When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.}
 
@@ -74,10 +78,37 @@ CompareValues(
 \item{method.de.gene}{Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method}.}
 
 \item{method.adjust.de.gene}{Character string. Only applicable when \code{level} set to \code{"gene.spliced"} and when \code{CompareValues} function has been ran with \code{level} set to \code{"splicing"} earlier. Same as \code{method.adjust}.}
+
+\item{mast.method}{Character string. Only applicable when \code{level} set to \code{"gene"} or \code{"gene.spliced"}. As per the \code{method} option of the \code{zlm} function from the \code{MAST} package. Default is \code{"bayesglm"}, other options are \code{"glm"} and \code{"glmer"}.}
+
+\item{mast.ebayes}{Logical value. Only applicable when \code{level} set to \code{"gene"} or \code{"gene.spliced"}. As per the \code{ebayes} option of the \code{zlm} function from the \code{MAST} package. Default is \code{TRUE}.}
 }
 \value{
 An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Table[["method"]]} or \code{MarvelObject$DE$Exp$Table} when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.
 }
 \description{
 Performs differential splicing and gene expression analysis between 2 groups of cells. This is a wrapper function for \code{CompareValues.PSI} and \code{CompareValues.Exp} functions.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups for analysis
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# DE
+marvel.demo <- CompareValues(MarvelObject=marvel.demo,
+                             cell.group.g1=cell.group.g1,
+                             cell.group.g2=cell.group.g2,
+                             min.cells=5,
+                             method="t.test",
+                             method.adjust="fdr",
+                             level="splicing",
+                             event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                             show.progress=FALSE
+                             )
+
+# Check output
+head(marvel.demo$DE$PSI$Table[["ad"]])
 }

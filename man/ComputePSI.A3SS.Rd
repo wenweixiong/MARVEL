@@ -17,3 +17,10 @@ An object of class S3 containing with new slots \code{$SpliceFeatureValidated$A3
 \description{
 Validate A3SS splicing events and subsequently computes percent spliced-in (PSI) values these high-quality splicing events.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI.A3SS(MarvelObject=marvel.demo,
+                               CoverageThreshold=10
+                               )
+}

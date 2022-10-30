@@ -53,3 +53,25 @@ An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Resul
 \description{
 Performs principle component analysis using PSI values.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define splicing events for analysis
+df <- do.call(rbind.data.frame, marvel.demo$PSI)
+tran_ids <- df$tran_id
+
+# PCA
+marvel.demo <- RunPCA.PSI(MarvelObject=marvel.demo,
+                          sample.ids=marvel.demo$SplicePheno$sample.id,
+                          cell.group.column="cell.type",
+                          cell.group.order=c("iPSC", "Endoderm"),
+                          cell.group.colors=NULL,
+                          min.cells=5,
+                          features=tran_ids,
+                          point.size=2
+                          )
+
+# Check outputs
+head(marvel.demo$PCA$PSI$Results$ind$coord)
+marvel.demo$PCA$PSI$Plot
+}

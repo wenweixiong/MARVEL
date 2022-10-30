@@ -26,3 +26,12 @@ An object of class S3 with new slot \code{MarvelObject$SpliceFeature$AFE}.
 \description{
 Detects alternative first exons from GTF. This is a wrapper function for \code{DetectEvents.AFE.PosStrand} and \code{DetectEvents.AFE.NegStrand} functions.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- DetectEvents.AFE(MarvelObject=marvel.demo,
+                                min.cells=5,
+                                min.expr=1,
+                                track.progress=FALSE
+                                )
+}

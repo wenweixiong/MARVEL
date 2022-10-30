@@ -42,3 +42,19 @@ An object of class S3 containing new slots \code{MarvelObject$Modality$Prop$BarC
 \description{
 Tabulates and plots the proportion of each modality broken down by splicing event type.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PropModality.Bar(MarvelObject=marvel.demo,
+                                modality.column="modality.bimodal.adj",
+                                modality.type="extended",
+                                event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                                prop.test="fisher",
+                                prop.adj="fdr"
+                                )
+
+# Check outputs
+head(marvel.demo$Modality$Prop$BarChart$Table)
+marvel.demo$Modality$Prop$BarChart$Plot
+marvel.demo$Modality$Prop$BarChart$Stats
+}

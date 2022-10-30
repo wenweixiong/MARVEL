@@ -13,10 +13,28 @@
 #' @import stats
 #' @import methods
 #' @import ggplot2
-#' @import stringr
-#' @importFrom AnnotationDbi select
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define top pathways to plot
+#' go.terms <- marvel.demo.10x$DE$BioPathways$Table$Description
+#' go.terms <- go.terms[c(1:10)]
+#'
+#' # Plot
+#' marvel.demo.10x <- BioPathways.Plot.10x(
+#'                             MarvelObject=marvel.demo.10x,
+#'                             go.terms=go.terms
+#'                             )
+#' # Check outpout
+#' marvel.demo.10x$DE$BioPathways$Plot
 
 BioPathways.Plot.10x <- function(MarvelObject, go.terms, y.label.size=10, offset=0.5) {
     
@@ -45,7 +63,7 @@ BioPathways.Plot.10x <- function(MarvelObject, go.terms, y.label.size=10, offset
     # Wrap label
     labels <- data.frame("x"=as.character(df$Description), stringsAsFactors=FALSE)
     labels$y <- ifelse(nchar(labels$x) < 30, 10, 20)
-    labels$newx <- str_wrap(labels$x, width=25)
+    labels$newx <- stringr::str_wrap(labels$x, width=25)
     df$Description <- labels$newx
     df$Description <- factor(df$Description, levels=rev(df$Description))
     

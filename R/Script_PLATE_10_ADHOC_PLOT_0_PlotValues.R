@@ -28,6 +28,28 @@
 #' @import scales
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define cell groups to plot
+#' df.pheno <- marvel.demo$SplicePheno
+#' cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#' cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+#' cell.group.list <- list(cell.group.g1, cell.group.g2)
+#' names(cell.group.list) <- c("iPSC", "Endoderm")
+#'
+#' # Plot
+#' marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+#'                           cell.group.list=cell.group.list,
+#'                           feature="chr17:8383254:8382781|8383157:-@chr17:8382143:8382315",
+#'                           level="splicing",
+#'                           min.cells=5,
+#'                           xlabels.size=5
+#'                           )
+#'
+#' # Check output
+#' marvel.demo$adhocPlot$PSI
 
 PlotValues <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, level, min.cells=NULL, sigma.sq=0.001, bimodal.adjust=NULL, seed=NULL, modality.column="modality.bimodal.adj", scale.y.log=FALSE, max.cells.jitter=10000, max.cells.jitter.seed=1, cell.group.colors=NULL, point.alpha=0.2) {
     

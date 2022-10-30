@@ -13,12 +13,24 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocGene$SJPosition$Plot}, \code{MarvelObject$adhocGene$SJPosition$metadata}, \code{MarvelObject$adhocGene$SJPosition$exonfile}, and \code{MarvelObject$adhocGene$SJPosition$cdsfile}.
 #'
 #' @importFrom plyr join
-#' @importFrom S4Vectors Rle
-#' @importFrom GenomicRanges GRanges GRangesList
-#' @importFrom IRanges IRanges
-#' @import wiggleplotr
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- adhocGene.PlotSJPosition.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         coord.intron="chr1:100:1001",
+#'                         rescale_introns=FALSE,
+#'                         show.protein.coding.only=TRUE,
+#'                         anno.label.size=1.5
+#'                         )
 
 adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intron.ext=50, rescale_introns=FALSE, show.protein.coding.only=TRUE, anno.label.size=3, anno.colors=c("black", "gray", "red")) {
         
@@ -34,8 +46,8 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     anno.colors <- anno.colors
     
     # Example arguments
-    #MarvelObject <- marvel
-    #coord.intron <- coord.intron
+    #MarvelObject <- marvel.demo.10x
+    #coord.intron <- "chr1:1000:1001"
     #sj.metadata <- MarvelObject$sj.metadata
     #gtf <- MarvelObject$gtf
     #coord.intron.ext <- 10
@@ -50,12 +62,19 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
      
     # Retrieve gene name
     gene_short_name <- sj.metadata[which(sj.metadata$coord.intron==coord.intron), "gene_short_name.start"]
-     
+    
+    if(length(gene_short_name)==0) {
+        
+        message("No corresponding gene found for coord.intron specified")
+        return(MarvelObject)
+        
+    }
+    
     # Subset (by approximation) releavnt gene
     gtf <- gtf[grep(gene_short_name, gtf$V9, fixed=TRUE), ]
     
     # Report progress
-    print("Retrieving transcripts from GTF file...")
+    message("Retrieving transcripts from GTF file...")
     
     . <- strsplit(gtf$V9, split=";")
     . <- sapply(., function(x) grep("gene_name", x, value=TRUE))
@@ -126,7 +145,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     anno <- anno[grep("ENST|ENSMUST", anno$transcript_id), ]
     
     # Report progress
-    print(paste(nrow(anno), " transcripts identified", sep=""))
+    message(paste(nrow(anno), " transcripts identified", sep=""))
     
     #################################################################
     ############# PREPARE WIGGLEPLOTR INPUT: EXON FILE ##############
@@ -144,8 +163,8 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         gtf.small <- gtf.small[which(gtf.small$V3=="exon"), ]
         
         # Create GRange object
-        grange <- GRanges(seqnames=Rle(gtf.small$V1),
-                          ranges=IRanges(gtf.small$V4,
+        grange <- GenomicRanges::GRanges(seqnames=S4Vectors::Rle(gtf.small$V1),
+                          ranges=IRanges::IRanges(gtf.small$V4,
                                  width=(gtf.small$V5-gtf.small$V4)+1
                                  ),
                           strand=gtf.small$V7[1],
@@ -159,8 +178,8 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         
     }
         
-    # Convert list to GRanges list
-    grange.exon.list <- GRangesList(grange.exon.list)
+    # Convert list to GenomicRanges::GRanges list
+    grange.exon.list <- GenomicRanges::GRangesList(grange.exon.list)
     names(grange.exon.list) <- transcript_ids
     
     #################################################################
@@ -188,7 +207,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         exon.sj.start <- exon$end[which(exon$end==start.sj-1)]
         exon.sj.end <- exon$start[which(exon$start==end.sj+1)]
         
-        # Retrieve IRanges to subset
+        # Retrieve IRanges::IRanges to subset
         exon.small <- exon[which(exon$end==exon.sj.start | exon$start==exon.sj.end),  ]
         
         # Trim exon length
@@ -197,9 +216,9 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         
         if(nrow(exon.small) != 0) {
             
-            # Create GRanges object
-            grange.sj <- GRanges(seqnames=Rle(exon.small$seqnames),
-                              ranges=IRanges(exon.small$start,
+            # Create GenomicRanges::GRanges object
+            grange.sj <- GenomicRanges::GRanges(seqnames=S4Vectors::Rle(exon.small$seqnames),
+                              ranges=IRanges::IRanges(exon.small$start,
                                      width=(exon.small$end-exon.small$start)+1
                                      ),
                               strand=exon.small$strand,
@@ -221,14 +240,14 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         
     }
         
-    # Convert list to GRanges list
+    # Convert list to GenomicRanges::GRanges list
     index.keep <- which(transcript.ids != FALSE)
     grange.exon.sj.list <- grange.exon.sj.list[index.keep]
     transcript.ids <- transcript.ids[index.keep]
     
     if(length(grange.exon.sj.list) != 0) {
         
-        grange.exon.sj.list <- GRangesList(grange.exon.sj.list)
+        grange.exon.sj.list <- GenomicRanges::GRangesList(grange.exon.sj.list)
         names(grange.exon.sj.list) <- transcript.ids
     
     }
@@ -252,8 +271,8 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         if(nrow(gtf.small) != 0) {
             
             # Create GRange object
-            grange <- GRanges(seqnames=Rle(gtf.small$V1),
-                              ranges=IRanges(gtf.small$V4,
+            grange <- GenomicRanges::GRanges(seqnames=S4Vectors::Rle(gtf.small$V1),
+                              ranges=IRanges::IRanges(gtf.small$V4,
                                      width=(gtf.small$V5-gtf.small$V4)+1
                                      ),
                               strand=gtf.small$V7[1],
@@ -276,14 +295,14 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
         
     }
         
-    # Convert list to GRanges list
+    # Convert list to GenomicRanges::GRanges list
     index.keep <- which(transcript.ids != FALSE)
     grange.cds.list <- grange.cds.list[index.keep]
     transcript.ids <- transcript.ids[index.keep]
     
     if(length(grange.cds.list) != 0) {
         
-        grange.cds.list <- GRangesList(grange.cds.list)
+        grange.cds.list <- GenomicRanges::GRangesList(grange.cds.list)
         names(grange.cds.list) <- transcript.ids
     
     }
@@ -314,26 +333,26 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     
     # Annotate transcript type
         # Retrieve transcript type
-        metadata <- plyr::join(metadata, anno, by="transcript_id", type="left")
+        metadata <- join(metadata, anno, by="transcript_id", type="left")
         metadata$transcript_id.biotype <- paste(metadata$transcript_id, " (", metadata$transcript_biotype, ")", sep="")
         
         # Update GRange exon list
         . <- data.frame("transcript_id"=names(grange.exon.list), stringsAsFactors=FALSE)
-        . <- plyr::join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
+        . <- join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
         names(grange.exon.list) <- .$transcript_id.biotype
         
         # Update GRange exon-SJ list
         if(length(grange.exon.sj.list) != 0) {
             
             . <- data.frame("transcript_id"=names(grange.exon.sj.list), stringsAsFactors=FALSE)
-            . <- plyr::join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
+            . <- join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
             names(grange.exon.sj.list) <- paste(.$transcript_id.biotype, "_SJ", sep="")
         
         }
         
         # Update GRange CDS list
         . <- data.frame("transcript_id"=names(grange.cds.list), stringsAsFactors=FALSE)
-        . <- plyr::join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
+        . <- join(., metadata[,c("transcript_id", "transcript_id.biotype")], by="transcript_id", type="left")
         names(grange.cds.list) <- .$transcript_id.biotype
         
         # Update metadata
@@ -399,7 +418,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
             
         } else {
             
-            print("No protein-coding transcripts found for this gene")
+            message("No protein-coding transcripts found for this gene")
             MarvelObject$adhocGene$SJPosition$metadata <- metadata
             return
             
@@ -412,19 +431,19 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     ######################## WIGGLEPLOTR ############################
     #################################################################
   
-    plot <- plotTranscripts(exons=grange.exon.list,
-                            cdss=grange.cds.list,
-                            transcript_annotations=metadata,
-                            rescale_introns=rescale_introns,
-                            new_intron_length=50,
-                            flanking_length=c(50,50),
-                            connect_exons=TRUE,
-                            transcript_label=TRUE,
-                            region_coords = NULL,
-                            anno.colors=anno.colors,
-                            anno.label.size=anno.label.size
-                            )
-                            
+    plot <- wiggleplotr::plotTranscripts(exons=grange.exon.list,
+                                         cdss=grange.cds.list,
+                                         transcript_annotations=metadata,
+                                         rescale_introns=rescale_introns,
+                                         new_intron_length=50,
+                                         flanking_length=c(50,50),
+                                         connect_exons=TRUE,
+                                         transcript_label=TRUE,
+                                         region_coords = NULL,
+                                         anno.colors=anno.colors,
+                                         anno.label.size=anno.label.size
+                                         )
+                                        
     # Save into new slots
     MarvelObject$adhocGene$SJPosition$Plot <- plot
     MarvelObject$adhocGene$SJPosition$metadata <- metadata

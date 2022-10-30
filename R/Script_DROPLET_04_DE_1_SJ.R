@@ -3,8 +3,9 @@
 #' @description Performs differential splice junction analysis between two groups of cells.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{CheckAlignment.10x} function.
-#' @param cell.group.g1 Vector of character strings. Cell IDs corresponding to Group 1 (reference group).
-#' @param cell.group.g2 Vector of character strings. Cell IDs corresponding to Group 2.
+#' @param coord.introns Character strings. Specific splice junctions to be included for analysis. Default is \code{NULL}.
+#' @param cell.group.g1 Vector of Character strings. Cell IDs corresponding to Group 1 (reference group).
+#' @param cell.group.g2 Vector of Character strings. Cell IDs corresponding to Group 2.
 #' @param min.pct.cells.genes Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.
 #' @param min.pct.cells.sj Numeric value. Minimum percentage of cells in which the splice junction is expressed for that splice junction to be included for splice junction expression distribution analysis. Expressed splice junctions defined as splice junctions with raw UMI counts >= 1. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.
 #' @param min.gene.norm Numeric value. The average normalised gene expression across the two cell groups above which the splice junction will be included for analysis. Default is \code{1.0}.
@@ -16,11 +17,49 @@
 #' @return An object of class S3 with a new slots \code{MarvelObject$DE$SJ$Table}, \code{MarvelObject$DE$SJ$cell.group.g1}, and \code{MarvelObject$DE$SJ$cell.group.g2}.
 #'
 #' @importFrom plyr join
-#' @import utils
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define cell groups
+#'     # Retrieve sample metadata
+#'     sample.metadata <- marvel.demo.10x$sample.metadata
+#'
+#'     # Group 1 (reference)
+#'     index <- which(sample.metadata$cell.type=="iPSC")
+#'     cell.ids.1 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.1)
+#'
+#'     # Group 2
+#'     index <- which(sample.metadata$cell.type=="Cardio day 10")
+#'     cell.ids.2 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.2)
+#'
+#' # DE
+#' marvel.demo.10x <- CompareValues.SJ.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         cell.group.g1=cell.ids.1,
+#'                         cell.group.g2=cell.ids.2,
+#'                         min.pct.cells.genes=10,
+#'                         min.pct.cells.sj=10,
+#'                         min.gene.norm=1.0,
+#'                         seed=1,
+#'                         n.iterations=100,
+#'                         downsample=TRUE,
+#'                         show.progress=FALSE
+#'                         )
+#'
+#' # Check output
+#' head(marvel.demo.10x$DE$SJ$Table)
 
-CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, min.gene.norm=1.0, seed=1, n.iterations=100, downsample=FALSE, show.progress=TRUE) {
+CompareValues.SJ.10x <- function(MarvelObject, coord.introns=NULL, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, min.gene.norm=1.0, seed=1, n.iterations=100, downsample=FALSE, show.progress=TRUE) {
         
     # Define arguments
     MarvelObject <- MarvelObject
@@ -29,6 +68,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     df.gene.norm <- MarvelObject$gene.norm.matrix
     df.gene.count <- MarvelObject$gene.count.matrix
     df.sj.count <- MarvelObject$sj.count.matrix
+    coord.introns.custom <- coord.introns
     cell.group.g1 <- cell.group.g1
     cell.group.g2 <- cell.group.g2
     min.pct.cells.genes <- min.pct.cells.genes
@@ -46,15 +86,46 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     #df.gene.norm <- MarvelObject$gene.norm.matrix
     #df.gene.count <- MarvelObject$gene.count.matrix
     #df.sj.count <- MarvelObject$sj.count.matrix
-    #cell.group.g1 <- cell.ids.1
-    #cell.group.g2 <- cell.ids.2
-    #min.pct.cells.genes <- 98
-    #min.pct.cells.sj <- 98
+    #coord.introns.custom <- df$coord.intron
+    #cell.group.g1 <- cell.group.g1
+    #cell.group.g2 <- cell.group.g2
+    #min.pct.cells.genes <- 10
+    #min.pct.cells.sj <- 0.1
     #seed <- 1
     #n.iterations <- 100
-    #downsample <- TRUE
-    #min.gene.norm <- 1
+    #downsample <- FALSE
+    #min.gene.norm <- 0.1
     #show.progress <- TRUE
+    
+    #################################################################
+    ################### SUBSET SPECIFC SJs ##########################
+    #################################################################
+    
+    if(!is.null(coord.introns.custom[1])) {
+        
+        # Subset SJ
+            # Find overlap
+            overlap <- intersect(coord.introns.custom, row.names(df.sj.count))
+            
+            # Subset
+            df.sj.count <- df.sj.count[overlap,]
+            sj.metadata <- sj.metadata[which(sj.metadata$coord.intron %in% overlap), ]
+            
+        # Subset genes
+            # Find overlap
+            gene_short_names <- unique(sj.metadata$gene_short_name.start)
+            
+            # Subset
+            df.gene.norm <- df.gene.norm[gene_short_names, ]
+            df.gene.count <- df.gene.count[gene_short_names, ]
+            
+        # Report progress
+        message(paste(length(coord.introns.custom), " SJs specified by user", sep=""))
+        message(paste(length(overlap), " overlapping SJs found and subset-ed", sep=""))
+        message(paste(length(gene_short_names), " corresponding genes found and subset-ed", sep=""))
+
+            
+    }
     
     #################################################################
     ######################## DOWNSAMPLE #############################
@@ -75,7 +146,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     }
     
     # Report progress
-    print(paste(length(cell.group.g1), " cells from Group 1 and ", length(cell.group.g2), " cells from Group 2 included", sep=""))
+    message(paste(length(cell.group.g1), " cells from Group 1 and ", length(cell.group.g2), " cells from Group 2 included", sep=""))
     
     # Subset matrices
     df.gene.norm <- df.gene.norm[, c(cell.group.g1, cell.group.g2)]
@@ -137,9 +208,9 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     gene_short_names <- intersect(gene_short.names.1, gene_short.names.2)
     
     # Report progress
-    print(paste(length(gene_short.names.1), " genes expressed in cell group 1", sep=""))
-    print(paste(length(gene_short.names.2), " genes expressed in cell group 2", sep=""))
-    print(paste(length(gene_short_names), " genes expressed in BOTH cell group and retained", sep=""))
+    message(paste(length(gene_short.names.1), " genes expressed in cell group 1", sep=""))
+    message(paste(length(gene_short.names.2), " genes expressed in cell group 2", sep=""))
+    message(paste(length(gene_short_names), " genes expressed in BOTH cell group and retained", sep=""))
     
     #################################################################
     ################## SUBSET EXPRESSED GENES (2) ###################
@@ -161,7 +232,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     gene_short_names <- mean.combined.df$gene_short_name
     
     # Report progress
-    print(paste(length(gene_short_names), " with mean log2(expression + 1) > ", min.gene.norm, " retained", sep=""))
+    message(paste(length(gene_short_names), " genes with mean log2(expression + 1) > ", min.gene.norm, " retained", sep=""))
     
     #################################################################
     ###################### SUBSET EXPRESSED SJ ######################
@@ -224,14 +295,14 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     coord.introns <- unique(c(coord.introns.1, coord.introns.2))
     
     # Report progress
-    print(paste(length(coord.introns.1), " SJ expressed in cell group 1", sep=""))
-    print(paste(length(coord.introns.2), " SJ expressed in cell group 2", sep=""))
-    print(paste(length(coord.introns), " SJ expressed in EITHER cell groups and retained", sep=""))
+    message(paste(length(coord.introns.1), " SJ expressed in cell group 1", sep=""))
+    message(paste(length(coord.introns.2), " SJ expressed in cell group 2", sep=""))
+    message(paste(length(coord.introns), " SJ expressed in EITHER cell groups and retained", sep=""))
     
     # Report final numbers
     n.sj <- length(coord.introns)
     n.genes <- length(unique(sj.metadata[which(sj.metadata$coord.intron %in% coord.introns), "gene_short_name.start"]))
-    print(paste("Total of ", n.sj, " SJ from ", n.genes, " genes included for DE analysis", sep=""))
+    message(paste("Total of ", n.sj, " SJ from ", n.genes, " genes included for DE analysis", sep=""))
         
     #################################################################
     ############## SUBSET EXPRESSED GENES, SJ, CELLS ################
@@ -259,7 +330,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     
     # Compute PSI: Group 1
         # Report progress
-        print("Computing PSI for cell group 1...")
+        message("Computing PSI for cell group 1...")
         
         # Compute cell group size
         n.cells.total <- ncol(df.sj.count.g1)
@@ -326,7 +397,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
      
     # Compute PSI: Group 2
         # Report progress
-        print("Computing PSI for cell group 2...")
+        message("Computing PSI for cell group 2...")
         
         # Compute cell group size
         n.cells.total <- ncol(df.sj.count.g2)
@@ -408,7 +479,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
         
     } else {
         
-        print("Error in merging tables from Group 1 and 2")
+        message("Error in merging tables from Group 1 and 2")
 
     }
     
@@ -424,7 +495,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     #################################################################
     
     # Report progress
-    print("Creating null distributions...")
+    message("Creating null distributions...")
      
     # Set random num. generator
     set.seed(seed)
@@ -461,11 +532,11 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
              
             if(index.true==1 & index.false==0) {
             
-                #print(paste("Iteration ", 1, " ...", sep=""))
+                #message(paste("Iteration ", 1, " ...", sep=""))
                 
             } else {
                 
-                return(print(paste("Error in iteration ", 1, " ...", sep="")))
+                return(message(paste("Error in iteration ", 1, " ...", sep="")))
 
             }
         
@@ -484,7 +555,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
             
         # Compute PSI: Group 1
             # Report progress
-            #print("Computing PSI for cell group 1...")
+            #message("Computing PSI for cell group 1...")
             
             # Compute cell group size
             #n.cells.total <- ncol(df.sj.count.g1)
@@ -552,7 +623,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
 
         # Compute PSI: Group 2
             # Report progress
-            #print("Computing PSI for cell group 2...")
+            #message("Computing PSI for cell group 2...")
             
             # Compute cell group size
             #n.cells.total <- ncol(df.sj.count.g2)
@@ -643,7 +714,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
     
     # Compute pval
         # Report progress
-        print("Computing P values...")
+        message("Computing P values...")
         
         # Annotate delta observed
         index.l <- table(results.obs$coord.intron==row.names(results.perm))
@@ -656,7 +727,7 @@ CompareValues.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min
                         
         } else {
             
-            return(print("Error in consolidating observed and permutated results"))
+            return(message("Error in consolidating observed and permutated results"))
 
         }
         

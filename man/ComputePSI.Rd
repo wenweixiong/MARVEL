@@ -32,3 +32,12 @@ An object of class S3 with new slots \code{$SpliceFeatureValidated} and \code{$P
 \description{
 Validate splicing events and subsequently computes percent spliced-in (PSI) values these high-quality splicing events. This is a wrapper function for \code{ComputePSI.SE}, \code{ComputePSI.MXE}, \code{ComputePSI.A5SS}, \code{ComputePSI.A3SS}, \code{ComputePSI.RI}, \code{ComputePSI.AFE}, and \code{ComputePSI.ALE} functions.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="SE",
+                          UnevenCoverageMultiplier=10
+                          )
+}

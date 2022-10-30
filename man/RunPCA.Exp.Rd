@@ -44,3 +44,23 @@ An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Resul
 \description{
 Performs principle component analysis using gene expression values.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define genes for analysis
+gene_ids <- marvel.demo$Exp$gene_id
+
+# PCA
+marvel.demo <- RunPCA.Exp(MarvelObject=marvel.demo,
+                          sample.ids=marvel.demo$SplicePheno$sample.id,
+                          cell.group.column="cell.type",
+                          cell.group.order=c("iPSC", "Endoderm"),
+                          min.cells=5,
+                          features=gene_ids,
+                          point.size=2
+                          )
+
+# Check outputs
+head(marvel.demo$PCA$Exp$Results$ind$coord)
+marvel.demo$PCA$Exp$Plot
+}

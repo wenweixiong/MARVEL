@@ -6,9 +6,15 @@
 #'
 #' @return An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{MarvelObject$SpliceFeature}, and \code{MarvelObject$PSI}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- CheckAlignment.PSI(MarvelObject=marvel.demo)
 
 CheckAlignment.PSI <- function(MarvelObject) {
         
@@ -37,7 +43,7 @@ CheckAlignment.PSI <- function(MarvelObject) {
     #########################################################################
     
     # Track progress
-    print(paste(length(df.pheno$sample.id), " samples (cells) identified in sample metadata", sep=""))
+    message(paste(length(df.pheno$sample.id), " samples (cells) identified in sample metadata", sep=""))
     
     # Retrieve overlapping samples IDs
         # phenoData
@@ -60,8 +66,8 @@ CheckAlignment.PSI <- function(MarvelObject) {
         overlap <- intersect(sample.ids.phenoData, sample.ids.matrix)
         
         # Report progress
-        print(paste(length(sample.ids.phenoData), " samples (cells) identified in sample metadata", sep=""))
-        print(paste(length(sample.ids.matrix), " samples (cells) identified in matrix(s) ", sep=""))
+        message(paste(length(sample.ids.phenoData), " samples (cells) identified in sample metadata", sep=""))
+        message(paste(length(sample.ids.matrix), " samples (cells) identified in matrix(s) ", sep=""))
         
     # Subset and return MARVEL object
         # phenoData
@@ -79,10 +85,10 @@ CheckAlignment.PSI <- function(MarvelObject) {
         }
         
         # Report progress
-        print(paste(length(overlap), " overlapping samples (cells) retained", sep=""))
+        message(paste(length(overlap), " overlapping samples (cells) retained", sep=""))
         
     # Check alignment
-    print("Checking alignment...")
+    message("Checking alignment...")
     
     sample.ids.phenoData <- df.pheno$sample.id
     
@@ -96,12 +102,12 @@ CheckAlignment.PSI <- function(MarvelObject) {
          
          if(index.true==1 & index.false==0) {
              
-            print(paste("sample IDs in sample metadata and matrix column names MATCHED for ", event.types[i], sep=""))
+            message(paste("sample IDs in sample metadata and matrix column names MATCHED for ", event.types[i], sep=""))
             
          } else {
             
             
-            print(paste("sample IDs in sample metadata and matrix column names NOT MATCHED for ", event.types[i], sep=""))
+            message(paste("sample IDs in sample metadata and matrix column names NOT MATCHED for ", event.types[i], sep=""))
             
          }
         
@@ -115,7 +121,7 @@ CheckAlignment.PSI <- function(MarvelObject) {
     for(i in 1:length(event.types)) {
         
         # Report progress
-        print(paste("Checking for ", event.types[i], "...", sep=""))
+        message(paste("Checking for ", event.types[i], "...", sep=""))
         
         # Retrieve matrix
         df <- MarvelObject$PSI[[event.types[i]]]
@@ -129,15 +135,15 @@ CheckAlignment.PSI <- function(MarvelObject) {
         overlap <- intersect(tran.ids.featureData, tran.ids.matrix )
         
         # Report progress
-        print(paste(length(tran.ids.featureData), " transcripts identified in transcript metadata", sep=""))
-        print(paste(length(tran.ids.matrix), " transcripts identified in matrix", sep=""))
+        message(paste(length(tran.ids.featureData), " transcripts identified in transcript metadata", sep=""))
+        message(paste(length(tran.ids.matrix), " transcripts identified in matrix", sep=""))
         
         # Subset overlaps
         df.feature <- df.feature[which(df.feature$tran_id %in% overlap), , drop=FALSE]
         df <- df[which(df$tran_id %in% overlap), ]
         
         # Report progress
-        print(paste(length(overlap), " overlapping transcripts retained", sep=""))
+        message(paste(length(overlap), " overlapping transcripts retained", sep=""))
         
         # Save into MARVEL object
         MarvelObject$SpliceFeatureValidated[[event.types[i]]] <- df.feature
@@ -146,7 +152,7 @@ CheckAlignment.PSI <- function(MarvelObject) {
     }
     
     # Check alignment
-    print("Checking alignment...")
+    message("Checking alignment...")
     
     for(i in 1:length(event.types)) {
         
@@ -162,12 +168,12 @@ CheckAlignment.PSI <- function(MarvelObject) {
          
          if(index.true==1 & index.false==0) {
              
-            print(paste("Transcript IDs in transcript metadata and matrix row names MATCHED for ", event.types[i], sep=""))
+            message(paste("Transcript IDs in transcript metadata and matrix row names MATCHED for ", event.types[i], sep=""))
             
          } else {
             
             
-            print(paste("Transcript IDs in transcript metadata and matrix row names NOT MATCHED for ", event.types[i], sep=""))
+            message(paste("Transcript IDs in transcript metadata and matrix row names NOT MATCHED for ", event.types[i], sep=""))
             
          }
         

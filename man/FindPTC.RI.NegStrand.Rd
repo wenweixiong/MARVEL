@@ -20,3 +20,24 @@ A data frame of transcripts containing splicing events meeting the \code{psi.de.
 \description{
 Finds PTC(s) introduced by alternative exons into protein-coding transcripts.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define relevant event type
+results <- marvel.demo$DE$PSI$Table[["ad"]]
+index.1 <- which(results$event_type=="RI")
+index.2 <- grep(":-@", results$tran_id, fixed=TRUE)
+index <- intersect(index.1, index.2)
+results <- results[index, ]
+tran_id <- results$tran_id[1]
+gene_id <- results$gene_id[1]
+
+# Find PTC
+results <- FindPTC.RI.NegStrand(MarvelObject=marvel.demo,
+                                tran_id=tran_id,
+                                gene_id=gene_id
+                                )
+
+# Check output
+head(results)
+}

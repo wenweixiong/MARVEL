@@ -15,9 +15,28 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
-#' @import ggrepel
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- PlotDEValues.SJ.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         pval=0.05,
+#'                         delta=5,
+#'                         min.gene.norm=1.0,
+#'                         anno=FALSE
+#'                         )
+#'
+#' # Check outputs
+#' marvel.demo.10x$DE$SJ$VolcanoPlot$SJ$Plot
+#' head(marvel.demo.10x$DE$SJ$VolcanoPlot$SJ$Data)
 
 PlotDEValues.SJ.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.gene.norm=0, anno=FALSE, anno.coord.intron=NULL, label.size=2) {
         
@@ -133,7 +152,7 @@ PlotDEValues.SJ.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, m
        # Plot
        plot <- ggplot() +
                   geom_point(data, mapping=aes(x=x, y=y, color=z), shape=20, alpha = 0.75, size=0.1) +
-                  geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
+                  ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
                   scale_colour_manual(values=col.breaks) +
                   #scale_x_continuous(breaks=seq(xmin, xmax, by=xinterval), limits=c(xmin, xmax)) +
                   #scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +

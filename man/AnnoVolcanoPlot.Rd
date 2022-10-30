@@ -32,3 +32,12 @@ An object of class S3 with new slots \code{MarvelObject$NMD$AnnoVolcanoPlot$Tabl
 \description{
 Annotate volcano plot generated from differential gene expression analysis with genes predicted to undergo splicing-induced NMD.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- AnnoVolcanoPlot(MarvelObject=marvel.demo)
+
+# Check outputs
+head(marvel.demo$NMD$AnnoVolcanoPlot$Table)
+marvel.demo$NMD$AnnoVolcanoPlot$Plot
+}

@@ -17,3 +17,11 @@ An object of class S3 containing with new slots \code{MarvelObject$DE$Cor$PSIvsE
 \description{
 Plots delta PSI vs gene log2-fold change
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- IsoSwitch.PlotExpr(MarvelObject=marvel.demo, anno=TRUE)
+
+# Check output
+marvel.demo$DE$Cor$PSIvsExpr$Plot
+}

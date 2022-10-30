@@ -42,3 +42,14 @@ An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Plot[["
 \description{
 Ranked plot for differential splicing analysis results based on distance statistics. Only statistical test that assess the overall PSI distribution between two cell groups will be eligible for plotting here, e.g., Anderson-Darling and DTS. x-axis represents the distance statistics. y-axis represents the adjusted p-values.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PlotDEValues.PSI.Distance(MarvelObject=marvel.demo,
+                                         method="ad",
+                                         pval=0.10
+                                         )
+
+# Check output
+marvel.demo$DE$PSI$Plot[["ad"]]
+}

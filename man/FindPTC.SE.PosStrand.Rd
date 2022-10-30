@@ -23,3 +23,24 @@ Finds PTC(s) introduced by alternative exons into protein-coding transcripts.
 \details{
 This function finds PTC(s) introduced by alternative exons into protein-coding transcripts. It also records the distance between a PTCs and the final splice junction for a given protein-coding transcript. Non-protein-coding transcripts or transcripts in which splicing events are located outside of the transcripts' open-reading frame (ORF) are not analysed for PTCs but are noted.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define relevant event type
+results <- marvel.demo$DE$PSI$Table[["ad"]]
+index.1 <- which(results$event_type=="SE")
+index.2 <- grep(":+@", results$tran_id, fixed=TRUE)
+index <- intersect(index.1, index.2)
+results <- results[index, ]
+tran_id <- results$tran_id[1]
+gene_id <- results$gene_id[1]
+
+# Find PTC
+results <- FindPTC.SE.PosStrand(MarvelObject=marvel.demo,
+                                tran_id=NULL,
+                                gene_id=gene_id
+                                )
+
+# Check output
+head(results)
+}

@@ -15,3 +15,17 @@ An object of class S3 containing the updated slot \code{MarvelObject$sj.metadata
 \description{
 Annotates the splice junctions by assigning the gene name to the start and end of the splice junction. Annotations are retrieved from GTF.
 }
+\examples{
+
+# Load un-processed MARVEL object
+marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.raw.rds",
+                               package="MARVEL")
+                               )
+
+# Annotate gene metadata
+marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
+
+# Annotate junction metadata
+marvel.demo.10x <- AnnotateSJ.10x(MarvelObject=marvel.demo.10x)
+}

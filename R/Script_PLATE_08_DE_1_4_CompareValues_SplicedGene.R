@@ -6,13 +6,15 @@
 #' @param cell.group.g1 Vector of character strings. Cell IDs corresponding to Group 1 (reference group).
 #' @param cell.group.g2 Vector of character strings. Cell IDs corresponding to Group 2.
 #' @param downsample Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.
+#' @param seed Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}.
 #' @param psi.method Vector of character string(s). To include significant events from these method(s) for differential gene expression analysis.
 #' @param psi.pval Vector of numeric value(s). The adjusted p-value, below which, the splicing event is considered differentially spliced, and the corresponding genes will be included for differential gene expression analysis.
 #' @param psi.delta Numeric value. The absolute difference in mean PSI values between \code{cell.group.g1} and \code{cell.group.g1}, above which, the splicing event is considered differentially spliced, and the corresponding genes will be included for differential gene expression analysis.
 #' @param method.de.gene Character string. Same as \code{method} in \code{CompareValues} function.
 #' @param method.adjust.de.gene Character string. Same as \code{method} in \code{CompareValues} function.
 #' @param show.progress Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.
-# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
+#' @param mast.method Character string. As per the \code{method} option of the \code{zlm} function from the \code{MAST} package. Default is \code{"bayesglm"}, other options are \code{"glm"} and \code{"glmer"}.
+#' @param mast.ebayes Logical value. As per the \code{ebayes} option of the \code{zlm} function from the \code{MAST} package. Default is \code{TRUE}.
 #'
 #' @return An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 #'
@@ -21,8 +23,31 @@
 #' @import methods
 #' @import utils
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define cell groups for analysis
+#' df.pheno <- marvel.demo$SplicePheno
+#' cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#' cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+#'
+#' # DE
+#' marvel.demo <- CompareValues.Exp.Spliced(MarvelObject=marvel.demo,
+#'                                          cell.group.g1=cell.group.g1,
+#'                                          cell.group.g2=cell.group.g2,
+#'                                          psi.method="ad",
+#'                                          psi.pval=0.10,
+#'                                          psi.delta=0,
+#'                                          method.de.gene="t.test",
+#'                                          method.adjust.de.gene="fdr",
+#'                                          show.progress=FALSE
+#'                                          )
+#'
+#' # Check output
+#' head(marvel.demo$DE$Exp.Spliced$Table)
 
-CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NULL, psi.method, psi.pval, psi.delta, method.de.gene="wilcox", method.adjust.de.gene="fdr", downsample=FALSE, show.progress=TRUE, use.downsampled.data=FALSE) {
+CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NULL, psi.method, psi.pval, psi.delta, method.de.gene="wilcox", method.adjust.de.gene="fdr", downsample=FALSE, seed=1, show.progress=TRUE, mast.method="bayesglm", mast.ebayes=TRUE) {
 
     # Define arguments
     MarvelObject <- MarvelObject
@@ -35,7 +60,6 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.gro
     method.adjust.de.gene <- method.adjust.de.gene
     downsample <- downsample
     show.progress <- show.progress
-    use.downsampled.data <- use.downsampled.data
     
     # Example arguments
     #MarvelObject <- marvel
@@ -43,12 +67,13 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.gro
     #cell.group.g2 <- cell.group.g2
     #psi.method <- c("ad", "dts")
     #psi.pval <- c(0.1, 0.1)
-    #psi.delta <- 10
-    #method.de.gene <- "wilcox"
+    #psi.delta <- 0
+    #method.de.gene <- "mast"
     #method.adjust.de.gene <- "fdr"
     #downsample <- FALSE
     #show.progress <- TRUE
-    #use.downsampled.data <- TRUE
+    #mast.method="bayesglm"
+    #mast.ebayes=TRUE
     
     ##################################################
     
@@ -76,19 +101,8 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.gro
     df <- do.call(rbind.data.frame, .list)
     df <- unique(df)
     
-    # Use downsampled cells based on no. of genes expressed
-    if(use.downsampled.data==TRUE){
-        
-        df.downsampled <- MarvelObject$DE$Exp$Downsampled.Data$Table
-        
-        cell.group.g1 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g1"), "sample.id"]
-        
-        cell.group.g2 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g2"), "sample.id"]
-        
-    }
-    
     # Perform DE analysis
-    object <- CompareValues(MarvelObject=marvel,
+    object <- CompareValues(MarvelObject=MarvelObject,
                             cell.group.g1=cell.group.g1,
                             cell.group.g2=cell.group.g2,
                             min.cells=3,
@@ -97,7 +111,10 @@ CompareValues.Exp.Spliced <- function(MarvelObject, cell.group.g1=NULL, cell.gro
                             level="gene",
                             custom.gene_ids=df$gene_id,
                             downsample=downsample,
-                            show.progress=show.progress
+                            seed=seed,
+                            show.progress=show.progress,
+                            mast.method="bayesglm",
+                            mast.ebayes=TRUE
                             )
                             
     ############################################################

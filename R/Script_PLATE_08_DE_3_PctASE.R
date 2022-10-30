@@ -19,9 +19,17 @@
 #' @import methods
 #' @import ggplot2
 #' @importFrom grDevices hcl
-#' @import reshape2
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PctASE(MarvelObject=marvel.demo,
+#'                       method="ad",
+#'                       psi.pval=0.1,
+#'                       psi.mean.diff=0
+#'                       )
 
 PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8, barlabels.size=3, x.offset=0, direction.color=NULL, mode="percentage") {
     
@@ -39,29 +47,12 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
-    #psi.mean.diff <- 10
+    #psi.mean.diff <- 0
     #ylabels.size <- 8
     #barlabels.size <- 3
-    #mode <- "absolute"
+    #mode <- "percentage"
     #x.offset <- 1
     #direction.color <- c("blue", "red3")
-    
-    # Color scheme
-    if(is.null(direction.color[1])) {
-    
-        gg_color_hue <- function(n) {
-          hues = seq(15, 375, length = n + 1)
-          hcl(h = hues, l = 65, c = 100)[1:n]
-        }
-        
-        n = length(levels(z))
-        cols = gg_color_hue(n)
-    
-    } else {
-        
-        cols <- direction.color
-        
-    }
     
     # Subset sig events
     results.list <- list()
@@ -140,14 +131,14 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     # Format data frame for barchat
         # %
         results.small <- results[,c("event_type", "pct.sig.up", "pct.sig.down")]
-        results.small <- melt(data=results.small, id.vars="event_type", measure.vars=c("pct.sig.up", "pct.sig.down"))
+        results.small <- reshape2::melt(data=results.small, id.vars="event_type", measure.vars=c("pct.sig.up", "pct.sig.down"))
         names(results.small) <- c("event_type", "direction", "pct")
         results.small$direction <- gsub("pct.", "", results.small$direction, fixed=TRUE)
         results.small.1 <- results.small
         
         # n
         results.small <- results[,c("event_type", "n.sig.up", "n.sig.down")]
-        results.small <- melt(data=results.small, id.vars="event_type", measure.vars=c("n.sig.up", "n.sig.down"))
+        results.small <- reshape2::melt(data=results.small, id.vars="event_type", measure.vars=c("n.sig.up", "n.sig.down"))
         names(results.small) <- c("event_type", "direction", "n")
         results.small$direction <- gsub("n.", "", results.small$direction, fixed=TRUE)
         results.small.2 <- results.small
@@ -161,25 +152,16 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
     # Set factor levels
     results$direction <- factor(results$direction, levels=c("sig.down", "sig.up"), labels=c("down", "up"))
 
-    ###########################################################################
-    
-    # Color scheme
-    if(is.null(direction.color[1])) {
-    
-        gg_color_hue <- function(n) {
-          hues = seq(15, 375, length = n + 1)
-          hcl(h = hues, l = 65, c = 100)[1:n]
-        }
+    if(sum(results$pct)==0) {
         
-        n = length(levels(z))
-        cols = gg_color_hue(n)
-    
-    } else {
+        message(paste("No splicing events statistcally significant at psi.pval and/or psi.mean.diff threshold specified"))
         
-        cols <- direction.color
+        return(MarvelObject)
         
     }
     
+    ###########################################################################
+        
     if(mode=="percentage") {
         
         # Barplot
@@ -195,6 +177,23 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
             legendtitle <- "Direction"
 
             ymin <- 0 ; ymax <- max(y) + x.offset
+            
+            # Color scheme
+            if(is.null(direction.color[1])) {
+            
+                gg_color_hue <- function(n) {
+                  hues = seq(15, 375, length = n + 1)
+                  hcl(h = hues, l = 65, c = 100)[1:n]
+                }
+                
+                n = length(levels(z))
+                cols = gg_color_hue(n)
+            
+            } else {
+                
+                cols <- direction.color
+                
+            }
             
             # Plot
             plot <- ggplot() +
@@ -244,7 +243,23 @@ PctASE <- function(MarvelObject, method, psi.pval, psi.mean.diff, ylabels.size=8
             legendtitle <- "Direction"
 
             ymin <- 0 ; ymax <- max(y) + x.offset
-            
+       
+           # Color scheme
+           if(is.null(direction.color[1])) {
+           
+               gg_color_hue <- function(n) {
+                 hues = seq(15, 375, length = n + 1)
+                 hcl(h = hues, l = 65, c = 100)[1:n]
+               }
+               
+               n = length(levels(z))
+               cols = gg_color_hue(n)
+           
+           } else {
+               
+               cols <- direction.color
+               
+           }
             # Plot
             plot <- ggplot() +
                 geom_bar(data=data, aes(x=x, y=y, fill=z), stat="identity", color="black", position=position_dodge(), width=0.8) +

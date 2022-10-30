@@ -8,9 +8,30 @@
 #'
 #' @return A data frame of transcripts containing splicing events meeting the \code{psi.de.sig} and \code{psi.de.diff} criteria are categorised based on the presence or absence of PTCs.
 #'
-#' @importFrom Biostrings DNAStringSet translate reverseComplement
+#' @importFrom plyr join
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define relevant event type
+#' results <- marvel.demo$DE$PSI$Table[["ad"]]
+#' index.1 <- which(results$event_type=="A3SS")
+#' index.2 <- grep(":+@", results$tran_id, fixed=TRUE)
+#' index <- intersect(index.1, index.2)
+#' results <- results[index, ]
+#' tran_id <- results$tran_id[1]
+#' gene_id <- results$gene_id[1]
+#'
+#' # Find PTC
+#' results <- FindPTC.A3SS.PosStrand(MarvelObject=marvel.demo,
+#'                                 tran_id=tran_id,
+#'                                 gene_id=gene_id
+#'                                 )
+#'
+#' # Check output
+#' head(results)
 
 FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
 
@@ -75,7 +96,7 @@ FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
 
         if(nrow(gtf.small) == 0) {
             
-            #print("No transcripts with matching SJ found for this event")
+            #message("No transcripts with matching SJ found for this event")
             
             results <- data.frame("tran_id"=tran_id,
                                   "gene_id"=gene_id,
@@ -120,7 +141,7 @@ FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
         
         if(nrow(gtf.small) == 0) {
             
-            #print("No protein-coding transcripts found for this gene")
+            #message("No protein-coding transcripts found for this gene")
             
             return(do.call(rbind.data.frame, results.list))
         
@@ -184,7 +205,7 @@ FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
         
         if(nrow(gtf.small) == 0) {
             
-            #print("No transcripts with both start and stop codon found for this gene")
+            #message("No transcripts with both start and stop codon found for this gene")
             
             return(do.call(rbind.data.frame, results.list))
         
@@ -252,11 +273,11 @@ FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
 
     gtf.small <- gtf.small[which(gtf.small$transcript_id %in% transcript_ids), ]
     
-    #print(paste(length(transcript_ids), " relevant transcripts identified", sep=""))
+    #message(paste(length(transcript_ids), " relevant transcripts identified", sep=""))
 
     if(nrow(gtf.small) == 0) {
         
-        #print("No transcripts with both start and stop codon found for this gene")
+        #message("No transcripts with both start and stop codon found for this gene")
         
         return(do.call(rbind.data.frame, results.list))
     
@@ -317,12 +338,12 @@ FindPTC.A3SS.PosStrand <- function(MarvelObject, tran_id, gene_id) {
         end <-  gtf.small.$V5
         
         # Retrieve nt sequence
-        DNAString <- getSeq(Hsapiens, chr, start=start, end=end)
+        DNAString <- BSgenome::getSeq(BSgenome.Hsapiens.NCBI.GRCh38::Hsapiens, chr, start=start, end=end)
         DNAString <- paste(as.character(DNAString), collapse="")
         
         # Translate sequence
-        dna <- DNAStringSet(DNAString)
-        aa <- translate(dna)
+        dna <- Biostrings::DNAStringSet(DNAString)
+        aa <- Biostrings::translate(dna)
         amino.acids[i] <- as.character(aa)
         
         # Retrieve position of 1st STOP codon

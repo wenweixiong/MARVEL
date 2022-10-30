@@ -15,3 +15,28 @@ An object of class S3 containing updated slots \code{MarvelObject$gene.norm.matr
 \description{
 Ensures only overlapping cells found in both gene and splice junction data are retained. Also ensures matrix columns matches cell IDs in sample metadata and matrix rows matches gene name or splice junction coordinates in feature metadata.
 }
+\examples{
+
+# Load un-processed MARVEL object
+marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.raw.rds",
+                               package="MARVEL")
+                               )
+
+# Annotate gene metadata
+marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
+
+# Annotate junction metadata
+marvel.demo.10x <- AnnotateSJ.10x(MarvelObject=marvel.demo.10x)
+
+# Validate junctions
+marvel.demo.10x <- ValidateSJ.10x(MarvelObject=marvel.demo.10x)
+
+# Subset CDS genes
+marvel.demo.10x <- FilterGenes.10x(MarvelObject=marvel.demo.10x,
+                          gene.type="protein_coding"
+                          )
+
+# Pre-flight check
+marvel.demo.10x <- CheckAlignment.10x(MarvelObject=marvel.demo.10x)
+}

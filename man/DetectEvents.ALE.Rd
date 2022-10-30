@@ -26,3 +26,12 @@ An object of class S3 with new slot \code{MarvelObject$SpliceFeature$ALE}.
 \description{
 Detects alternative last exons from GTF. This is a wrapper function for \code{DetectEvents.ALE.PosStrand} and \code{DetectEvents.ALE.NegStrand} functions.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- DetectEvents.ALE(MarvelObject=marvel.demo,
+                                min.cells=5,
+                                min.expr=1,
+                                track.progress=FALSE
+                                )
+}

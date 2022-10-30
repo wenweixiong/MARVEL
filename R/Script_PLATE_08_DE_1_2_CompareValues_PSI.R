@@ -17,23 +17,40 @@
 #' @param annotate.outliers Numeric value. When set to \code{TRUE}, statistical difference in PSI values between the two cell groups that is driven by outlier cells will be annotated.
 #' @param n.cells.outliers Numeric value. When \code{annotate.outliers} set to \code{TRUE}, the minimum number of cells with non-1 or non-0 PSI values for included-to-included or excluded-to-excluded modality change, respectively. The p-values will be re-coded to 1 when both cell groups have less than this minimum number of cells. This is to avoid false positive results.
 #' @param assign.modality Logical value. If set to \code{TRUE} (default), modalities will be assigned to each cell group.
-# @param use.downsampled.data Logical value. If set to \code{TRUE}, downsampled cell groups based on number of genes detected will be used and the sample IDs specified in \code{cell.group.g1} and \code{cell.group.g2} options will be overriden. The function \code{DownsampleByGenes} would need to be executed first if this option is set to \code{TRUE}. Default value is \code{FALSE}.
+#' @param seed Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment which will be performed automatically.
 #'
 #' @return An object of class data frame containing the output of the differential splicing analysis.
 #'
 #' @importFrom plyr join
-#' @importFrom waddR wasserstein.test
-#' @importFrom kSamples ad.test
 #' @import stats
 #' @import methods
-#' @import kuiper.2samp
-#' @import twosamples
-#' @import scran
 #' @import utils
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define cell groups for analysis
+#' df.pheno <- marvel.demo$SplicePheno
+#' cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#' cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+#'
+#' # DE
+#' results <- CompareValues.PSI(MarvelObject=marvel.demo,
+#'                              cell.group.g1=cell.group.g1,
+#'                              cell.group.g2=cell.group.g2,
+#'                              min.cells=5,
+#'                              method="t.test",
+#'                              method.adjust="fdr",
+#'                              event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+#'                              show.progress=FALSE
+#'                              )
+#'
+#' # Check output
+#' head(results)
 
-CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE, use.downsampled.data=FALSE) {
+CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE,  seed=1, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE) {
 
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -53,7 +70,6 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     annotate.outliers <- annotate.outliers
     n.cells.outliers <- n.cells.outliers
     assign.modality <- assign.modality
-    use.downsampled.data <- use.downsampled.data
     
     # Example arguments
     #MarvelObject <- marvel
@@ -83,17 +99,6 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     df.feature <- df.feature[which(df.feature$event_type %in% event.type), ]
     df <- df[df.feature$tran_id,]
     
-    # Use downsampled cells based on no. of genes expressed
-    if(use.downsampled.data==TRUE){
-      
-        df.downsampled <- MarvelObject$DE$Exp$Downsampled.Data$Table
-      
-        cell.group.g1 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g1"), "sample.id"]
-      
-        cell.group.g2 <- df.downsampled[which(df.downsampled$cell.group=="cell.group.g2"), "sample.id"]
-      
-    }
-    
     # Retrieve sample ids
         # Group 1
         sample.ids.1 <- cell.group.g1
@@ -111,7 +116,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         n.cells.downsample <- min(length(sample.ids.1), length(sample.ids.2))
         
         # Downsample
-        set.seed(1)
+        set.seed(seed)
         sample.ids.1 <- sample(sample.ids.1, size=n.cells.downsample, replace=FALSE)
         sample.ids.2 <- sample(sample.ids.2, size=n.cells.downsample, replace=FALSE)
         
@@ -120,9 +125,9 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         df <- df[, df.pheno$sample.id]
         
         # Track progress
-        print(paste(length(sample.ids.1), " cells found in Group 1", sep=""))
-        print(paste(length(sample.ids.2), " cells found in Group 2", sep=""))
-        print(paste("Both Group 1 and 2 downsampled to ", n.cells.downsample, " cells", sep=""))
+        message(paste(length(sample.ids.1), " cells found in Group 1", sep=""))
+        message(paste(length(sample.ids.2), " cells found in Group 2", sep=""))
+        message(paste("Both Group 1 and 2 downsampled to ", n.cells.downsample, " cells", sep=""))
         
     }
     
@@ -166,9 +171,9 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
         df <- df[overlap, ]
         
         # Report progress
-        print(paste(length(tran_ids.1), " expressed events identified in Group 1", sep=""))
-        print(paste(length(tran_ids.2), " expressed events identified in Group 2", sep=""))
-        print(paste(length(overlap), " expressed events identified in BOTH Group 1 and Group 2", sep=""))
+        message(paste(length(tran_ids.1), " expressed events identified in Group 1", sep=""))
+        message(paste(length(tran_ids.2), " expressed events identified in Group 2", sep=""))
+        message(paste(length(overlap), " expressed events identified in BOTH Group 1 and Group 2", sep=""))
         
     # Remove events in which PSI values are constant across all cells
     if(method=="permutation") {
@@ -184,8 +189,8 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
             
         }
         
-        print(paste(length(index.rm), " non-variable events identified and removed", sep=""))
-        print(paste(nrow(df), " events retained", sep=""))
+        message(paste(length(index.rm), " non-variable events identified and removed", sep=""))
+        message(paste(nrow(df), " events retained", sep=""))
         
     }
     
@@ -252,14 +257,9 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                 statistic[i] <- ks.test(x, y)$statistic
                 p.val[i] <- ks.test(x, y)$p.value
                 
-            } else if(method=="kuiper") {
-                
-                statistic[i] <- kuiper.2samp(x, y)$Kuiper.statistic
-                p.val[i] <- kuiper.2samp(x, y)$p.value
-                
             } else if(method=="ad") {
                 
-                error.check <- tryCatch(ad.test(x, y), error=function(err) "Error")
+                error.check <- tryCatch(kSamples::ad.test(x, y), error=function(err) "Error")
                 
                 if(error.check[1] == "Error") {
                     
@@ -268,7 +268,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                     
                 } else {
                     
-                    stats <- ad.test(x, y, method="asymptotic")$ad
+                    stats <- kSamples::ad.test(x, y, method="asymptotic")$ad
                     
                     statistic[i] <- stats[1,1]
                     p.val[i] <- stats[1,3]
@@ -277,18 +277,11 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                 
             } else if(method=="dts"){
                 
-                stats <- dts_test(x, y, nboots=nboots)
+                stats <- twosamples::dts_test(x, y, nboots=nboots)
                 
                 statistic[i] <- stats[1]
                 p.val[i] <- stats[2]
                 
-                
-            } else if(method=="wass"){
-                
-                stats <- wasserstein.test(x, y, method="ASY")
-                
-                statistic[i] <- stats["d.wass"]
-                p.val[i] <- stats["pval"]
                 
             }
                     
@@ -297,7 +290,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
            
                 #setTxtProgressBar(pb, i)
                 setTxtProgressBar(pb, i)
-                #print(i)
+                #message(i)
                 
             }
             
@@ -340,7 +333,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                 df.small <- na.omit(df.small)
                             
                 # Build null distribution
-                set.seed(1)
+                set.seed(seed)
                 
                 mean.diff.perm <- NULL
                 
@@ -379,7 +372,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
            
                 #setTxtProgressBar(pb, i)
                 setTxtProgressBar(pb, i)
-                #print(i)
+                #message(i)
                 
             }
 
@@ -433,7 +426,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     if(assign.modality==TRUE) {
         
         # Track progress
-        print("Assigning modalities...")
+        message("Assigning modalities...")
         
         # Assign modality
             # Group 1
@@ -441,7 +434,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                                        sample.ids=cell.group.g1,
                                        min.cells=min.cells,
                                        bimodal.adjust=TRUE,
-                                       seed=1,
+                                       seed=seed,
                                        tran_ids=results$tran_id
                                        )
                                 
@@ -452,7 +445,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                                       sample.ids=cell.group.g2,
                                       min.cells=min.cells,
                                       bimodal.adjust=TRUE,
-                                      seed=1,
+                                      seed=seed,
                                       tran_ids=results$tran_id
                                       )
                                
@@ -478,7 +471,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     if(annotate.outliers==TRUE) {
         
         # Track progress
-        print("Identifying outliers...")
+        message("Identifying outliers...")
         
         # Check num of cells !=1 for included -> included modality changes
             # Subset relevant modality changes
@@ -656,9 +649,9 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     results$mean.diff <- results$mean.diff * 100
     
     # Report result summary
-    #print(paste(sum(results$p.val.adj < 0.10), " DE splicing events < 0.10 adjusted p-value", sep=""))
-    #print(paste(sum(results$p.val.adj < 0.05), " DE splicing events < 0.05 adjusted p-value", sep=""))
-    #print(paste(sum(results$p.val.adj < 0.01), " DE splicing events < 0.01 adjusted p-value", sep=""))
+    #message(paste(sum(results$p.val.adj < 0.10), " DE splicing events < 0.10 adjusted p-value", sep=""))
+    #message(paste(sum(results$p.val.adj < 0.05), " DE splicing events < 0.05 adjusted p-value", sep=""))
+    #message(paste(sum(results$p.val.adj < 0.01), " DE splicing events < 0.01 adjusted p-value", sep=""))
  
     # Return result table (not new MARVEL object)
     return(results)

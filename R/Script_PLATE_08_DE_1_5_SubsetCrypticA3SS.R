@@ -13,11 +13,22 @@
 #' @import methods
 #' @import utils
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- SubsetCrypticA3SS(MarvelObject=marvel.demo,
+#'                                  method="ad",
+#'                                  distance.to.ss=c(1,100)
+#'                                  )
+#'
+#' # Check output
+#' head(marvel.demo$DE$PSI$Table[["ad"]])
 
 SubsetCrypticA3SS <- function(MarvelObject, method, distance.to.ss=c(1,100)) {
 
     # Define arguments
-    MarvelObject <- marvel
+    MarvelObject <- MarvelObject
     method <- method
     distance.to.ss <- distance.to.ss
     

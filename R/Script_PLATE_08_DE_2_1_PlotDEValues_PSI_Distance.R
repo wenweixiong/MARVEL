@@ -17,11 +17,20 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #'
 #' @export
-
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PlotDEValues.PSI.Distance(MarvelObject=marvel.demo,
+#'                                          method="ad",
+#'                                          pval=0.10
+#'                                          )
+#'
+#' # Check output
+#' marvel.demo$DE$PSI$Plot[["ad"]]
 
 PlotDEValues.PSI.Distance <- function(MarvelObject, method, pval, point.size=1, xlabel.size=8, anno=FALSE, anno.tran_id=NULL, label.size=2.5, y.upper.offset=5) {
 
@@ -93,7 +102,7 @@ PlotDEValues.PSI.Distance <- function(MarvelObject, method, pval, point.size=1, 
        # Plot
        plot <- ggplot() +
                   geom_point(data, mapping=aes(x=x, y=y, color=z), shape=20, alpha = 0.75, size=point.size) +
-                  geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 1.0, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
+                  ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 1.0, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
                   scale_colour_manual(values=col.breaks) +
                   #scale_x_log10(breaks=c(1, 10, 25, 50, 100), limits=c(1, 200)) +
                   scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +

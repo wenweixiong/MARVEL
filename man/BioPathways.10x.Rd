@@ -43,3 +43,16 @@ An object of class S3 containing new slot \code{MarvelObject$DE$BioPathways$Tabl
 \description{
 Performs pathway enrichment analysis on differentially spliced genes or user-specified custom set of genes.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- BioPathways.10x(
+                        MarvelObject=marvel.demo.10x,
+                        custom.genes=c("TPM2", "GNAS"),
+                        species="human"
+                        )
+}

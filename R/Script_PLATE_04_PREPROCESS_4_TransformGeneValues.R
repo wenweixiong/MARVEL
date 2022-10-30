@@ -9,9 +9,19 @@
 #'
 #' @return An object of class S3 with updated slot \code{MarvelObject$Exp}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- TransformExpValues(MarvelObject=marvel.demo,
+#'                                   offset=1,
+#'                                   transformation="log2",
+#'                                   threshold.lower=1
+#'                                   )
 
 TransformExpValues <- function(MarvelObject, offset=1, transformation="log2", threshold.lower=1) {
         
@@ -30,6 +40,17 @@ TransformExpValues <- function(MarvelObject, offset=1, transformation="log2", th
     # Retrieve matrix
     df <- MarvelObject$Exp
     
+    # Check if data has been log2-transformed
+    max.value <- max(unlist(df[,-1]))
+
+    if(max.value < 20){
+        
+        message(paste("Maximum gene expression value detected as ", round(max.value, digits=2), ". It would seem that your gene expression values have been transformed. Hence, no transformation performed here.", sep="" ))
+        
+        return(MarvelObject)
+        
+    }
+        
     # Apply offset
     df[,-1] <- df[,-1] + offset
     
@@ -48,7 +69,7 @@ TransformExpValues <- function(MarvelObject, offset=1, transformation="log2", th
     df[,-1][df[,-1] < threshold.lower] <- 0
     
     # Track progress
-    print("Gene expression values offset by 1 and then log2-transformed. Transformed values below 1 re-coded as 0")
+    message("Gene expression values offset by 1 and then log2-transformed. Transformed values below 1 re-coded as 0")
     
     # Save into MARVEL object
     MarvelObject$Exp <- df

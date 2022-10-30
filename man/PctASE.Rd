@@ -41,3 +41,12 @@ An object of class S3 with new slots \code{MarvelObject$DE$AbsASE$Table} and \co
 \description{
 Tabulates the percentage or absoluate number of significant splicing events for each splicing type.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PctASE(MarvelObject=marvel.demo,
+                      method="ad",
+                      psi.pval=0.1,
+                      psi.mean.diff=0
+                      )
+}

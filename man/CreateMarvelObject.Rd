@@ -41,3 +41,33 @@ An object of class S3.
 \description{
 Creates an S3 object named \code{Marvel} for downstream analysis, specifically for plate-based RNA-sequencing data.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+SpliceJunction <- marvel.demo$SpliceJunction
+SpliceJunction[1:5,1:5]
+
+SplicePheno <- marvel.demo$SplicePheno
+SplicePheno[1:5,]
+
+SpliceFeature <- marvel.demo$SpliceFeature
+SpliceFeature[["SE"]][1:5, ]
+
+IntronCounts <- marvel.demo$IntronCounts
+IntronCounts[1:5,1:5]
+
+GeneFeature <- marvel.demo$GeneFeature
+GeneFeature[1:5, ]
+
+Exp <- marvel.demo$Exp
+Exp[1:5,1:5]
+
+marvel <- CreateMarvelObject(SpliceJunction=SpliceJunction,
+                             SplicePheno=SplicePheno,
+                             SpliceFeature=SpliceFeature,
+                             IntronCounts=IntronCounts,
+                             GeneFeature=GeneFeature,
+                             Exp=Exp
+                             )
+class(marvel)
+}

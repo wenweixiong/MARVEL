@@ -10,18 +10,19 @@
 #' @param min.pct.cells.gene.expr Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.
 #' @param min.n.cells.gene.expr Numeric value. Number of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
 #' @param min.gene.counts.total Numeric value. Totol gene counts in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
+#' @param method Character string. Statistical test for all possible pair-wise comparisons. Options are \code{"t.test"} (default) or \code{"wilcox"}.
 #' @param p.adjust.method Character string. Method for multiple testing adjustment as per \code{method} option of \code{p.adjust} function. Default is \code{"fdr"}.
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Plot}, \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Stats}, and \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Data}.
 #'
 #' @importFrom plyr join
-#' @importFrom Matrix colSums
 #' @import ggplot2
 #' @importFrom grDevices hcl
+#' @import Matrix
 #'
 #' @export
 
-PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.intron, cell.group.colors=NULL, xlabels.size=10, min.pct.cells.gene.expr=10, min.n.cells.gene.expr=3, min.gene.counts.total=3, p.adjust.method="fdr") {
+PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.intron, cell.group.colors=NULL, xlabels.size=10, min.pct.cells.gene.expr=10, min.n.cells.gene.expr=3, min.gene.counts.total=3, method="t.test", p.adjust.method="fdr") {
 
     # Define arguments
     MarvelObject <- MarvelObject
@@ -35,6 +36,7 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
     min.pct.cells.gene.expr <- min.pct.cells.gene.expr
     min.n.cells.gene.expr <- min.n.cells.gene.expr
     min.gene.counts.total <- min.gene.counts.total
+    method <- method
     p.adjust.method <- p.adjust.method
     
     # Example arguments
@@ -49,19 +51,20 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
     #min.pct.cells.gene.expr <- 10
     #min.n.cells.gene.expr <- 10
     #min.gene.counts.total <- 3
+    #method <- "t.test"
     #p.adjust.method <- "none"
     
     ##########################################################################
     
     # Compute SJ counts
     df.sj.count <- df.sj.count[coord.intron, , drop=FALSE]
-    sj.counts <- colSums(df.sj.count)
+    sj.counts <- Matrix::colSums(df.sj.count)
     
     # Compute gene counts
     gene_short_name <- unique(sj.metadata[which(sj.metadata$coord.intron %in% coord.intron), "gene_short_name.start"])
     
     df.gene.count <- df.gene.count[gene_short_name, , drop=FALSE]
-    gene.counts <- colSums(df.gene.count)
+    gene.counts <- Matrix::colSums(df.gene.count)
     
     # Compute PSI for each pseudo-bulk
     .list.psi. <- list()
@@ -197,7 +200,16 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
                     )
         
         # Statistical test
-        stats <- pairwise.wilcox.test(x=y, g=x, p.adjust.method=p.adjust.method)
+        if(method=="t.test"){
+            
+            stats <- pairwise.t.test(x=y, g=x, p.adjust.method=p.adjust.method)
+            
+        } else if(method=="wilcox"){
+           
+           stats <- pairwise.wilcox.test(x=y, g=x, p.adjust.method=p.adjust.method)
+            
+        }
+        
         stats <- stats$p.value
         . <- data.frame("V1"=row.names(stats))
         stats <- cbind.data.frame(., stats)
@@ -213,7 +225,7 @@ PlotValues.PSI.Pseudobulk.10x <- function(MarvelObject, cell.group.list, coord.i
         
     } else {
         
-        print("No cells expressing gene for plotting")
+        message("No cells expressing gene for plotting")
         
         MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Plot <- NULL
         MarvelObject$adhocPlot$Boxplot$Pseudobulk$PSI$Stats <- NULL

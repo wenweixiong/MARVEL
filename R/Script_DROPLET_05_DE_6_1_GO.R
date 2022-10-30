@@ -18,13 +18,22 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import methods
-#' @import org.Hs.eg.db
-#' @import org.Mm.eg.db
-#' @import GO.db
-#' @importFrom clusterProfiler enrichGO simplify
-#' @importFrom AnnotationDbi select
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- BioPathways.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         custom.genes=c("TPM2", "GNAS"),
+#'                         species="human"
+#'                         )
 
 BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.gene.norm=0, method.adjust="fdr", custom.genes=NULL, species="human", remove.ribo=FALSE) {
     
@@ -96,28 +105,37 @@ BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.g
     gene_short_names <- grep("^rp[s/l]", gene_short_names, value=TRUE, invert=TRUE)
 
     # Print progress
-    print(paste(length(gene_short_names), " unique genes identified for GO analysis", sep=""))
+    message(paste(length(gene_short_names), " unique genes identified for GO analysis", sep=""))
+
+    # Check if sufficient no. of genes for GO analysis
+    if(length(gene_short_names) < 10) {
+        
+        message("Require mininum 10 genes for GO analysis")
+        
+        return(MarvelObject)
+        
+    }
     
     # Retrieve entrez IDs
     if(species=="human") {
         
-        ID <- AnnotationDbi::select(org.Hs.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
+        ID <- AnnotationDbi::select(org.Hs.eg.db::org.Hs.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
         
     } else if(species=="mouse"){
         
-        ID <- AnnotationDbi::select(org.Mm.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
+        ID <- AnnotationDbi::select(org.Mm.eg.db::org.Mm.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
         
     }
 
     # GO analysis
     if(species=="human") {
         
-        ego <- enrichGO(ID$ENTREZID, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
+        ego <- clusterProfiler::enrichGO(ID$ENTREZID, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
         head(ego)
         
     } else if(species=="mouse"){
         
-        ego <- enrichGO(ID$ENTREZID, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
+        ego <- clusterProfiler::enrichGO(ID$ENTREZID, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
         head(ego)
         
     }
@@ -126,12 +144,12 @@ BioPathways.10x <- function(MarvelObject, pval=0.05, log2fc=NULL, delta=5, min.g
     # GO analysis (Remove redundant terms)
     if(nrow(ego) != 0) {
 
-        ego2 <- simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
+        ego2 <- clusterProfiler::simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
         ego2 <- as.data.frame(ego2)
 
     } else {
 
-        print("No significant GO terms (pathways) found")
+        message("No significant GO terms (pathways) found")
 
     }
     

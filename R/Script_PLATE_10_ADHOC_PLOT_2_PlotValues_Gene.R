@@ -17,9 +17,28 @@
 #' @import methods
 #' @import ggplot2
 #' @import scales
-#' @importFrom grDevices hcl
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+# Define cell groups to plot
+#' df.pheno <- marvel.demo$SplicePheno
+#' cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#' cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+#' cell.group.list <- list(cell.group.g1, cell.group.g2)
+#' names(cell.group.list) <- c("iPSC", "Endoderm")
+#'
+#' # Plot
+#' marvel.demo <- PlotValues.Exp(MarvelObject=marvel.demo,
+#'                               cell.group.list=cell.group.list,
+#'                               feature="ENSG00000161970.15",
+#'                               xlabels.size=8
+#'                               )
+#'
+#' # Check output
+#' marvel.demo$adhocPlot$Exp
 
 PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, cell.group.colors=NULL, point.alpha=0.2) {
     
@@ -122,7 +141,7 @@ PlotValues.Exp <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         
             gg_color_hue <- function(n) {
               hues = seq(15, 375, length = n + 1)
-              hcl(h = hues, l = 65, c = 100)[1:n]
+              grDevices::hcl(h = hues, l = 65, c = 100)[1:n]
             }
             
             n = length(levels(z))

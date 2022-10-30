@@ -6,6 +6,7 @@
 \usage{
 CompareValues.SJ.10x(
   MarvelObject,
+  coord.introns = NULL,
   cell.group.g1,
   cell.group.g2,
   min.pct.cells.genes = 10,
@@ -20,9 +21,11 @@ CompareValues.SJ.10x(
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{CheckAlignment.10x} function.}
 
-\item{cell.group.g1}{Vector of character strings. Cell IDs corresponding to Group 1 (reference group).}
+\item{coord.introns}{Character strings. Specific splice junctions to be included for analysis. Default is \code{NULL}.}
 
-\item{cell.group.g2}{Vector of character strings. Cell IDs corresponding to Group 2.}
+\item{cell.group.g1}{Vector of Character strings. Cell IDs corresponding to Group 1 (reference group).}
+
+\item{cell.group.g2}{Vector of Character strings. Cell IDs corresponding to Group 2.}
 
 \item{min.pct.cells.genes}{Numeric value. Minimum percentage of cells in which the gene is expressed for that gene to be included for splice junction expression distribution analysis. Expressed genes defined as genes with non-zero normalised UMI counts. This threshold may be determined from \code{PlotPctExprCells.SJ.10x} function. Default is \code{10}.}
 
@@ -43,4 +46,42 @@ An object of class S3 with a new slots \code{MarvelObject$DE$SJ$Table}, \code{Ma
 }
 \description{
 Performs differential splice junction analysis between two groups of cells.
+}
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# Define cell groups
+    # Retrieve sample metadata
+    sample.metadata <- marvel.demo.10x$sample.metadata
+
+    # Group 1 (reference)
+    index <- which(sample.metadata$cell.type=="iPSC")
+    cell.ids.1 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.1)
+
+    # Group 2
+    index <- which(sample.metadata$cell.type=="Cardio day 10")
+    cell.ids.2 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.2)
+
+# DE
+marvel.demo.10x <- CompareValues.SJ.10x(
+                        MarvelObject=marvel.demo.10x,
+                        cell.group.g1=cell.ids.1,
+                        cell.group.g2=cell.ids.2,
+                        min.pct.cells.genes=10,
+                        min.pct.cells.sj=10,
+                        min.gene.norm=1.0,
+                        seed=1,
+                        n.iterations=100,
+                        downsample=TRUE,
+                        show.progress=FALSE
+                        )
+
+# Check output
+head(marvel.demo.10x$DE$SJ$Table)
 }

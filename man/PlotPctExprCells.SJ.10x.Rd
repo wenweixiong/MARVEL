@@ -38,3 +38,38 @@ An object of class S3 with a new slots \code{MarvelObject$pct.cells.expr$SJ$Plot
 \description{
 Generates a plot of splice junction expression distribution (percentage of cells expressing a particular splice junction) to determine splice junction expression threshold for downstream differential splice junction analysis.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# Define cell groups
+    # Retrieve sample metadata
+    sample.metadata <- marvel.demo.10x$sample.metadata
+
+    # Group 1 (reference)
+    index <- which(sample.metadata$cell.type=="iPSC")
+    cell.ids.1 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.1)
+
+    # Group 2
+    index <- which(sample.metadata$cell.type=="Cardio day 10")
+    cell.ids.2 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.2)
+
+# Explore \% of cells expressing SJ
+marvel.demo.10x <- PlotPctExprCells.SJ.10x(
+                    MarvelObject=marvel.demo.10x,
+                    cell.group.g1=cell.ids.1,
+                    cell.group.g2=cell.ids.2,
+                    min.pct.cells.genes=5,
+                    min.pct.cells.sj=5,
+                    downsample=TRUE,
+                    downsample.pct.sj=100
+                    )
+
+marvel.demo.10x$pct.cells.expr$SJ$Plot
+head(marvel.demo.10x$pct.cells.expr$SJ$Data)
+}

@@ -25,10 +25,30 @@
 #' @import methods
 #' @import ggplot2
 #' @import scales
-#' @import ggnewscale
 #' @importFrom grDevices hcl
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define cell groups to plot
+#' df.pheno <- marvel.demo$SplicePheno
+#' cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#' cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+#' cell.group.list <- list(cell.group.g1, cell.group.g2)
+#' names(cell.group.list) <- c("iPSC", "Endoderm")
+#'
+#' # Plot
+#' marvel.demo <- PlotValues.PSI(MarvelObject=marvel.demo,
+#'                               cell.group.list=cell.group.list,
+#'                               feature="chr17:8383254:8382781|8383157:-@chr17:8382143:8382315",
+#'                               min.cells=5,
+#'                               xlabels.size=5
+#'                               )
+#'
+#' # Check output
+#' marvel.demo$adhocPlot$PSI
 
 PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2) {
     
@@ -100,7 +120,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
             
         } else {
             
-            print(paste("No expressed events found for ", names(cell.group.list)[[i]], sep=""))
+            message(paste("No expressed events found for ", names(cell.group.list)[[i]], sep=""))
             mod[i] <- NA
             
         }
@@ -323,7 +343,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
             geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
                 scale_fill_manual(values=cols.violin.fill) +
                 scale_color_manual(values=cols.violin.border) +
-                new_scale_color() +
+                ggnewscale::new_scale_color() +
             geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
                 scale_color_manual(values=cols.points) +
             stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
@@ -366,7 +386,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                 geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
                     scale_fill_manual(values=cols.violin.fill) +
                     scale_color_manual(values=cols.violin.border) +
-                    new_scale_color() +
+                    ggnewscale::new_scale_color() +
                 geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
                     scale_color_manual(values=cols.points) +
                 stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
@@ -411,7 +431,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                 geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
                     scale_fill_manual(values=cols.violin.fill) +
                     scale_color_manual(values=cols.violin.border) +
-                    new_scale_color() +
+                    ggnewscale::new_scale_color() +
                 geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
                     scale_color_manual(values=cols.points) +
                 stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +

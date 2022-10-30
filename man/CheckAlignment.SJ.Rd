@@ -16,3 +16,8 @@ An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{
 \description{
 Checks if the metadata aligns with the columns and rows of the matrix for splice junction data prior to PSI computation.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- CheckAlignment.SJ(MarvelObject=marvel.demo)
+}

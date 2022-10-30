@@ -7,8 +7,23 @@
 #' @return An object of class S3 containing the updated slot \code{MarvelObject$sj.metadata}.
 #'
 #' @importFrom plyr join
-#'
+#' @import Matrix
+#' 
 #' @export
+#'
+#' @examples
+#'
+#' # Load un-processed MARVEL object
+#' marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.raw.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Annotate gene metadata
+#' marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
+#'
+#' # Annotate junction metadata
+#' marvel.demo.10x <- AnnotateSJ.10x(MarvelObject=marvel.demo.10x)
 
 AnnotateSJ.10x <- function(MarvelObject) {
     
@@ -25,7 +40,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
     #########################################################
     
     # Create SJ metadata
-    print("Creating splice junction metadata...")
+    message("Creating splice junction metadata...")
     
     df <- data.frame("coord.intron"=rownames(df.sj.count), stringsAsFactors=FALSE)
     
@@ -36,7 +51,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
     
     # Parse GTF
         # Track progress
-        print("Parsing GTF...")
+        message("Parsing GTF...")
         
         # Subset exon entries
         gtf <- gtf[which(gtf$V3=="exon"), ]
@@ -56,7 +71,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
 
     # Collapse start position
         # Track progress
-        print("Matching gene names with SJ start coordinates in GTF...")
+        message("Matching gene names with SJ start coordinates in GTF...")
         
         # Keep unique entries
         gtf.small <- gtf[, c("V1", "V5", "gene_short_name")]
@@ -75,7 +90,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
         
     # Collapse end position
         # Track progress
-        print("Matching gene names with SJ end coordinates in GTF...")
+        message("Matching gene names with SJ end coordinates in GTF...")
         
         # Keep unique entries
         gtf.small <- gtf[, c("V1", "V4", "gene_short_name")]
@@ -94,7 +109,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
         
     # Annotate splice junctions
         # Track progress
-        print("Annotating splice junctions...")
+        message("Annotating splice junctions...")
         
         # Retrieve SJ start, end coordinates
         df$chr.start <- paste(df$chr, ":", df$start, sep="")
@@ -217,11 +232,11 @@ AnnotateSJ.10x <- function(MarvelObject) {
             # Check for missing sj annotations
             if(sum(is.na(df$sj.type)) == 0) {
                 
-                print("All SJ successfully annotated")
+                message("All SJ successfully annotated")
                 
             } else {
                 
-                print("Some SJ NOT successfully annotated")
+                message("Some SJ NOT successfully annotated")
             }
 
         # Formet input for MARVEL

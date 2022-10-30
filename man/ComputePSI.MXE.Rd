@@ -22,6 +22,14 @@ Validate MXE splicing events and subsequently computes percent spliced-in (PSI) 
 \details{
 This function computes the PSI for each MXE splicing event. Splicing events provided in \code{SpliceFeature} data frame will first be cross-checked against the splice junctions provided in \code{SpliceJunction} data frame. Only events whose junctions are found in \code{SpliceJunction} are retained. The formula for computing PSI is the number of junction reads supporting the included isoform divided by the total number of reads supporting both included and excluded isoforms.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI.MXE(MarvelObject=marvel.demo,
+                              CoverageThreshold=10,
+                              UnevenCoverageMultiplier=10
+                              )
+}
 \author{
 Sean Wen <sean.wenwx@gmail.com>
 }

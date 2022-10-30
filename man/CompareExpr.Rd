@@ -17,3 +17,13 @@ An object of class S3 new slots \code{MarvelObject$NMD$NMD.Expr$Table}, \code{Ma
 \description{
 Compares gene expression changes based on NMD status for each splicing event type.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- CompareExpr(MarvelObject=marvel.demo)
+
+# Check outputs
+head(marvel.demo$NMD$NMD.Expr$Table)
+marvel.demo$NMD$NMD.Expr$Plot
+marvel.demo$NMD$NMD.Expr$Plot.Stats
+}

@@ -22,3 +22,16 @@ An object of class S3 with new slots \code{MarvelObject$Modality$Prop$DoughnutCh
 \description{
 Tabulates and plots the proportion of each modality without breaking down by splicing event type.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PropModality.Doughnut(MarvelObject=marvel.demo,
+                                     modality.column="modality.bimodal.adj",
+                                     modality.type="extended",
+                                     event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
+                                     )
+
+# Check outputs
+marvel.demo$Modality$Prop$DoughnutChart$Table
+marvel.demo$Modality$Prop$DoughnutChart$Plot
+}

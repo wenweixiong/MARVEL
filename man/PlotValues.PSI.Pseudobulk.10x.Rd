@@ -14,6 +14,7 @@ PlotValues.PSI.Pseudobulk.10x(
   min.pct.cells.gene.expr = 10,
   min.n.cells.gene.expr = 3,
   min.gene.counts.total = 3,
+  method = "t.test",
   p.adjust.method = "fdr"
 )
 }
@@ -33,6 +34,8 @@ PlotValues.PSI.Pseudobulk.10x(
 \item{min.n.cells.gene.expr}{Numeric value. Number of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.}
 
 \item{min.gene.counts.total}{Numeric value. Totol gene counts in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.}
+
+\item{method}{Character string. Statistical test for all possible pair-wise comparisons. Options are \code{"t.test"} (default) or \code{"wilcox"}.}
 
 \item{p.adjust.method}{Character string. Method for multiple testing adjustment as per \code{method} option of \code{p.adjust} function. Default is \code{"fdr"}.}
 }

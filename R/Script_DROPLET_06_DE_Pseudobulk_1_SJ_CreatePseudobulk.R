@@ -112,7 +112,7 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
             # Gene counts
             . <- lapply(.list.gene.count.collapsed, function(x) {as.data.frame(t(x))})
             sample.ids <- unlist(lapply(., function(x) {row.names(x)}))
-            . <- do.call(rbind.fill, .)
+            . <- do.call(plyr::rbind.fill, .)
             row.names(.) <- sample.ids
             . <- as.data.frame(t(.))
             .list.gene.count.collapsed.2[[j]] <- .
@@ -120,13 +120,13 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
             # SJ counts
             . <- lapply(.list.sj.count.collapsed, function(x) {as.data.frame(t(x))})
             sample.ids <- unlist(lapply(., function(x) {row.names(x)}))
-            . <- do.call(rbind.fill, .)
+            . <- do.call(plyr::rbind.fill, .)
             row.names(.) <- sample.ids
             . <- as.data.frame(t(.))
             .list.sj.count.collapsed.2[[j]] <- .
 
         # Track progress
-        print(paste("donor ", donor.id, " collapsed", sep=""))
+        message(paste("donor ", donor.id, " collapsed", sep=""))
             
     }
     
@@ -134,7 +134,7 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
         # Gene counts
         . <- lapply(.list.gene.count.collapsed.2, function(x) {as.data.frame(t(x))})
         sample.ids <- unlist(lapply(., function(x) {row.names(x)}))
-        . <- do.call(rbind.fill, .)
+        . <- do.call(plyr::rbind.fill, .)
         row.names(.) <- sample.ids
         . <- as.data.frame(t(.))
         df.gene.count.collapsed <- .
@@ -142,12 +142,15 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
         # SJ counts
         . <- lapply(.list.sj.count.collapsed.2, function(x) {as.data.frame(t(x))})
         sample.ids <- unlist(lapply(., function(x) {row.names(x)}))
-        . <- do.call(rbind.fill, .)
+        . <- do.call(plyr::rbind.fill, .)
         row.names(.) <- sample.ids
         . <- as.data.frame(t(.))
         df.sj.count.collapsed <- .
     
     # Collapse metadata
+        # Rename sample.metadata object
+        df.pheno <- sample.metadata
+        
         # Collapse
         df.pheno.collapsed <- unique(df.pheno[,c(donor.id.column, feature.column, comparison.column)])
         
@@ -169,11 +172,11 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
          
         if(index.true==1 & index.false==0) {
         
-            print("Collapsed metadata and collapsed gene count matrix column names MATCHED")
+            message("Collapsed metadata and collapsed gene count matrix column names MATCHED")
             
         } else {
             
-            print("Collapsed metadata and collapsed gene count matrix column names NOT MATCHED")
+            message("Collapsed metadata and collapsed gene count matrix column names NOT MATCHED")
 
         }
     
@@ -184,11 +187,11 @@ CreatePseudoBulk.SJ.10x <- function(MarvelObject, donor.id.column, feature.colum
          
         if(index.true==1 & index.false==0) {
         
-            print("Collapsed metadata and collapsed SJ count matrix column names MATCHED")
+            message("Collapsed metadata and collapsed SJ count matrix column names MATCHED")
             
         } else {
             
-            print("Collapsed metadata and collapsed SJ count matrix column names NOT MATCHED")
+            message("Collapsed metadata and collapsed SJ count matrix column names NOT MATCHED")
 
         }
     

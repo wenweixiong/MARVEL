@@ -62,3 +62,25 @@ An object of class S3 with new slot \code{$adhocPlot$PSI} or \code{MarvelObject$
 \description{
 Plots percent spliced-in (PSI) or gene expression values across different groups of cells. This is a wrapper function for \code{PlotValues.Exp} and \code{PlotValues.PSI}.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups to plot
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+cell.group.list <- list(cell.group.g1, cell.group.g2)
+names(cell.group.list) <- c("iPSC", "Endoderm")
+
+# Plot
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature="chr17:8383254:8382781|8383157:-@chr17:8382143:8382315",
+                          level="splicing",
+                          min.cells=5,
+                          xlabels.size=5
+                          )
+
+# Check output
+marvel.demo$adhocPlot$PSI
+}

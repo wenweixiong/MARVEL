@@ -27,6 +27,8 @@ PlotValues.Gene.SingleCell.10x(
 \item{cell.group.colors}{Vector of character strings. Colors of cell groups and should be same length as \code{cell.group.list}. Default \code{ggplot2} colors are used.}
 
 \item{xlabels.size}{Numeric value. Font size of x-tick labels. Default is \code{10}.}
+
+\item{alpha}{Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.5}.}
 }
 \value{
 An object of class S3 with new slots \code{MarvelObject$adhocPlot$ViolinPlot$SingleCell$Plot} and \code{MarvelObject$adhocPlot$ViolinPlot$SingleCell$Data}.

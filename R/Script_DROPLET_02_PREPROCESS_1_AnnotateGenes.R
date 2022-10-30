@@ -7,8 +7,20 @@
 #' @return An object of class S3 containing the updated slots \code{MarvelObject$gene.metadata} and \code{gene.norm.matrix}.
 #'
 #' @importFrom plyr join
-#'
+#' @import Matrix
+#' 
 #' @export
+#'
+#' @examples
+#'
+#' # Load un-processed MARVEL object
+#' marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.raw.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Annotate gene metadata
+#' marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
 
 AnnotateGenes.10x <- function(MarvelObject) {
     
@@ -19,7 +31,7 @@ AnnotateGenes.10x <- function(MarvelObject) {
     df.gene.norm <- MarvelObject$gene.norm
     
     # Example arguments
-    #MarvelObject <- marvel
+    #MarvelObject <- marvel.demo.10x.raw
     #gtf <- MarvelObject$gtf
     #gene.metadata <- MarvelObject$gene.metadata
     #df.gene.norm <- MarvelObject$gene.norm
@@ -56,9 +68,9 @@ AnnotateGenes.10x <- function(MarvelObject) {
         #. <- as.data.frame(table(gtf$gene_short_name))
         
     # Subset overlapping genes
-    overlap <- intersect(gene.metadata$gene_short_name, gtf$gene_short_name)
-    print(paste(nrow(gene.metadata), " genes found in gene metadata", sep=""))
-    print(paste(length(overlap), " genes overlapped with GTF and will be subset-ed", sep=""))
+    overlap <- intersect(gene.metadata$gene_short_name, unique(gtf$gene_short_name))
+    message(paste(nrow(gene.metadata), " genes found in gene metadata", sep=""))
+    message(paste(length(overlap), " genes overlapped with GTF and will be subset-ed", sep=""))
     
     gene.metadata <- gene.metadata[which(gene.metadata$gene_short_name %in% overlap), , drop=FALSE]
     df.gene.norm <- df.gene.norm[gene.metadata$gene_short_name, ]
@@ -67,7 +79,7 @@ AnnotateGenes.10x <- function(MarvelObject) {
     gene.metadata <- join(gene.metadata, gtf, by="gene_short_name", type="left", match="first")
     sum(is.na(gene.metadata$gene_type))
     
-    print("Gene type annotated")
+    message("Gene type annotated")
     
     # Check alignment
     table(rownames(df.gene.norm)==gene.metadata$gene_short_name)
@@ -78,7 +90,7 @@ AnnotateGenes.10x <- function(MarvelObject) {
     MarvelObject$gene.metadata <- gene.metadata
     MarvelObject$gene.norm.matrix <- df.gene.norm
     
-    print("Gene metadata and normalised gene expression matrix updated")
+    message("Gene metadata and normalised gene expression matrix updated")
         
     # Return final object
     return(MarvelObject)

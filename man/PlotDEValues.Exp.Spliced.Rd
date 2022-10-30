@@ -51,3 +51,17 @@ An object of class S3 with new slots \code{MarvelObject$DE$Exp.Spliced$Table}, \
 \description{
 Volcano plot of differential splicing analysis results based on differentially spliced genes between 2 groups of cells. x-axis represents the log2 fold change in gene expression. y-axis represents the adjusted p-values.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PlotDEValues.Exp.Spliced(MarvelObject=marvel.demo,
+                                        method="ad",
+                                        psi.pval=0.1,
+                                        psi.delta=0,
+                                        gene.pval=0.1,
+                                        gene.log2fc=0.5
+                                        )
+# Check output
+marvel.demo$DE$Exp.Spliced$Summary
+marvel.demo$DE$Exp.Spliced$Plot
+}

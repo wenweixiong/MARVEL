@@ -10,12 +10,21 @@
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$SpliceFeature$ALE.PosStrand}.
 #'
+#' @importFrom plyr join
 #' @import methods
-#' @import textclean
-#' @import plyr
 #' @import utils
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- DetectEvents.ALE.PosStrand(MarvelObject=marvel.demo,
+#'                                           parsed.gtf=NULL,
+#'                                           min.cells=5,
+#'                                           min.expr=1,
+#'                                           track.progress=FALSE
+#'                                           )
 
 DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=50, min.expr=1, track.progress=FALSE) {
 
@@ -36,6 +45,15 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     #min.expr <- 3
     #track.progress <- TRUE
     
+    # Check if GTF provided
+    if(is.null(df)) {
+        
+        message("Please provide GTF into the parsed.gtf option")
+        
+        return(MarvelObject)
+        
+    }
+    
     # Create row names
         # SJ matrix
         row.names(df.sj) <- df.sj$coord.intron
@@ -49,7 +67,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     df.sj[is.na(df.sj)] <- 0
 
     # Retrieve gene_id metadata for annotation later
-        print("Retrieving gene metadata from GTF...")
+        message("Retrieving gene metadata from GTF...")
         
         # Subset gene records
         df.small <- df[which(df$V3=="gene"), ]
@@ -59,15 +77,15 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
         
         # Retrieve gene_id
         . <- sapply(attr, function(x) grep("gene_id", x, value=TRUE))
-        df.small$gene_id <- mgsub(., c("gene_id", " ", "\""), "")
+        df.small$gene_id <- textclean::mgsub(., c("gene_id", " ", "\""), "")
 
         # Retrieve gene_short_name
         . <- sapply(attr, function(x) grep("gene_name", x, value=TRUE))
-        df.small$gene_short_name <- mgsub(., c("gene_name", " ", "\""), "")
+        df.small$gene_short_name <- textclean::mgsub(., c("gene_name", " ", "\""), "")
         
         # Retrieve gene_type
         . <- sapply(attr, function(x) grep("gene_type", x, value=TRUE))
-        df.small$gene_type <- mgsub(., c("gene_type", " ", "\""), "")
+        df.small$gene_type <- textclean::mgsub(., c("gene_type", " ", "\""), "")
         
         # Save as reference data frame
         df.feature <- df.small[, c("gene_id", "gene_short_name", "gene_type")]
@@ -76,7 +94,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     ######################### SUBSET EXPRESSED GENES #########################
     ##########################################################################
 
-    print("Retrieving expressed genes...")
+    message("Retrieving expressed genes...")
 
     # Retrieve gene_ids
     . <- apply(df.gene, 1, function(x) {sum(x >= min.expr)})
@@ -85,7 +103,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     # Retrieve attribute: gene_id
     #attr <- strsplit(df$V9, split=";")
     #. <- sapply(attr, function(x) grep("gene_id", x, value=TRUE))
-    #df$gene_id <- mgsub(., c("gene_id", " ", "\""), "")
+    #df$gene_id <- textclean::mgsub(., c("gene_id", " ", "\""), "")
 
     # Subset relevant strand
     df <- df[which(df$V7=="+"), ]
@@ -94,7 +112,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     gene_ids.overlap <- intersect(gene_ids, unique(df$gene_id))
     df <- df[which(df$gene_id %in% gene_ids.overlap), ]
 
-    print(paste(length(gene_ids.overlap), " expressed genes identified", sep=""))
+    message(paste(length(gene_ids.overlap), " expressed genes identified", sep=""))
 
     ##########################################################################
     ############################ SUBSET LAST SJ ##############################
@@ -106,7 +124,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     # Retrieve attribute: transcript_id
     attr <- strsplit(df$V9, split=";")
     . <- sapply(attr, function(x) grep("transcript_id", x, value=TRUE))
-    df$transcript_id <- mgsub(., c("transcript_id", " ", "\""), "")
+    df$transcript_id <- textclean::mgsub(., c("transcript_id", " ", "\""), "")
 
     # Subset multi-exon transcripts
     freq <- as.data.frame(table(df$transcript_id))
@@ -115,7 +133,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     df <- df[which(df$transcript_id %in% transcript_ids), ]
         
     # Retrieve last SJs
-    print(paste("Retrieving final exon-exon junctions from ", length(transcript_ids), " multi-exon transcripts", sep=""))
+    message(paste("Retrieving final exon-exon junctions from ", length(transcript_ids), " multi-exon transcripts", sep=""))
 
     transcript_ids <- unique(df$transcript_id)
 
@@ -200,7 +218,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     ##########################################################################
 
     # Collapse
-    print("Collapsing redundant coordinates/exons...")
+    message("Collapsing redundant coordinates/exons...")
 
     coord.introns <- unique(df$coord.intron)
 
@@ -318,7 +336,7 @@ DetectEvents.ALE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     # Annotate gene metadata
     df.feature <- join(df, df.feature, by="gene_id", type="left")
 
-    print(paste(nrow(df.feature), " ALE identified", sep=""))
+    message(paste(nrow(df.feature), " ALE identified", sep=""))
 
     ######################################################################
     ###################### RETURN FINAL OBJECTS ##########################

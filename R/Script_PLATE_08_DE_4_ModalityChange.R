@@ -15,6 +15,20 @@
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ModalityChange(MarvelObject=marvel.demo,
+#'                               method="ad",
+#'                               psi.pval=0.1,
+#'                               psi.delta=0
+#'                               )
+#'
+#' # Check outputs
+#' head(marvel.demo$DE$Modality$Table)
+#' marvel.demo$DE$Modality$Plot
+#' marvel.demo$DE$Modality$Plot.Stats
 
 ModalityChange <- function(MarvelObject, method, psi.pval, psi.delta=0) {
     
@@ -99,11 +113,11 @@ ModalityChange <- function(MarvelObject, method, psi.pval, psi.delta=0) {
     
     if(modality.missing==0) {
         
-        print("All modality change assignment SUCCESSFUL")
+        message("All modality change assignment SUCCESSFUL")
         
     } else {
         
-        print("Missing modality assignment, please contact author")
+        message("Missing modality assignment, please contact author")
         
     }
     
@@ -113,11 +127,11 @@ ModalityChange <- function(MarvelObject, method, psi.pval, psi.delta=0) {
     
     if(freq.max==1) {
         
-        print("Modality change category CONSISTENT across all statistical test")
+        message("Modality change category CONSISTENT across all statistical test")
         
     } else if(freq.max >= 2){
         
-        print("Modality change category NOT CONSISTENT across all statistical test")
+        message("Modality change category NOT CONSISTENT across all statistical test")
         
     }
     

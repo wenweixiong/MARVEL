@@ -11,15 +11,15 @@
 #' @param xlabels.size Numeric value. Font size of heatmap column (main cell group) labels. Default is \code{8}.
 #' @param ylabels.size Numeric value. Font size of heatmap row (sub-cell group) labels. Default is \code{8}.
 #' @param min.pct.cells.gene.expr Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the value be re-coded as missing and appear as grey on the heatmap.
-#' @param min.n.cells Numeric value. Minimum number of cells in a cell group, below which, the cell group will be censored and appear as grey on the heatmap.
+#' @param min.pct.cells.gene.expr Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.
+#' @param min.n.cells.gene.expr Numeric value. Number of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
+#' @param min.gene.counts.total Numeric value. Totol gene counts in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Heatmap$Pseudobulk$Plot} and \code{MarvelObject$adhocPlot$Heatmap$Pseudobulk$Data}.
 #'
 #' @importFrom plyr join
-#' @importFrom Matrix colSums
 #' @import ggplot2
-#' @import reshape2
-#' @import pheatmap
+#' @import Matrix
 #'
 #' @export
 
@@ -63,13 +63,13 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
     
     # Compute SJ counts
     df.sj.count <- df.sj.count[coord.intron, , drop=FALSE]
-    sj.counts <- colSums(df.sj.count)
+    sj.counts <- Matrix::colSums(df.sj.count)
     
     # Compute gene counts
     gene_short_name <- unique(sj.metadata[which(sj.metadata$coord.intron %in% coord.intron), "gene_short_name.start"])
     
     df.gene.count <- df.gene.count[gene_short_name, , drop=FALSE]
-    gene.counts <- colSums(df.gene.count)
+    gene.counts <- Matrix::colSums(df.gene.count)
     
     # Compute PSI for each pseudo-bulk
     .list.psi. <- list()
@@ -147,27 +147,27 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x <- function(MarvelObject, coord.intron, x.
     results$y.level <- factor(results$y.level, levels=y.levels)
 
     # Convert to heatmap matrix
-    results <- dcast(data=results, formula=y.level ~ x.level, value.var="psi")
+    results <- reshape2::dcast(data=results, formula=y.level ~ x.level, value.var="psi")
     row.names(results) <- results$y.level
     results$y.level <- NULL
     #results <- as.matrix(results)
     
     # Heatmap
-    plot <- pheatmap(results,
-                     cluster_rows=FALSE,
-                     cluster_cols=FALSE,
-                     scale="row",
-                     fontsize_row=ylabels.size,
-                     fontsize_col=xlabels.size,
-                     border_color="white",
-                     legend=TRUE,
-                     show_rownames=TRUE,
-                     angle_col=90,
-                     silent=TRUE
-                     #color=myColor,
-                     #breaks=myBreaks
-                     )
-    
+    plot <- pheatmap::pheatmap(results,
+                               cluster_rows=FALSE,
+                               cluster_cols=FALSE,
+                               scale="row",
+                               fontsize_row=ylabels.size,
+                               fontsize_col=xlabels.size,
+                               border_color="white",
+                               legend=TRUE,
+                               show_rownames=TRUE,
+                               angle_col=90,
+                               silent=TRUE
+                               #color=myColor,
+                               #breaks=myBreaks
+                               )
+            
     ##########################################################################
 
     # Save into new slots

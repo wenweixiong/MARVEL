@@ -18,3 +18,8 @@ Parses the gene transfer file (GTF) for downstream nonsense-mediated decay (NMD)
 \details{
 This function parses the GTF in order to generate new columns for gene IDs, transcript IDs, and transcript type. These information are extracted from the attribute (9th) column for a standard GTF. These information will be used for downstream NMD prediction.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ParseGTF(MarvelObject=marvel.demo)
+}

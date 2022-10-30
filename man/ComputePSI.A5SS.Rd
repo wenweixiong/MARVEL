@@ -17,3 +17,10 @@ An object of class S3 with new slots \code{$SpliceFeatureValidated$A5SS} and \co
 \description{
 Validate A5SS splicing events and subsequently computes percent spliced-in (PSI) values these high-quality splicing events.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI.A5SS(MarvelObject=marvel.demo,
+                               CoverageThreshold=10
+                               )
+}

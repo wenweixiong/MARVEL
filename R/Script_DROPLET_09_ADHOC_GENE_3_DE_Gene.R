@@ -7,10 +7,22 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocGene$DE$Gene$Data}.
 #'
 #' @importFrom plyr join
-#' @importFrom gtools permutations
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- adhocGene.DE.Gene.10x(MarvelObject=marvel.demo.10x)
+#'
+#' # Check output
+#' marvel.demo.10x$adhocGene$DE$Gene$Data
 
 adhocGene.DE.Gene.10x <- function(MarvelObject) {
         
@@ -26,7 +38,7 @@ adhocGene.DE.Gene.10x <- function(MarvelObject) {
         
     # Generate all possible combinations
     groups <- factor(levels(df$group), levels=levels(df$group))
-    pairs <- combinations(n=length(groups), r=2, v=as.numeric(groups), repeats.allowed=FALSE)
+    pairs <- gtools::combinations(n=length(groups), r=2, v=as.numeric(groups), repeats.allowed=FALSE)
     pairs <- as.data.frame(pairs)
 
     # Replace numeric values with actual factor levels

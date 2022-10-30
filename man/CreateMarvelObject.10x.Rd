@@ -47,3 +47,80 @@ An object of class S3.
 \description{
 Creates an S3 object named \code{Marvel} for downstream analysis, specifically for droplet-based RNA-sequencing data.
 }
+\examples{
+# Retrieve, observe format of pre-saved input files
+marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.raw.rds",
+                               package="MARVEL")
+                               )
+# Gene expression (Normalised)
+    # Matrix
+    df.gene.norm <- marvel.demo.10x.raw$gene.norm.matrix
+    df.gene.norm[1:5, 1:5]
+
+    # phenoData
+    df.gene.norm.pheno <- marvel.demo.10x.raw$sample.metadata
+    head(df.gene.norm.pheno)
+
+    # featureData
+    df.gene.norm.feature <- data.frame("gene_short_name"=rownames(df.gene.norm),
+                                       stringsAsFactors=FALSE
+                                       )
+    head(df.gene.norm.feature)
+
+# Gene expression (Counts)
+    # Matrix
+    df.gene.count <- marvel.demo.10x.raw$gene.count.matrix
+    df.gene.count[1:5, 1:5]
+
+    # phenoData
+    df.gene.count.pheno <- data.frame("cell.id"=colnames(df.gene.count),
+                                       stringsAsFactors=FALSE
+                                       )
+    head(df.gene.count.pheno)
+
+    # featureData
+    df.gene.count.feature <- data.frame("gene_short_name"=rownames(df.gene.count),
+                                       stringsAsFactors=FALSE
+                                       )
+    head(df.gene.count.feature)
+
+# SJ (Counts)
+    # Matrix
+    df.sj.count <- marvel.demo.10x.raw$sj.count.matrix
+    df.sj.count[1:5, 1:5]
+
+    # phenoData
+    df.sj.count.pheno <- data.frame("cell.id"=colnames(df.sj.count),
+                                     stringsAsFactors=FALSE
+                                     )
+    head(df.sj.count.pheno)
+
+    # featureData
+    df.sj.count.feature <- data.frame("coord.intron"=rownames(df.sj.count),
+                                       stringsAsFactors=FALSE
+                                       )
+    head(df.sj.count.feature)
+
+# tSNE coordinates
+df.coord <- marvel.demo.10x.raw$pca
+head(df.coord)
+
+# GTF
+gtf <- marvel.demo.10x.raw$gtf
+head(gtf)
+
+# Create MARVEL object
+marvel.demo.10x <- CreateMarvelObject.10x(gene.norm.matrix=df.gene.norm,
+                     gene.norm.pheno=df.gene.norm.pheno,
+                     gene.norm.feature=df.gene.norm.feature,
+                     gene.count.matrix=df.gene.count,
+                     gene.count.pheno=df.gene.count.pheno,
+                     gene.count.feature=df.gene.count.feature,
+                     sj.count.matrix=df.sj.count,
+                     sj.count.pheno=df.sj.count.pheno,
+                     sj.count.feature=df.sj.count.feature,
+                     pca=df.coord,
+                     gtf=gtf
+                     )
+}

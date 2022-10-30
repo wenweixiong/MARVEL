@@ -12,9 +12,17 @@
 #'
 #' @importFrom plyr join
 #' @import methods
-#' @import parallel
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.RI(MarvelObject=marvel.demo,
+#'                              CoverageThreshold=10,
+#'                              IntronCounts=marvel.demo$IntronCounts,
+#'                              thread=1
+#'                              )
 
 ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread, read.length=1) {
 
@@ -29,20 +37,22 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     # Example arguments
     #library(parallel)
     #library(plyr)
-    #df <- marvel$SpliceFeature$RI
-    #sj <- marvel$SpliceJunction
+    #MarvelObject <- marvel.demo
+    #df <- MarvelObject$SpliceFeature$RI
+    #sj <- MarvelObject$SpliceJunction
     #CoverageThreshold <- 10
-    #df.intron.counts <- df.intron.counts
+    #df.intron.counts <- MarvelObject$IntronCounts
     #thread <- 4
-    #read.length <- 150
+    #read.length <- 1
     
     if(thread==1) {
         
-        return(print("Advisable to use >=2 threads to speed up PSI calculation"))
+        message("Advisable to use >=2 threads to speed up PSI calculation")
+        return(MarvelObject)
         
     }
     
-    print(paste(nrow(df), " splicing events found", sep=""))
+    message(paste(nrow(df), " splicing events found", sep=""))
 
     #########################################################################
     ######################### SCALE [READ] COUNTS ###########################
@@ -406,7 +416,7 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
         df <- rbind.data.frame(df.pos, df.neg)
 
     # Remove introns with overlapping exons
-    #print("Retrieving independent introns... (~2mins for ~10,000 RI events)")
+    #message("Retrieving independent introns... (~2mins for ~10,000 RI events)")
     
     index.keep <- NULL
 
@@ -545,17 +555,17 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
         }
 
         # Print progress
-        #print("Initializing cluster with 4 nodes...")
+        #message("Initializing cluster with 4 nodes...")
 
         # Initialize cluster
-        cl <- makeCluster(thread)
-        clusterExport(cl=cl, varlist=c('sj.coord', 'sj'), envir=environment())
+        cl <- parallel::makeCluster(thread)
+        parallel::clusterExport(cl=cl, varlist=c('sj.coord', 'sj'), envir=environment())
                 
         # Print progress
-        #print("Computing excluded counts... (~10mins for ~10,000 RI events)")
+        #message("Computing excluded counts... (~10mins for ~10,000 RI events)")
         
         # Compute average counts
-        counts.total.list <- parLapply(cl, coords, retrieve_counts)
+        counts.total.list <- parallel::parLapply(cl, coords, retrieve_counts)
 
         counts.total <- do.call(rbind.data.frame, counts.total.list)
         row.names(counts.total) <- df$tran_id
@@ -563,11 +573,11 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
         counts.excluded  <- counts.total
         
         # Stop cluster
-        stopCluster(cl)
+        parallel::stopCluster(cl)
         
     # Included counts
         # Print progress
-        #print("Computing included counts... (~2mins for ~10,000 RI events)")
+        #message("Computing included counts... (~2mins for ~10,000 RI events)")
         
         # Normalize counts by intron length
         . <- strsplit(df.intron.counts$coord.intron, split=":")
@@ -604,7 +614,7 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     table(names(counts.included)==names(counts.excluded))
 
     # Compute PSI
-    #print("Computing PSI...")
+    #message("Computing PSI...")
     
     psi <- counts.included / (counts.included + counts.excluded)
     row.names(psi) <- df$tran_id
@@ -620,7 +630,7 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     row.names(psi) <- NULL
     
     # Print progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
     
     ######################################################################
     ###################### RETURN FINAL OBJECTS ##########################

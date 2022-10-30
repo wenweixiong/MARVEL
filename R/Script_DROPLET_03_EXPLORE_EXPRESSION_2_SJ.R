@@ -15,8 +15,44 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define cell groups
+#'     # Retrieve sample metadata
+#'     sample.metadata <- marvel.demo.10x$sample.metadata
+#'
+#'     # Group 1 (reference)
+#'     index <- which(sample.metadata$cell.type=="iPSC")
+#'     cell.ids.1 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.1)
+#'
+#'     # Group 2
+#'     index <- which(sample.metadata$cell.type=="Cardio day 10")
+#'     cell.ids.2 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.2)
+#'
+#' # Explore % of cells expressing SJ
+#' marvel.demo.10x <- PlotPctExprCells.SJ.10x(
+#'                     MarvelObject=marvel.demo.10x,
+#'                     cell.group.g1=cell.ids.1,
+#'                     cell.group.g2=cell.ids.2,
+#'                     min.pct.cells.genes=5,
+#'                     min.pct.cells.sj=5,
+#'                     downsample=TRUE,
+#'                     downsample.pct.sj=100
+#'                     )
+#'
+#' marvel.demo.10x$pct.cells.expr$SJ$Plot
+#' head(marvel.demo.10x$pct.cells.expr$SJ$Data)
 
 PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells.genes=10, min.pct.cells.sj=10, downsample=FALSE, downsample.pct.sj=10, seed=1) {
         
@@ -99,10 +135,10 @@ PlotPctExprCells.SJ.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, 
     if(downsample==TRUE) {
         
         # Set seed
-        set.seed(1)
+        set.seed(seed)
         
         # Find no. of SJ to downsample
-        size <- round(nrow(df.sj.count) * (downsample.pct.sj / 100), digit=0)
+        size <- round(nrow(df.sj.count) * (downsample.pct.sj / 100), digits=0)
         coord.introns <- sample(rownames(df.sj.count), size=size, replace=FALSE)
         
         # Subset

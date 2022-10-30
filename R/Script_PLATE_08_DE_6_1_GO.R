@@ -16,13 +16,16 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import methods
-#' @import org.Hs.eg.db
-#' @import org.Mm.eg.db
-#' @import GO.db
-#' @importFrom clusterProfiler enrichGO simplify
-#' @importFrom AnnotationDbi select
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- BioPathways(MarvelObject=marvel.demo,
+#'                            method="ad",
+#'                            custom.genes=c("RPL26", "SNRPN")
+#'                            )
 
 BioPathways <- function(MarvelObject, method=NULL, pval=NULL, delta=0, n.top=NULL, method.adjust="fdr", custom.genes=NULL, species="human") {
     
@@ -78,28 +81,37 @@ BioPathways <- function(MarvelObject, method=NULL, pval=NULL, delta=0, n.top=NUL
         
     }
     
-    print(paste(length(gene_short_names), " unique genes identified for GO analysis", sep=""))
+    message(paste(length(gene_short_names), " unique genes identified for GO analysis", sep=""))
+    
+    # Check if sufficient no. of genes for GO analysis
+    if(length(gene_short_names) < 10) {
+        
+        message("Require mininum 10 genes for GO analysis")
+        
+        return(MarvelObject)
+        
+    }
     
     # Retrieve entrez IDs
     if(species=="human") {
         
-        ID <- AnnotationDbi::select(org.Hs.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
+        ID <- AnnotationDbi::select(org.Hs.eg.db::org.Hs.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
         
     } else if(species=="mouse"){
         
-        ID <- AnnotationDbi::select(org.Mm.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
+        ID <- AnnotationDbi::select(org.Mm.eg.db::org.Mm.eg.db, keys=gene_short_names, columns=c("ENTREZID", "SYMBOL"), keytype="SYMBOL")
         
     }
 
     # GO analysis
     if(species=="human") {
         
-        ego <- enrichGO(ID$ENTREZID, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
+        ego <- clusterProfiler::enrichGO(ID$ENTREZID, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
         head(ego)
         
     } else if(species=="mouse"){
         
-        ego <- enrichGO(ID$ENTREZID, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
+        ego <- clusterProfiler::enrichGO(ID$ENTREZID, OrgDb = "org.Mm.eg.db", ont="BP", readable=TRUE, pAdjustMethod=method.adjust, pvalueCutoff=0.10)
         head(ego)
         
     }
@@ -107,18 +119,9 @@ BioPathways <- function(MarvelObject, method=NULL, pval=NULL, delta=0, n.top=NUL
     # GO analysis (Remove redundant terms)
     if(nrow(ego) != 0) {
 
-        ego2 <- simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
+        ego2 <- clusterProfiler::simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
         ego2 <- as.data.frame(ego2)
         
-    } else {
-
-        print("No significant GO terms (pathways) found")
-
-    }
-    
-    # Compute pathway enrichment
-    if(nrow(ego2) != 0) {
-
         # Compute gene ratio
         . <- strsplit(ego2$GeneRatio, split="/", fixed=TRUE)
         numerator <- as.numeric(sapply(., function(x) {x[1]}))
@@ -139,19 +142,18 @@ BioPathways <- function(MarvelObject, method=NULL, pval=NULL, delta=0, n.top=NUL
         cols.2 <- names(ego2)[-which(names(ego2) %in% cols.1)]
         ego2 <- ego2[, c(cols.1, cols.2)]
         
-    }
-            
-    # Save into new slot
-    if(nrow(ego) != 0) {
-        
+        # Save into new slot
         MarvelObject$DE$BioPathways$Table <- ego2
         
     } else {
+
+        message("No significant GO terms (pathways) found")
         
+        # Save into new slot
         MarvelObject$DE$BioPathways$Table <- NULL
-        
+
     }
-        
+            
     return(MarvelObject)
     
 }

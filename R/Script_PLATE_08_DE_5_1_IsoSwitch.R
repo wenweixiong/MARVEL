@@ -9,6 +9,7 @@
 #' @param gene.pval Numeric value. Adjusted p-value below which the gene is considered differentially expressed. Default value is \code{0.1}.
 #' @param gene.log2fc Numeric value. The absolute log2 fold change in mean gene expression values between the two cell groups above which the gene is considered differentially expressed. To be used in conjunction with \code{gene.pval}. Specify \code{0} to switch this threshold off. Default value is \code{0.5}.
 #' @param event.type Character string. Indicate which splicing event type to include for analysis. Can take any combination of values: \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE}, or \code{"ALE}.
+#' @param custom.tran_ids Vector of character strings. Subset of tran_ids to be brought forward for analysis after filtering based on \code{psi.pval} and \code{psi.delta}.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$DE$Cor$Table}, \code{MarvelObject$DE$Cor$Plot}, and \code{MarvelObject$DE$Cor$Plot.Stats}.
 #'
@@ -18,8 +19,25 @@
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- IsoSwitch(MarvelObject=marvel.demo,
+#'                          method="ad",
+#'                          psi.pval=0.1,
+#'                          psi.delta=0,
+#'                          gene.pval=0.1,
+#'                          gene.log2fc=0.5
+#'                          )
+#'
+#' # Check outputs
+#' head(marvel.demo$DE$Cor$Table_Raw)
+#' head(marvel.demo$DE$Cor$Table)
+#' marvel.demo$DE$Cor$Plot
+#' marvel.demo$DE$Cor$Plot.Stats
 
-IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5, event.type=NULL) {
+IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5, event.type=NULL, custom.tran_ids=NULL) {
 
     # Define arguments
     method <- method
@@ -33,11 +51,12 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     #MarvelObject <- marvel
     #method <- c("ad", "dts")
     #psi.pval <- c(0.10, 0.10)
-    #psi.delta <- 10
+    #psi.delta <- -5
     #de.exp <- MarvelObject$DE$Exp.Spliced$Table
     #gene.pval <- 0.10
     #gene.log2fc <- 0.5
-    #event.type <- c("A3SS")
+    #event.type <- NULL
+    #custom.tran_ids <- tran_ids.shared
     
     # Tabulate sig events
     .list <- list()
@@ -85,6 +104,13 @@ IsoSwitch <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval
     de$direction.gene[which(de$log2fc.gene > gene.log2fc & de$p.val.adj.gene < gene.pval)] <- "Up"
     de$direction.gene[which(de$log2fc.gene < (gene.log2fc * -1) & de$p.val.adj < gene.pval)] <- "Down"
     de$direction.gene[is.na(de$direction.gene)] <- "No change"
+    
+    # Subset specific tran_ids
+    if(!is.null(custom.tran_ids[1])) {
+        
+        de <- de[which(de$tran_id %in% custom.tran_ids), ]
+        
+    }
     
     # Tabulate gene id freq
     freq <- as.data.frame(table(de$gene_id), stringsAsFactors=FALSE)

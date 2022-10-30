@@ -11,8 +11,42 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define cell groups
+#'     # Retrieve sample metadata
+#'     sample.metadata <- marvel.demo.10x$sample.metadata
+#'
+#'     # Group 1 (reference)
+#'     index <- which(sample.metadata$cell.type=="iPSC")
+#'     cell.ids.1 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.1)
+#'
+#'     # Group 2
+#'     index <- which(sample.metadata$cell.type=="Cardio day 10")
+#'     cell.ids.2 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.2)
+#'
+#' # Explore % of cells expressing genes
+#' marvel.demo.10x <- PlotPctExprCells.Genes.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         cell.group.g1=cell.ids.1,
+#'                         cell.group.g2=cell.ids.2,
+#'                         min.pct.cells=5
+#'                         )
+#'
+#' # Check output
+#' marvel.demo.10x $pct.cells.expr$Gene$Plot
+#' head(marvel.demo.10x $pct.cells.expr$Gene$Data)
 
 PlotPctExprCells.Genes.10x <- function(MarvelObject, cell.group.g1, cell.group.g2, min.pct.cells=1) {
         

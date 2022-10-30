@@ -17,8 +17,46 @@
 #' @importFrom plyr join
 #' @import ggplot2
 #' @importFrom grDevices hcl
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define cell groups
+#'     # Retrieve sample metadata
+#'     sample.metadata <- marvel.demo.10x$sample.metadata
+#'
+#'     # iPSC
+#'     index <- which(sample.metadata$cell.type=="iPSC")
+#'     cell.ids.1 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.1)
+#'
+#'     # Cardio day 10
+#'     index <- which(sample.metadata$cell.type=="Cardio day 10")
+#'     cell.ids.2 <- sample.metadata[index, "cell.id"]
+#'     length(cell.ids.2)
+#'
+#'     # Save into list
+#'     cell.group.list <- list("iPSC"=cell.ids.1,
+#'                             "Cardio d10"=cell.ids.2
+#'                             )
+#'
+#' # Plot cell groups
+#' marvel.demo.10x <- PlotValues.PCA.CellGroup.10x(
+#'                             MarvelObject=marvel.demo.10x,
+#'                             cell.group.list=cell.group.list,
+#'                             legendtitle="Cell group",
+#'                             type="tsne"
+#'                             )
+#'
+#' # Check output
+#' marvel.demo.10x$adhocPlot$PCA$CellGroup
 
 PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendtitle="Cell group", alpha=0.75, point.size=1.0, point.stroke=0.1, point.colors=NULL, point.size.legend=2, type) {
 
@@ -76,11 +114,11 @@ PlotValues.PCA.CellGroup.10x <- function(MarvelObject, cell.group.list, legendti
     
     if(n.anno.missing==0) {
         
-        print("All cells defined with coordinates found")
+        message("All cells defined with coordinates found")
         
     } else {
         
-        print(paste(n.anno.missing, " cells defined with no coordinates found", sep=""))
+        message(paste(n.anno.missing, " cells defined with no coordinates found", sep=""))
         
     }
     

@@ -59,3 +59,24 @@ An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.
 \description{
 Violin plot of percent spliced-in (PSI) values across different groups of cells.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups to plot
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+cell.group.list <- list(cell.group.g1, cell.group.g2)
+names(cell.group.list) <- c("iPSC", "Endoderm")
+
+# Plot
+marvel.demo <- PlotValues.PSI(MarvelObject=marvel.demo,
+                              cell.group.list=cell.group.list,
+                              feature="chr17:8383254:8382781|8383157:-@chr17:8382143:8382315",
+                              min.cells=5,
+                              xlabels.size=5
+                              )
+
+# Check output
+marvel.demo$adhocPlot$PSI
+}

@@ -11,11 +11,19 @@
 #'
 #' @return An object of class S3 with new slots \code{$SpliceFeatureValidated} and \code{$PSI}.
 #'
-#' @import methods
-#' @import parallel
 #' @importFrom plyr join
+#' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+#'                           CoverageThreshold=10,
+#'                           EventType="SE",
+#'                           UnevenCoverageMultiplier=10
+#'                           )
 
 ComputePSI <- function(MarvelObject, CoverageThreshold, EventType, thread=NULL, UnevenCoverageMultiplier=10, read.length=1) {
 

@@ -21,3 +21,22 @@ An object of class S3 containing with new slot \code{MarvelObject$DE$BioPathways
 \description{
 Plots user-specified enriched pathways.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# Define top pathways to plot
+go.terms <- marvel.demo.10x$DE$BioPathways$Table$Description
+go.terms <- go.terms[c(1:10)]
+
+# Plot
+marvel.demo.10x <- BioPathways.Plot.10x(
+                            MarvelObject=marvel.demo.10x,
+                            go.terms=go.terms
+                            )
+# Check outpout
+marvel.demo.10x$DE$BioPathways$Plot
+}

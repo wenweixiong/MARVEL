@@ -10,11 +10,20 @@
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$SpliceFeature$ALE} or \code{MarvelObject$SpliceFeature$AFE}.
 #'
+#' @importFrom plyr join
 #' @import methods
-#' @import textclean
-#' @import plyr
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- DetectEvents(MarvelObject=marvel.demo,
+#'                             min.cells=5,
+#'                             min.expr=1,
+#'                             track.progress=FALSE,
+#'                             EventType="AFE"
+#'                             )
 
 DetectEvents <- function(MarvelObject, min.cells=50, min.expr=1, track.progress=FALSE, EventType) {
 

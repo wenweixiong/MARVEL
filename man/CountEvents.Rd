@@ -21,3 +21,21 @@ An object of class S3 with new slots \code{MarvelObject$N.Events$Table} and \cod
 \description{
 Tabulates and plots the number of expressed splicing events for each splicing event category for a specified cell group.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell group for analysis
+df.pheno <- marvel.demo$SplicePheno
+sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+
+# Tabulate expressed events
+marvel.demo <- CountEvents(MarvelObject=marvel.demo,
+                           sample.ids=sample.ids,
+                           min.cells=5,
+                           event.group.colors=NULL
+                           )
+
+# Check outputs
+marvel.demo$N.Events$Table
+marvel.demo$N.Events$Plot
+}

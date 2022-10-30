@@ -11,6 +11,16 @@
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- CompareExpr(MarvelObject=marvel.demo)
+#'
+#' # Check outputs
+#' head(marvel.demo$NMD$NMD.Expr$Table)
+#' marvel.demo$NMD$NMD.Expr$Plot
+#' marvel.demo$NMD$NMD.Expr$Plot.Stats
 
 CompareExpr <- function(MarvelObject, xlabels.size=8) {
 

@@ -6,9 +6,15 @@
 #'
 #' @return An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{MarvelObject$PSI}, \code{MarvelObject$GenePheno}, and \code{MarvelObject$Exp}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- CheckAlignment.PSI.Exp(MarvelObject=marvel.demo)
 
 CheckAlignment.PSI.Exp <- function(MarvelObject) {
         
@@ -55,9 +61,9 @@ CheckAlignment.PSI.Exp <- function(MarvelObject) {
         overlap <- intersect(sample.ids.exp, sample.ids.psi)
         
         # Report progress
-        print(paste(length(sample.ids.psi), " samples (cells) identified in psi matrix(s)", sep=""))
-        print(paste(length(sample.ids.exp), " samples (cells) identified in gene expression matrix", sep=""))
-        print(paste(length(overlap), " overlapping samples (cells) identified and retained", sep=""))
+        message(paste(length(sample.ids.psi), " samples (cells) identified in psi matrix(s)", sep=""))
+        message(paste(length(sample.ids.exp), " samples (cells) identified in gene expression matrix", sep=""))
+        message(paste(length(overlap), " overlapping samples (cells) identified and retained", sep=""))
         
     # Subset overlapping samples IDs
         # PSI matrix
@@ -87,11 +93,11 @@ CheckAlignment.PSI.Exp <- function(MarvelObject) {
          
         if(index.true==1 & index.false==0) {
         
-            print(paste("sample IDs in columns of gene matrix and ", names(MarvelObject$PSI)[i], " PSI matrix MATCHED", sep=""))
+            message(paste("sample IDs in columns of gene matrix and ", names(MarvelObject$PSI)[i], " PSI matrix MATCHED", sep=""))
             
         } else {
             
-            print(paste("sample IDs in columns of gene matrix and ", names(MarvelObject$PSI)[i], " PSI matrix NOT MATCHED", sep=""))
+            message(paste("sample IDs in columns of gene matrix and ", names(MarvelObject$PSI)[i], " PSI matrix NOT MATCHED", sep=""))
 
         }
         

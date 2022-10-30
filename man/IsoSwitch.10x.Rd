@@ -35,3 +35,30 @@ An object of class S3 containing new slots \code{MarvelObject$SJ.Gene.Cor$Data},
 \description{
 Classify gene-splicing relative changes to each other from cell group 1 to group 2. Classifications are coordinated, opposing, isoform-switching, and complex. In coordinated relationship, both gene and splicing changes in the same direction from cell group 1 to group 2. In opposing relationship, gene changes in the opposite direction relative to splicing from cell group 1 to group 2. In isoform-switching, there is differential splice junction usage without differential expression of the corresponding gene between cell group 1 and group 2. Complex relationship involves genes with both coordinated and opposing relationships with splicing. Only differentially spliced junctions are included for analysis here.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- IsoSwitch.10x(
+                        MarvelObject=marvel.demo.10x,
+                        pval.sj=0.05,
+                        delta.sj=5,
+                        min.gene.norm=1.0,
+                        pval.adj.gene=0.05,
+                        log2fc.gene=0.5
+                        )
+
+# Check outputs
+marvel.demo.10x$SJ.Gene.Cor$Proportion$Plot
+marvel.demo.10x$SJ.Gene.Cor$Proportion$Table
+cols <- c("coord.intron", "gene_short_name", "cor.complete")
+head(marvel.demo.10x$SJ.Gene.Cor$Data[,cols])
+}

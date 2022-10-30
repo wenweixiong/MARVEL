@@ -14,8 +14,36 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' marvel.demo.10x <- IsoSwitch.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         pval.sj=0.05,
+#'                         delta.sj=5,
+#'                         min.gene.norm=1.0,
+#'                         pval.adj.gene=0.05,
+#'                         log2fc.gene=0.5
+#'                         )
+#'
+#' # Check outputs
+#' marvel.demo.10x$SJ.Gene.Cor$Proportion$Plot
+#' marvel.demo.10x$SJ.Gene.Cor$Proportion$Table
+#' cols <- c("coord.intron", "gene_short_name", "cor.complete")
+#' head(marvel.demo.10x$SJ.Gene.Cor$Data[,cols])
 
 IsoSwitch.10x <- function(MarvelObject, pval.sj=0.05, log2fc.sj=NULL, delta.sj=5, min.gene.norm=0, pval.adj.gene=0.05, log2fc.gene=0.5) {
 

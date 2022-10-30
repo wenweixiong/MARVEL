@@ -23,7 +23,8 @@ PlotDEValues(
   anno.tran_id = NULL,
   label.size = 2.5,
   y.upper.offset = 5,
-  event.types = c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
+  event.types = c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+  event.types.colors = NULL
 )
 }
 \arguments{
@@ -64,10 +65,24 @@ PlotDEValues(
 \item{y.upper.offset}{Numeric value. The value in -log10(p-value) to increase the upper limit of the y-axis. To be used when \code{anno} set to TRUE so that gene labels will not be truncated at the upper limit of the y-axis.}
 
 \item{event.types}{Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. The specific splicing event to plot. May take any one or more of the following values \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE"}, and  \code{"ALE"}.}
+
+\item{event.types.colors}{Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. Customise colors as per splicing event type specified in \code{event.types} option. Should be of same length as \code{event.types} option.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]} when level set to \code{"splicing.mean"} or \code{"splicing.distance"} or \code{MarvelObject$DE$Exp.Global$Table} and \code{MarvelObject$DE$Exp.Global$Plot} when level set to \code{"gene.global"} or \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot} when level set to \code{"gene.spliced"}.
 }
 \description{
 Volcano plot of differential splicing and gene expression analysis results. This is a wrapper function for \code{PlotDEValues.PSI.Mean}, \code{PlotDEValues.Exp.Global}, and \code{PlotDEValues.Exp.Spliced}.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                            method="ad",
+                            pval=0.10,
+                            level="splicing.distance"
+                            )
+
+# Check output
+marvel.demo$DE$PSI$Plot[["ad"]]
 }

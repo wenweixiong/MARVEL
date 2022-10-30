@@ -20,10 +20,23 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PlotDEValues.Exp.Spliced(MarvelObject=marvel.demo,
+#'                                         method="ad",
+#'                                         psi.pval=0.1,
+#'                                         psi.delta=0,
+#'                                         gene.pval=0.1,
+#'                                         gene.log2fc=0.5
+#'                                         )
+#' # Check output
+#' marvel.demo$DE$Exp.Spliced$Summary
+#' marvel.demo$DE$Exp.Spliced$Plot
 
 PlotDEValues.Exp.Spliced <- function(MarvelObject, method, psi.pval=0.1, psi.delta=0, gene.pval=0.1, gene.log2fc=0.5, point.size=1, anno=FALSE, anno.gene_short_name=NULL, label.size=2.5, y.upper.offset=5, xlabel.size=8) {
 
@@ -142,7 +155,7 @@ PlotDEValues.Exp.Spliced <- function(MarvelObject, method, psi.pval=0.1, psi.del
        # Plot
        plot <- ggplot() +
                   geom_point(data, mapping=aes(x=x, y=y, color=z), shape=20, alpha = 0.75, size=point.size) +
-                  geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
+                  ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
                   scale_colour_manual(values=col.breaks) +
                   scale_x_continuous(breaks=seq(xmin, xmax, by=xinterval), limits=c(xmin, xmax)) +
                   scale_y_continuous(breaks=seq(ymin, ymax, by=yinterval), limits=c(ymin, ymax)) +

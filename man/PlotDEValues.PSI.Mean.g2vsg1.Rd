@@ -16,7 +16,8 @@ PlotDEValues.PSI.Mean.g2vsg1(
   anno.tran_id = NULL,
   label.size = 2.5,
   point.alpha = 1,
-  event.types = c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
+  event.types = c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+  event.types.colors = NULL
 )
 }
 \arguments{
@@ -42,11 +43,24 @@ PlotDEValues.PSI.Mean.g2vsg1(
 
 \item{event.types}{Vector of character string(s). The specific splicing event to plot. May take any one or more of the following values \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE"}, and  \code{"ALE"}.}
 
-\item{y.upper.offset}{Numeric value. The value in -log10(p-value) to increase the upper limit of the y-axis. To be used when \code{anno} set to TRUE so that gene labels will not be truncated at the upper limit of the y-axis.}
+\item{event.types.colors}{Vector of character string(s). Customise colors as per splicing event type specified in \code{event.types} option. Should be of same length as \code{event.types} option.}
 }
 \value{
 An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]}.
 }
 \description{
 Scatterplot of differential splicing analysis results based on mean PSI difference between 2 groups of cells. x-axis represents the mean PSI values of cell group 1. y-axis represents the mean PSI values of cell group 2.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PlotDEValues.PSI.Mean.g2vsg1(MarvelObject=marvel.demo,
+                                     method="ad",
+                                     pval=0.10,
+                                     delta=5
+                                     )
+
+# Check output
+marvel.demo$DE$PSI$Plot
+marvel.demo$DE$PSI$Summary
 }

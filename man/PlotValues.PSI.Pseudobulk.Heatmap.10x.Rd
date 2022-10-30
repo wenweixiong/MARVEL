@@ -36,9 +36,11 @@ PlotValues.PSI.Pseudobulk.Heatmap.10x(
 
 \item{ylabels.size}{Numeric value. Font size of heatmap row (sub-cell group) labels. Default is \code{8}.}
 
-\item{min.pct.cells.gene.expr}{Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the value be re-coded as missing and appear as grey on the heatmap.}
+\item{min.pct.cells.gene.expr}{Numeric value. Percentage of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.}
 
-\item{min.n.cells}{Numeric value. Minimum number of cells in a cell group, below which, the cell group will be censored and appear as grey on the heatmap.}
+\item{min.n.cells.gene.expr}{Numeric value. Number of cell expressing the gene in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.}
+
+\item{min.gene.counts.total}{Numeric value. Totol gene counts in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{3}.}
 }
 \value{
 An object of class S3 with new slots \code{MarvelObject$adhocPlot$Heatmap$Pseudobulk$Plot} and \code{MarvelObject$adhocPlot$Heatmap$Pseudobulk$Data}.

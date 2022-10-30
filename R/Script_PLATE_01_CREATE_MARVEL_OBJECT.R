@@ -14,9 +14,41 @@
 #'
 #' @return An object of class S3.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+# Retrieve, observe format of pre-saved input files
+#' SpliceJunction <- marvel.demo$SpliceJunction
+#' SpliceJunction[1:5,1:5]
+#'
+#' SplicePheno <- marvel.demo$SplicePheno
+#' SplicePheno[1:5,]
+#'
+#' SpliceFeature <- marvel.demo$SpliceFeature
+#' SpliceFeature[["SE"]][1:5, ]
+#'
+#' IntronCounts <- marvel.demo$IntronCounts
+#' IntronCounts[1:5,1:5]
+#'
+#' GeneFeature <- marvel.demo$GeneFeature
+#' GeneFeature[1:5, ]
+#'
+#' Exp <- marvel.demo$Exp
+#' Exp[1:5,1:5]
+#'
+#' marvel <- CreateMarvelObject(SpliceJunction=SpliceJunction,
+#'                              SplicePheno=SplicePheno,
+#'                              SpliceFeature=SpliceFeature,
+#'                              IntronCounts=IntronCounts,
+#'                              GeneFeature=GeneFeature,
+#'                              Exp=Exp
+#'                              )
+#' class(marvel)
 
 CreateMarvelObject <- function(SplicePheno=NULL,
                                SpliceJunction=NULL,
@@ -28,7 +60,6 @@ CreateMarvelObject <- function(SplicePheno=NULL,
                                Exp=NULL,
                                GTF=NULL
                                ) {
-        
         
     # Create s3 object
     s3 <- list()

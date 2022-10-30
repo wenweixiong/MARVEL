@@ -15,13 +15,26 @@
 #'
 #' @return An object of class S3 containing with new slot \code{$Modality$Prop$DoughnutChart} or \code{$Modality$Prop$BarChart}.
 #'
-#' @importFrom fitdistrplus fitdist
+#' @importFrom plyr join
 #' @import methods
 #' @import stats
 #' @import ggplot2
-#' @importFrom plyr join
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PropModality(MarvelObject=marvel.demo,
+#'                             modality.column="modality.bimodal.adj",
+#'                             modality.type="extended",
+#'                             event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+#'                             across.event.type=FALSE
+#'                             )
+#'
+#' # Check outputs
+#' marvel.demo$Modality$Prop$DoughnutChart$Table
+#' marvel.demo$Modality$Prop$DoughnutChart$Plot
 
 PropModality <- function(MarvelObject, modality.column, modality.type, event.type, across.event.type, prop.test=NULL, prop.adj=NULL, xlabels.size=8, zoom=FALSE, yinterval=NULL) {
     

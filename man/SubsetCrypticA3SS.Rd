@@ -19,3 +19,14 @@ An object of class S3 updated slot \code{MarvelObject$DE$PSI$Table} and new slot
 \description{
 Performs differential gene expression analysis between 2 groups of cells only on differentially spliced genes.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- SubsetCrypticA3SS(MarvelObject=marvel.demo,
+                                 method="ad",
+                                 distance.to.ss=c(1,100)
+                                 )
+
+# Check output
+head(marvel.demo$DE$PSI$Table[["ad"]])
+}

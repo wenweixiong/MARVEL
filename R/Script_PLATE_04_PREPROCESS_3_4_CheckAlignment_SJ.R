@@ -6,9 +6,15 @@
 #'
 #' @return An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{MarvelObject$PSI} and \code{MarvelObject$IntronCounts}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- CheckAlignment.SJ(MarvelObject=marvel.demo)
 
 CheckAlignment.SJ <- function(MarvelObject) {
 
@@ -22,9 +28,9 @@ CheckAlignment.SJ <- function(MarvelObject) {
         
         # Report overlapping samples
         overlap <- intersect(df.pheno$sample.id, names(df)[-1])
-        print(paste(length(df.pheno$sample.id), " samples (cells) identified in SJ phenoData", sep=""))
-        print(paste(length(names(df)[-1]), " samples (cells) identified in SJ count matrix", sep=""))
-        print(paste(length(overlap), " overlapping samples (cells) identified", sep=""))
+        message(paste(length(df.pheno$sample.id), " samples (cells) identified in SJ phenoData", sep=""))
+        message(paste(length(names(df)[-1]), " samples (cells) identified in SJ count matrix", sep=""))
+        message(paste(length(overlap), " overlapping samples (cells) identified", sep=""))
         
         # Subset overlapping samples
         df.pheno <- df.pheno[which(df.pheno$sample.id %in% overlap), ]
@@ -37,30 +43,30 @@ CheckAlignment.SJ <- function(MarvelObject) {
         
         if(index.true==1 & index.false==0) {
             
-           print("sample IDs in sample metadata and SJ count matrix column names MATCHED")
+           message("sample IDs in sample metadata and SJ count matrix column names MATCHED")
            
         } else {
            
            
-           print("sample IDs in sample metadata and SJ count matrix column names NOT MATCHED")
+           message("sample IDs in sample metadata and SJ count matrix column names NOT MATCHED")
            
         }
         
         
     # Check alignment: Additional check for RI
-    if(class(MarvelObject$IntronCounts) == "data.frame") {
+    if(inherits(MarvelObject$IntronCounts, "data.frame", TRUE)==1) {
         
         # Report progress
-        print("Additional checks for intron count matrix...")
+        message("Additional checks for intron count matrix...")
         
         # Retrieve data
         df.intron.counts <- MarvelObject$IntronCounts
         
         # Report overlapping samples
         overlap <- intersect(df.pheno$sample.id, names(df.intron.counts)[-1])
-        print(paste(length(df.pheno$sample.id), " samples (cells) identified in SJ phenoData", sep="" ))
-        print(paste(length(names(df.intron.counts)[-1]), " samples (cells) identified in intron count matrix", sep=""))
-        print(paste(length(overlap), " overlapping samples (cells) identified", sep=""))
+        message(paste(length(df.pheno$sample.id), " samples (cells) identified in SJ phenoData", sep="" ))
+        message(paste(length(names(df.intron.counts)[-1]), " samples (cells) identified in intron count matrix", sep=""))
+        message(paste(length(overlap), " overlapping samples (cells) identified", sep=""))
         
         # Subset overlapping samples
         df.pheno <- df.pheno[which(df.pheno$sample.id %in% overlap), ]
@@ -74,12 +80,12 @@ CheckAlignment.SJ <- function(MarvelObject) {
         
         if(index.true==1 & index.false==0) {
             
-           print("sample IDs in sample metadata and SJ count matrix and intron count column names MATCHED")
+           message("sample IDs in sample metadata and SJ count matrix and intron count column names MATCHED")
            
         } else {
            
            
-           print("sample IDs in sample metadata and SJ count matrix and intron count matrix column names NOT MATCHED")
+           message("sample IDs in sample metadata and SJ count matrix and intron count matrix column names NOT MATCHED")
            
         }
                 

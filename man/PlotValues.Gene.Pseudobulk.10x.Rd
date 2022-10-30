@@ -13,6 +13,7 @@ PlotValues.Gene.Pseudobulk.10x(
   cell.group.colors = NULL,
   xlabels.size = 10,
   min.n.cells.total = 10,
+  method = "t.test",
   p.adjust.method = "fdr"
 )
 }
@@ -30,6 +31,8 @@ PlotValues.Gene.Pseudobulk.10x(
 \item{xlabels.size}{Numeric value. Font size of x-tick labels. Default is \code{10}.}
 
 \item{min.n.cells.total}{Numeric value. Minimum number of cells in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.}
+
+\item{method}{Character string. Statistical test for all possible pair-wise comparisons. Options are \code{"t.test"} (default) or \code{"wilcox"}.}
 
 \item{p.adjust.method}{Character string. Method for multiple testing adjustment as per \code{method} option of \code{p.adjust} function. Default is \code{"fdr"}.}
 }

@@ -17,3 +17,10 @@ An object of class S3 with updated slots \code{MarvelObject$SpliceJunction}, \co
 \description{
 Checks if the metadata aligns with the columns and rows of the matrix for splicing or gene data. This is a wrapper function for \code{CheckAlignment.PSI}, \code{CheckAlignment.Exp}, \code{CheckAlignment.PSI.Exp}, and \code{CheckAlignment.SJ}.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- CheckAlignment(MarvelObject=marvel.demo,
+                              level="SJ"
+                              )
+}

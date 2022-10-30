@@ -4,7 +4,7 @@
 \alias{FindPTC}
 \title{Find premature terminal codons (PTCs)}
 \usage{
-FindPTC(MarvelObject, method, pval, delta)
+FindPTC(MarvelObject, method, pval, delta, custom.tran_ids = NULL)
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{CompareValues.PSI} and \code{ParseGTF} functions.}
@@ -14,10 +14,21 @@ FindPTC(MarvelObject, method, pval, delta)
 \item{pval}{Numeric value. Adjusted p-value below which the splicing event will be analysed for PTCs.}
 
 \item{delta}{Numeric value. Positive delta percent spliced-in (PSI) value above which the splicing event will be analysed for PTCs. "Positive" because only an increased in PSI value leads to increased alternative exon inclusion in the transcript.}
+
+\item{custom.tran_ids}{Vector of character strings. Subset of tran_ids to be brought forward for analysis after filtering based on \code{pval} and \code{delta}.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$NMD$Prediction}.
 }
 \description{
 Finds PTC(s) introduced by alternative exons into protein-coding transcripts.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- FindPTC(MarvelObject=marvel.demo,
+                       method="ad",
+                       pval=0.1,
+                       delta=90
+                       )
 }

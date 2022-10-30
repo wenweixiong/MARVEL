@@ -13,9 +13,18 @@
 #'
 #' @author Sean Wen <sean.wenwx@gmail.com>
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.MXE(MarvelObject=marvel.demo,
+#'                               CoverageThreshold=10,
+#'                               UnevenCoverageMultiplier=10
+#'                               )
 
 ComputePSI.MXE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultiplier=10) {
 
@@ -24,7 +33,7 @@ ComputePSI.MXE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultip
     sj <- MarvelObject$SpliceJunction
     CoverageThreshold <- CoverageThreshold
     
-    print(paste(nrow(df), " splicing events found", sep=""))
+    message(paste(nrow(df), " splicing events found", sep=""))
     
     #########################################################################
     ############################# PREPARE INPUTS ############################
@@ -304,7 +313,7 @@ ComputePSI.MXE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultip
     row.names(psi) <- NULL
     
     # Print progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
         
     ######################################################################
     ###################### RETURN FINAL OBJECTS ##########################

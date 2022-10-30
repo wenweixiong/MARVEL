@@ -44,3 +44,15 @@ An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Plot[["
 \description{
 Volcano plot of differential splicing analysis results based on mean PSI difference between 2 groups of cells. x-axis represents the mean delta PSI. y-axis represents the adjusted p-values.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PlotDEValues.PSI.Mean(MarvelObject=marvel.demo,
+                                     method="ad",
+                                     pval=0.10,
+                                     delta=5
+                                     )
+
+# Check output
+marvel.demo$DE$PSI$Plot[["ad"]]
+}

@@ -42,6 +42,21 @@ An object of class S3 containing with new slot \code{MarvelObject$Modality$Resul
 \description{
 Assigns modalities to each splicing event for a specified group of cells.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+df.pheno <- marvel.demo$SplicePheno
+sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+
+# Assign modality
+marvel.demo <- AssignModality(MarvelObject=marvel.demo,
+                              sample.ids=sample.ids,
+                              min.cells=5
+                              )
+
+# Check output
+head(marvel.demo$Modality$Results)
+}
 \author{
 Sean Wen <sean.wenwx@gmail.com>
 }

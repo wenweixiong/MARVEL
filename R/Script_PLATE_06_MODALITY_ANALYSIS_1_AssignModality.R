@@ -16,10 +16,26 @@
 #'
 #' @author Sean Wen <sean.wenwx@gmail.com>
 #'
-#' @importFrom fitdistrplus fitdist
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+# Define cell group for analysis
+#' df.pheno <- marvel.demo$SplicePheno
+#' sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+#'
+#' # Assign modality
+#' marvel.demo <- AssignModality(MarvelObject=marvel.demo,
+#'                               sample.ids=sample.ids,
+#'                               min.cells=5
+#'                               )
+#'
+#' # Check output
+#' head(marvel.demo$Modality$Results)
 
 AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, bimodal.adjust.fc=3, bimodal.adjust.diff=50, seed=1, tran_ids=NULL) {
 
@@ -36,12 +52,12 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     seed <- seed
     
     # Example arguments
-    #MarvelObject <- marvel
+    #MarvelObject <- marvel.demo
     #psi <- do.call(rbind.data.frame, MarvelObject$PSI)
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
-    #sample.ids <- cell.group.g1
-    #min.cells <- 10
+    #sample.ids <- sample.ids
+    #min.cells <- 5
     #sigma.sq <- 0.001
     #bimodal.adjust <- TRUE
     #bimodal.adjust.fc <- 3.0
@@ -65,7 +81,7 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     
     if(sum(index.keep) == 0) {
         
-        print("No expressed events found")
+        message("No expressed events found")
         
         MarvelObject$Modality$Results <- NULL
         
@@ -109,10 +125,10 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
                                         
             # Build model
             #model <- fitdist(data=values, distr="beta", method="mle")
-            model <- tryCatch(fitdist(data=values, distr="beta", method="mle"), error=function(err) "Error")
+            model <- tryCatch(fitdistrplus::fitdist(data=values, distr="beta", method="mle"), error=function(err) "Error")
             
             # Retrieve parameters and log-likelihood
-            if(class(model) == "fitdist") {
+            if(inherits(model, "fitdist", TRUE)==1) {
             
                 alpha <- model$estimate[1]
                 beta <- model$estimate[2]
@@ -144,7 +160,7 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
                    
            #param[[i]] <- estbetaParams(na.omit(as.numeric(psi[i,])))
            
-           #print(i)
+           #message(i)
            
            
         #}
@@ -188,10 +204,10 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
                                             
                 # Build model
                 #model <- fitdist(data=values, distr="beta", method="mle")
-                model <- tryCatch(fitdist(data=values, distr="beta", method="mle"), error=function(err) "Error")
+                model <- tryCatch(fitdistrplus::fitdist(data=values, distr="beta", method="mle"), error=function(err) "Error")
                 
                 # Retrieve parameters and log-likelihood
-                if(class(model) == "fitdist") {
+                if(inherits(model, "fitdist", TRUE)==1) {
                 
                     alpha <- model$estimate[1]
                     beta <- model$estimate[2]
@@ -235,7 +251,7 @@ AssignModality <- function(MarvelObject, sample.ids, min.cells=25, sigma.sq=0.00
     
     if(modality.na >= 1) {
         
-        print(paste("Modality couldn't be computer for ", modality.na, " events. Please re-run using a different seed number.", sep=""))
+        message(paste("Modality couldn't be computer for ", modality.na, " events. Please re-run using a different seed number.", sep=""))
         
     }
 

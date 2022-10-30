@@ -9,23 +9,24 @@
 #' @param cell.group.colors Vector of character strings. Colors of cell groups and should be same length as \code{cell.group.list}. Default \code{ggplot2} colors are used.
 #' @param xlabels.size Numeric value. Font size of x-tick labels. Default is \code{10}.
 #' @param min.n.cells.total Numeric value. Minimum number of cells in a pseudobulk, below which, the pseudobulk will be omitted from plotting. Default is \code{10}.
+#' @param method Character string. Statistical test for all possible pair-wise comparisons. Options are \code{"t.test"} (default) or \code{"wilcox"}.
 #' @param p.adjust.method Character string. Method for multiple testing adjustment as per \code{method} option of \code{p.adjust} function. Default is \code{"fdr"}.
 #'
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Plot}, \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Stats}, and \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Data}.
 #'
 #' @importFrom plyr join
-#' @importFrom Matrix colSums
 #' @import ggplot2
 #' @importFrom grDevices hcl
+#' @import Matrix
 #'
 #' @export
 
-PlotValues.Gene.Pseudobulk.10x <- function(MarvelObject, cell.group.list, gene_short_name, log2.transform=TRUE, cell.group.colors=NULL, xlabels.size=10, min.n.cells.total=10, p.adjust.method="fdr") {
+PlotValues.Gene.Pseudobulk.10x <- function(MarvelObject, cell.group.list, gene_short_name, log2.transform=TRUE, cell.group.colors=NULL, xlabels.size=10, min.n.cells.total=10, method="t.test", p.adjust.method="fdr") {
 
     # Define arguments
     MarvelObject <- MarvelObject
     df.gene.norm <- MarvelObject$gene.norm.matrix
-    cell.group.list <- group.list
+    cell.group.list <- cell.group.list
     gene_short_name <- gene_short_name
     cell.group.colors <- NULL
     xlabels.size <- xlabels.size
@@ -36,7 +37,7 @@ PlotValues.Gene.Pseudobulk.10x <- function(MarvelObject, cell.group.list, gene_s
     # Example arguments
     #MarvelObject <- marvel
     #df.gene.norm <- MarvelObject$gene.norm.matrix
-    #cell.group.list <- group.list
+    #cell.group.list <- cell.group.list
     #gene_short_name <- "CEP135"
     #cell.group.colors <- NULL
     #xlabels.size <- 10
@@ -171,7 +172,16 @@ PlotValues.Gene.Pseudobulk.10x <- function(MarvelObject, cell.group.list, gene_s
                     )
         
         # Statistical test
-        stats <- pairwise.wilcox.test(x=y, g=x, p.adjust.method=p.adjust.method)
+        if(method=="t.test"){
+            
+            stats <- pairwise.t.test(x=y, g=x, p.adjust.method=p.adjust.method)
+            
+        } else if(method=="wilcox"){
+           
+           stats <- pairwise.wilcox.test(x=y, g=x, p.adjust.method=p.adjust.method)
+            
+        }
+
         stats <- stats$p.value
         . <- data.frame("V1"=row.names(stats))
         stats <- cbind.data.frame(., stats)
@@ -187,7 +197,7 @@ PlotValues.Gene.Pseudobulk.10x <- function(MarvelObject, cell.group.list, gene_s
         
     } else {
         
-        print("No cells expressing gene for plotting")
+        message("No cells expressing gene for plotting")
         
         MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Plot <- NULL
         MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Stats <- NULL

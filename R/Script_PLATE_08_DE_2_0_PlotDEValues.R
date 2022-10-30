@@ -21,23 +21,36 @@
 #' @param xlabel.size Numeric value. Font size of the xtick labels. Default is \code{8}.
 #' @param point.alpha Numeric value. Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. Transpancy of data points. Default is \code{1}.
 #' @param event.types Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. The specific splicing event to plot. May take any one or more of the following values \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE"}, and  \code{"ALE"}.
+#' @param event.types.colors Vector of character string(s). Only applicable when \code{level} set to \code{"splicing.mean.g2vsg1"}. Customise colors as per splicing event type specified in \code{event.types} option. Should be of same length as \code{event.types} option.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]} when level set to \code{"splicing.mean"} or \code{"splicing.distance"} or \code{MarvelObject$DE$Exp.Global$Table} and \code{MarvelObject$DE$Exp.Global$Plot} when level set to \code{"gene.global"} or \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot} when level set to \code{"gene.spliced"}.
 #'
 #' @importFrom plyr join
 #' @import stats
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+#'                             method="ad",
+#'                             pval=0.10,
+#'                             level="splicing.distance"
+#'                             )
+#'
+#' # Check output
+#' marvel.demo$DE$PSI$Plot[["ad"]]
 
 PlotDEValues <- function(MarvelObject, method=NULL, pval, level,
                          delta=NULL, log2fc=NULL,
                          psi.pval=NULL, psi.delta=NULL, gene.pval=NULL, gene.log2fc=NULL,
                          point.size=1, xlabel.size=8, point.alpha=1,
                          anno=FALSE, anno.gene_short_name=NULL, anno.tran_id=NULL, label.size=2.5,
-                         y.upper.offset=5, event.types=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE")
+                         y.upper.offset=5,
+                         event.types=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"), event.types.colors=NULL
                          ) {
 
     
@@ -110,7 +123,8 @@ PlotDEValues <- function(MarvelObject, method=NULL, pval, level,
                                      anno.tran_id=anno.tran_id,
                                      label.size=label.size,
                                      event.types=event.types,
-                                     point.alpha=point.alpha
+                                     point.alpha=point.alpha,
+                                     event.types.colors=event.types.colors
                                      )
         
         

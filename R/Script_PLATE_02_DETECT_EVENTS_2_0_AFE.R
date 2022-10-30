@@ -9,11 +9,19 @@
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$SpliceFeature$AFE}.
 #'
+#' @importFrom plyr join
 #' @import methods
-#' @import textclean
-#' @import plyr
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- DetectEvents.AFE(MarvelObject=marvel.demo,
+#'                                 min.cells=5,
+#'                                 min.expr=1,
+#'                                 track.progress=FALSE
+#'                                 )
 
 DetectEvents.AFE <- function(MarvelObject, min.cells=50, min.expr=1, track.progress=FALSE) {
 
@@ -28,6 +36,15 @@ DetectEvents.AFE <- function(MarvelObject, min.cells=50, min.expr=1, track.progr
     #df <- MarvelObject$GTF
     #min.cells <- 50
     #min.expr <- 1
+
+    # Check if GTF provided
+    if(is.null(df)) {
+        
+        message("Please provide GTF during creating MARVEL object step to proceed")
+        
+        return(MarvelObject)
+        
+    }
     
     # Remove novel transcripts
     index <- grep("MSTRG", df$V9, fixed=TRUE)
@@ -39,14 +56,14 @@ DetectEvents.AFE <- function(MarvelObject, min.cells=50, min.expr=1, track.progr
     }
     
     # Parse GTF
-    print("Parsing GTF...")
+    message("Parsing GTF...")
             
     attr <- strsplit(df$V9, split=";")
     . <- sapply(attr, function(x) grep("gene_id", x, value=TRUE))
-    df$gene_id <- mgsub(., c("gene_id", " ", "\""), "")
+    df$gene_id <- textclean::mgsub(., c("gene_id", " ", "\""), "")
     
     # Detect, compute PSI on +ve strand
-    print("Analysing +ve strand...")
+    message("Analysing +ve strand...")
     
     MarvelObject.PosStrand <- DetectEvents.AFE.PosStrand(MarvelObject=MarvelObject,
                               parsed.gtf=df,
@@ -56,7 +73,7 @@ DetectEvents.AFE <- function(MarvelObject, min.cells=50, min.expr=1, track.progr
                               )
         
     # Detect, compute PSI on -ve strand
-    print("Analysing -ve strand...")
+    message("Analysing -ve strand...")
     
     MarvelObject.NegStrand <- DetectEvents.AFE.NegStrand(MarvelObject=MarvelObject,
                               parsed.gtf=df,

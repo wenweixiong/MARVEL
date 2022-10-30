@@ -30,3 +30,13 @@ An object of class S3 with new slot \code{MarvelObject$SpliceFeature$ALE.PosStra
 \description{
 Detects alternative last exons, specifically for genes transcribed on the positive strand of the DNA.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- DetectEvents.ALE.PosStrand(MarvelObject=marvel.demo,
+                                          parsed.gtf=NULL,
+                                          min.cells=5,
+                                          min.expr=1,
+                                          track.progress=FALSE
+                                          )
+}

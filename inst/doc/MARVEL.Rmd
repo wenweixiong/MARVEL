@@ -1,10 +1,13 @@
 ---
 title: "MARVEL"
 author: "Sean Wen"
-date: "`r Sys.Date()`"
 output:
   html_document:
     toc: true
+    toc_float:
+        collapsed: false
+        smooth_scroll: true
+    theme: united
 vignette: >
   %\VignetteIndexEntry{MARVEL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,12 +27,1416 @@ pre {
 }
 </style>
 
-# 1. Introduction
-Alternative splicing represents an additional and under-appreciated layer of complexity underlying gene expression profiles. More recently, technological advances in library preparation methodologies enabled capturing and amplification of full-length cDNAs from single cells. Thus, paving the way for splicing analysis at single-cell resolution.  
+```{r echo=FALSE}
+library(knitr)
+```
 
-Nevertheless, single-cell splicing analysis comes with its own set of challenges including, but not limited to, low coverage of lowly-expressed genes, low capture rate of cDNA molecules, and amplification bias (*Wen et al., 2020*). To date, there remains a paucity of peer-reviewed softwares available for single-cell splicing analysis. Notable examples are BRIE (*Huang & Sanguinetti, 2017*) and Expedition (*Song et al., 2017*).  
+# Installation
+|              MARVEL is available on CRAN and also on Github. To access features in beta-testing phase, please install the package from Github: https://github.com/wenweixiong/MARVEL.
 
-Here, we introduce MARVEL (*M*ultimodal *A*pproach to **R**e**VE**a**L** alternative splicing dynamics at single-cell resolution). MARVEL includes features that complement existing softwares in order to more comprehensively describe and reveal splicing dynamics at single-cell resolution.
+# Introduction
 
-# 2. Additional Resources
-Tutorials for both plate- and droplet-based alternative splicing analysis using MARVEL can be found here: https://github.com/wenweixiong/MARVEL
+|              This tutorial demonstrates the application of MARVEL for integrated gene and splicing analysis of single-cell RNA-sequencing data. The dataset used to demonstrate the utility of MARVEL here includes induced pluripotent stem cells (iPSCs) and iPSC-induced endoderm cells (Linker *et al.*, 2019). For conciseness, only a subset of the original data will be used here, and only the most salient functions will be demonstrated here. For the complete functionalities of MARVEL, please refer to https://wenweixiong.github.io/MARVEL_Plate.html and https://wenweixiong.github.io/MARVEL_Droplet.html.
+
+# Load package
+```{r, message=FALSE, warning=FALSE}
+# Load MARVEL package
+library(MARVEL)
+
+# Load adjunct packages for this tutorial
+library(ggplot2)
+library(gridExtra)
+```
+
+```{r, eval = FALSE}
+# Load adjunct packages to support additional functionalities
+library(AnnotationDbi) # GO analysis
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(org.Mm.eg.db)
+```
+
+```{r, message=FALSE, warning=FALSE}
+# Load adjunct packages to support additional functionalities
+library(plyr) # General data processing
+library(ggrepel) # General plotting
+library(parallel) # To enable multi-thread during RI PSI computation
+library(textclean) # AFE, ALE detection
+library(fitdistrplus) # Modality analysis: Fit beta distribution
+library(FactoMineR) # PCA: Reduce dimension
+library(factoextra) # PCA: Retrieve eigenvalues
+library(kSamples) # Anderson-Darling (AD) statistical test
+library(twosamples) # D Test Statistic (DTS) statistical test
+library(stringr) # Plot GO results
+```
+
+# Input files
+|              The input files have been saved in a MARVEL object, and will be elaborated below.
+
+```{r, message=FALSE, warning=FALSE}
+# Load saved MARVEL object
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+class(marvel.demo)
+```
+
+## Sample metadata
+|              This is a tab-delimited file created by the user whereby the rows represent the sample (cell) IDs and columns represent the cell information such as cell type, donor ID etc.. Compulsory column is ```sample.id``` while all other columns are optional.
+
+```{r, message=FALSE, warning=FALSE}
+SplicePheno <- marvel.demo$SplicePheno
+head(SplicePheno)
+```
+
+## Splice junction counts matrix
+|              The rows of this matrix represent the splice junction coordinates, the columns represent the sample IDs, and the values represent the splice junction counts. The first column should be named ```coord.intron```. 
+|              Here, the splice junction counts were quantified using the STAR aligner version 2.6.1d in 2-pass mode (Dobin *et al.*, 2013). An example code for one sample (ERR1562083) below. Note a separate folder ```SJ``` is created here to contain the splice junction count files (SJ.out.tab) generated from 1st pass mode to be used for 2nd pass mode.
+
+```{r, eval = FALSE}
+# STAR in 1st pass mode
+STAR --runThreadN 16 \
+     --genomeDir GRCh38_GENCODE_genome_STAR_indexed \
+     --readFilesCommand zcat \
+     --readFilesIn ERR1562083_1_val_1.fq.gz ERR1562083_2_val_2.fq.gz \
+     --outFileNamePrefix SJ/ERR1562083. \
+     --outSAMtype None
+
+# STAR in 2nd pass mode
+STAR --runThreadN 16 \
+     --genomeDir GRCh38_GENCODE_genome_STAR_indexed \
+     --readFilesCommand zcat \
+     --readFilesIn ERR1562083_1_val_1.fq.gz ERR1562083_2_val_2.fq.gz \
+     --outFileNamePrefix ERR1562083. \
+     --sjdbFileChrStartEnd SJ/*SJ.out.tab \
+     --outSAMtype BAM SortedByCoordinate \
+     --outSAMattributes NH HI AS nM XS \
+     --quantMode TranscriptomeSAM
+```
+
+|              Once the individual splice junction count files have been generated, they should be collated and read into R as follows:
+
+```{r, message=FALSE, warning=FALSE}
+SpliceJunction <- marvel.demo$SpliceJunction
+SpliceJunction[1:5,1:5]
+```
+
+## Splicing event metadata
+|              The rows of this metadata represent the splicing events while the columns represent the splicing event information such as the transcript ID and the corresponding gene information. Compulsory columns are ```tran_id``` and ```gene_id```. 
+|              The splicing events here were detected using rMATS version 4.1.0 (Shen *et al.*, 2014). For preparing splicing event nomenclatures (```tran_id```), please refer to https://wenweixiong.github.io/Splicing_Nomenclature. Example code for running rMATS as follows.
+|              Note that any BAM files may be specified in ```--b1``` and ```--b2```. This is because rMATS requires these specification for statistical testing of splicing events between the two samples. But here, we will only be using the splicing events detected (fromGTF.SE.txt, fromGTF.MXE.txt, fromGTF.RI.txt, fromGTF.A5SS.txt, fromGTF.A3SS.txt), but not the statistical test results, from this step for our downstream analysis.
+
+```{r, eval = FALSE}
+rmats \
+    --b1 path_to_BAM_sample_1.txt \
+    --b2 path_to_BAM_sample_2.txt \
+    --gtf gencode.v31.annotation.gtf \
+    --od rMATS/ \
+    --tmp rMATS/ \
+    -t paired \
+    --readLength 125 \
+    --variable-read-length \
+    --nthread 8 \
+    --statoff
+```
+
+|              Once the individual splicing event files for SE, MXE, RI, A5S5, and A3SS have been generated, they may be read into R as follows:
+
+```{r, message=FALSE, warning=FALSE}
+SpliceFeature <-marvel.demo$SpliceFeature
+lapply(SpliceFeature, head)
+```
+
+## Intron count matrix
+|              The rows of this matrix represent intron coordinates, the columns represent the sample IDs, and the values represent the total reads mapping to the intron. These values will be used to compute the percent spliced-in (PSI) values of retained introns (RI) splicing events downstream.
+|              Here, intron coverage was computed using Bedtools version 2.27.1 (Quinlan *et al.*, 2010). Example code for one sample (ERR1562083) below. This code computes the counts at each base of a given intron, the sum of which, will be the total counts for the given intron. It is this total counts that is represented in the matrix.
+|              Note for GRCh38.primary_assembly.genome_bedtools.txt, the first column consists of the chromosome name (chr1, chr2, chr3...) and the second column consists of the chromosome size or length. Additionally, the BED file RI_Coordinates.bed contains the intron coordinates from ```RI_featureData.txt``` generated from rMATS in the previous step.
+
+```{r, eval = FALSE}
+bedtools coverage \
+               -g GRCh38.primary_assembly.genome_bedtools.txt \
+               -split \
+               -sorted \
+               -a RI_Coordinates.bed \
+               -b ERR1562083.Aligned.sortedByCoord.out.bam > \
+                  ERR1562083.txt \
+               -d
+```
+
+|              Once the individual splice junction count files have been generated, they should be collated and read into R as follows:
+
+```{r, message=FALSE, warning=FALSE}
+IntronCounts <- marvel.demo$IntronCounts
+IntronCounts[1:5,1:5]
+```
+
+## Gene expression matrix
+|              The rows of this matrix represent the gene IDs, the columns represent the sample IDs, and the values represent the normalised gene expression counts (e.g., RPKM/FPKM/TPM), but not yet log2-transformed.
+|              Here, gene expression was quantified using RSEM version 1.2.31 (Li *et al.*, 2011). Example code for one sample (ERR1562083) as follows. Here, the values returned are in transcript per million (TPM) unit.
+
+```{r, eval = FALSE}
+rsem-calculate-expression --bam \
+                          --paired-end \
+                          -p 8 \
+                          ERR1562083.Aligned.toTranscriptome.out.bam \
+                          GRCh38_GENCODE_genome_RSEM_indexed/gencode.v31 \
+                          ERR1562083
+```
+
+|              Once the individual gene expression files have been generated, they should be collated and read into R as follows:
+
+```{r, message=FALSE, warning=FALSE}
+Exp <- marvel.demo$Exp
+Exp[1:5,1:5]
+```
+
+## Gene metadata
+|              The rows of this metadata represent the gene IDs while the columns represent the gene information such as the abbreviated gene names and gene type. Compulsory columns are ```gene_id```, ```gene_short_name```, and ```gene_type```. All other columns are optional.
+|              Here, the metadata information was parsed and retrieved from gencode.v31.annotation.gtf.
+
+```{r, message=FALSE, warning=FALSE}
+GeneFeature <- marvel.demo$GeneFeature
+head(GeneFeature)
+```
+
+# Create MARVEL object
+```{r, message=FALSE, warning=FALSE}
+marvel <- CreateMarvelObject(SpliceJunction=SpliceJunction,
+                             SplicePheno=SplicePheno,
+                             SpliceFeature=SpliceFeature,
+                             IntronCounts=IntronCounts,
+                             GeneFeature=GeneFeature,
+                             Exp=Exp
+                             )
+```
+
+# Compute PSI
+|              MARVEL will compute the percent spliced-in (PSI) values for each splicing event. Only splicing event supported by splice junction reads, i.e., high-confidence splicing events, will be selected for PSI quantification. The minimum number of splice junction reads required may be specified using the ```CoverageThreshold``` option.
+
+```{r, echo=FALSE}
+include_graphics(system.file("extdata/figures", "PSI_Validation.png", package="MARVEL"))
+```
+
+|              PSI is simply the proportion of reads supporting the inclusion of the alternative exon divided by the total number of reads mapping to the splicing event, which encompasses the reads supporting the inclusion and also reads supporting the exclusion of the splicing event. This fraction is in turn converted to percentage.
+
+```{r, echo=FALSE}
+include_graphics(system.file("extdata/figures", "PSI_Computation.png", package="MARVEL"))
+```
+
+```{r, message=FALSE, warning=FALSE}
+# Check splicing junction data
+marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="SJ")
+```
+
+- Ensure that only MATCHED flags are reported. If any NOT MATCHED flags are reported, please double-check the input file requirements.
+
+```{r, eval = FALSE}
+# Validate, filter, compute SE splicing events
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          UnevenCoverageMultiplier=10,
+                          EventType="SE"
+                          )
+
+# Validate, filter, compute MXE splicing events    
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          UnevenCoverageMultiplier=10,
+                          EventType="MXE"
+                          )
+
+# Validate, filter, compute RI splicing events      
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="RI",
+                          thread=4
+                          )
+
+# Validate, filter, compute A5SS splicing events  
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="A5SS"
+                          )
+
+# Validate, filter, compute A3SS splicing events  
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="A3SS"
+                          )
+
+# Validate, filter, compute AFE splicing events     
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="AFE"
+                          )
+    
+# Validate, filter, compute ALE splicing events      
+marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
+                          CoverageThreshold=10,
+                          EventType="ALE"
+                          )
+```
+|              The common option across all functions for computing PSI value is ```CoverageThreshold```. This option indicates the minimum number of splice junction reads supporting the splicing events, above which, the PSI will be computed. PSI of splicing events below this threshold will be coded as ```NA```.
+|              Options specific to a given splicing event are:
+- ```UnevenCoverageMultiplier``` Specific to computing SE and MXE. Two splice junctions are used to compute to inclusion of SE and MXE. This option represent the ratio of read coverage of one splice junction over the other. The threshold specified here, above which, the PSI will be coded as ```NA```.
+- ```thread``` Specific to computing RI. Number of cores to use. This is depended on the user's device.
+- ```read.length``` Specific to computing RI. If the values in ```df.intron.counts``` represent number of reads, then this option should reflect the sequencing read length, e.g., 150 etc.. If the values in ```df.intron.counts``` represent total intronic coverage (here), then this option should be set to ```1``` (default).
+
+# Pre-flight check
+|              This step ensures that our data is ready for further downstream analysis, including modality assignment, differential expression analysis, dimension reduction, and functional annotation.
+
+## Transform expression values
+|              Gene expression values will be log2-transformed. You may skip this step if your gene expression matrix has been transformed prior to creating the MARVEL object.
+
+```{r, message=FALSE, warning=FALSE}
+marvel.demo <- TransformExpValues(MarvelObject=marvel.demo,
+                                  offset=1,
+                                  transformation="log2",
+                                  threshold.lower=1
+                                  )
+```
+
+## Check matrices and metadata
+|              We will have to make sure the columns of the matrices align with the sample IDs of the sample metadata and the rows of the matrices align with the feature metadata. Finally, the columns across all matrices should align with one another.
+
+```{r, message=FALSE, warning=FALSE}
+# Check splicing data
+marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="splicing")
+
+# Check gene data
+marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="gene")
+
+# Cross-check splicing and gene data
+marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="splicing and gene")
+```
+|              Our data is ready for downstream analysis when only ```MATCHED``` flags are reported. If any ```NOT MATCHED``` flags are reported, please double-check the input file requirements.
+
+# Overview of splicing events
+|              Let's have an overview of the number of splicing events expressed in a given cell population, and stratify them by splicing event type.
+
+## iPSC
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Retrieve sample metadata
+df.pheno <- marvel.demo$SplicePheno
+
+# Define sample ids
+sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+
+# Tabulate expressed events
+marvel.demo <- CountEvents(MarvelObject=marvel.demo,
+                           sample.ids=sample.ids,
+                           min.cells=5
+                           )
+
+# Output (1): Plot
+marvel.demo$N.Events$Plot
+
+# Output (2): Table
+marvel.demo$N.Events$Table
+```
+- ```min.cells``` option. Here, we required the splicing event to be expressed in at least 5 cells for the splicing event to be included for analysis.
+
+## Endoderm cells
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Retrieve sample metadata
+df.pheno <- marvel.demo$SplicePheno
+
+# Define sample ids
+sample.ids <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# Tabulate expressed events
+marvel.demo <- CountEvents(MarvelObject=marvel.demo,
+                           sample.ids=sample.ids,
+                           min.cells=5
+                           )
+
+# Output (1): Plot
+marvel.demo$N.Events$Plot
+
+# Output (2): Table
+marvel.demo$N.Events$Table
+```
+
+# Modality analysis
+|              The PSI distribution for a given splicing event in a given cell population may be assigned to a modality class. Modalities are simply discrete splicing patterns categories. This will enable us to understand the isoform expression pattern for a given splicing event in a given cell population.
+|              The five main modalities are included, excluded, bimodal, middle, and multimodal (Song *et al.*, 2017). MARVEL provides finer classification of splicing patterns by further stratifying included and excluded modalities into primary and dispersed.
+
+```{r, echo=FALSE}
+include_graphics(system.file("extdata/figures", "Modality.png", package="MARVEL"))
+```
+
+## iPSC
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Retrieve sample metadata
+df.pheno <- marvel.demo$SplicePheno
+
+# Define sample IDs
+sample.ids <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+
+# Assign modality
+marvel.demo <- AssignModality(MarvelObject=marvel.demo,
+                              sample.ids=sample.ids,
+                              min.cells=5,
+                              seed=1
+                              )
+                         
+marvel.demo$Modality$Results[1:5, c("tran_id", "event_type", "gene_id", "gene_short_name", "modality.bimodal.adj")]
+
+# Tabulate modality proportion (overall)
+marvel.demo <- PropModality(MarvelObject=marvel.demo,
+                            modality.column="modality.bimodal.adj",
+                            modality.type="extended",
+                            event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                            across.event.type=FALSE
+                            )
+
+marvel.demo$Modality$Prop$DoughnutChart$Plot
+marvel.demo$Modality$Prop$DoughnutChart$Table
+```
+
+- ```min.cells``` option. Here, we required the splicing event to be expressed in at least 25 cells for the splicing event to be included for modality assignment. This value should match that previously defined in ```CountEvents``` function.
+- The most prevalent modality types are included and excluded. This suggest iPSCs predominantly express one form of isoform, either the isoform that includes the alternative exon or the isoform that excludes the alternative exon.
+- The bimodal modality constitutes a small proportion of splicing patterns. This suggests most splicing events are not expressed by two discrete sub-populations of iPSCs, i.e. one sub-population that includes the alternative exons while the other sub-population excludes the alternative exon.
+- The middle modality also constitutes a small proportion of splicing patterns. This suggests that most iPSCs do not concurrently express both isoforms in the same cell, i.e., isoform that includes the alternative exon and another isoform that excludes the alternative exon.
+
+```{r, message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"}
+# Tabulate modality proportion (by event type)
+marvel.demo <- PropModality(MarvelObject=marvel.demo,
+                            modality.column="modality.bimodal.adj",
+                            modality.type="extended",
+                            event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                            across.event.type=TRUE,
+                            prop.test="fisher",
+                            prop.adj="fdr",
+                            xlabels.size=8
+                            )
+
+marvel.demo$Modality$Prop$BarChart$Plot
+head(marvel.demo$Modality$Prop$BarChart$Table)
+```
+
+- By stratifying the modalities by splicing event type, we can assess if certain modalities are more enriched in a given splicing event type. 
+- For example, here we observed the excluded modality to be the most prevalent in retained-intron (RI). 
+- This suggests that most isoforms do not retain introns, and this is consistent with the role of mRNA splicing in intron removal, i.e., only a small proportion of isoforms retain their introns as a mechanism of regulating gene expression.
+
+## Endoderm
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Retrieve sample metadata
+df.pheno <- marvel.demo$SplicePheno
+
+# Define sample IDs
+sample.ids <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# Assign modality
+marvel.demo <- AssignModality(MarvelObject=marvel.demo,
+                              sample.ids=sample.ids,
+                              min.cells=5,
+                              seed=1
+                              )
+                         
+marvel.demo$Modality$Results[1:5, c("tran_id", "event_type", "gene_id", "gene_short_name", "modality.bimodal.adj")]
+
+# Tabulate modality proportion (overall)
+marvel.demo <- PropModality(MarvelObject=marvel.demo,
+                            modality.column="modality.bimodal.adj",
+                            modality.type="extended",
+                            event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                            across.event.type=FALSE
+                            )
+
+marvel.demo$Modality$Prop$DoughnutChart$Plot
+marvel.demo$Modality$Prop$DoughnutChart$Table
+```
+
+- Similar to iPSCs, the most prevalent modality types are included and excluded among endoderm cells.
+- Similar to iPSCs, the bimodal, middle, and multimodal modalities constitute a small proportion of splicing patterns among endoderm cells.
+
+```{r, message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"}
+# Tabulate modality proportion (by event type)
+marvel.demo <- PropModality(MarvelObject=marvel.demo,
+                            modality.column="modality.bimodal.adj",
+                            modality.type="extended",
+                            event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                            across.event.type=TRUE,
+                            prop.test="fisher",
+                            prop.adj="fdr",
+                            xlabels.size=8
+                           )
+
+marvel.demo$Modality$Prop$BarChart$Plot
+head(marvel.demo$Modality$Prop$BarChart$Table)
+```
+
+- Similar to iPSCs, we observe the excluded modality to be the most prevalent in retained-intron (RI) among endoderm cells.
+
+# Differential analysis
+|              Differential analysis is the cornerstone of RNA-sequencing analysis. This is the first step to identify candidate genes and isoforms for downstream experimental validation.
+|              Statistical tests that compare the mean expression values between two cell populations, such as Wilcox, are suitable for differential gene expression analysis. 
+|              However, the mean alone will not be sufficient to detect changes in splicing patterns. For example, based on the mean alone, it may not be possible to distinguish between splicing events with bimodal, middle, and multimodal splicing patterns. Therefore, in lieu of comparing mean, MARVEL compares the overall PSI distribution between two cell populations.
+
+```{r, echo=FALSE}
+include_graphics(system.file("extdata/figures", "DE.png", package="MARVEL"))
+```
+
+## Differential gene expression analysis
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Define cell groups
+    # Retrieve sample metadata
+    df.pheno <- marvel.demo$SplicePheno
+    
+    # Cell group 1 (reference)
+    cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+    
+    # Cell group 2
+    cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# DE analysis
+marvel.demo <- CompareValues(MarvelObject=marvel.demo,
+                             cell.group.g1=cell.group.g1,
+                             cell.group.g2=cell.group.g2,
+                             min.cells=3,
+                             method="t.test",
+                             method.adjust="fdr",
+                             level="gene",
+                             show.progress=FALSE
+                             )
+
+marvel.demo$DE$Exp$Table[1:5, ]
+```
+
+- ```min.cells``` option. Here, we required the gene to be expressed in at least 3 cells in either iPSCs or endoderm cells for the gene to be included for analysis.
+- ```show.progress``` option. For the brevity of the tutorial, we did not track the progress of differential expression analysis. But users are advised to set this option to ```TRUE``` when running this step on their own devices.
+
+## Volcano plot: Genes
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Plot DE results
+marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                            pval=0.10,
+                            log2fc=0.5,
+                            point.size=0.1,
+                            level="gene.global",
+                            anno=FALSE
+                            )
+
+marvel.demo$DE$Exp.Global$Plot
+marvel.demo$DE$Exp.Global$Summary
+head(marvel.demo$DE$Exp.Global$Table[,c("gene_id", "gene_short_name", "sig")])
+```
+- ```pval``` option. The adjusted p-value, below which, the gene is considered to be differentially expressed.
+- ```log2fc``` option. The absolute log2 fold change, above which, the gene is considered to be differentially expressed.
+
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Plot DE results with annotation of selected genes
+    # Retrieve DE output table
+    results <- marvel.demo$DE$Exp$Table
+    
+    # Retrieve top genes
+    index <- which(results$log2fc > 2 | results$log2fc < -2)
+    gene_short_names <- results[index, "gene_short_name"]
+
+    # Plot
+    marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                                pval=0.10,
+                                log2fc=0.5,
+                                point.size=0.1,
+                                xlabel.size=10,
+                                level="gene.global",
+                                anno=TRUE,
+                                anno.gene_short_name=gene_short_names
+                                )
+
+    marvel.demo$DE$Exp.Global$Plot
+```
+
+## Differential splicing analysis
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+marvel.demo <- CompareValues(MarvelObject=marvel.demo,
+                             cell.group.g1=cell.group.g1,
+                             cell.group.g2=cell.group.g2,
+                             min.cells=5,
+                             method=c("ad", "dts"),
+                             method.adjust="fdr",
+                             level="splicing",
+                             event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "ALE", "AFE"),
+                             show.progress=FALSE
+                             )
+
+head(marvel.demo$DE$PSI$Table[["ad"]])
+head(marvel.demo$DE$PSI$Table[["dts"]])
+```
+
+- ```min.cells``` option. Here, we required the splicing event to be expressed in at least 25 cells in both iPSCs and endoderm cells for the splicing event to be included for analysis.
+- ```method``` option. We recommend Anderson-Darling (```ad```) and D Test Statistics (```dts```) for comparing the overall PSI distribution between two cell populations. 
+- ```show.progress``` option. For the brevity of the tutorial, we did not track the progress of differential expression analysis. But users are advised to set this option to ```TRUE``` when running this step on their own devices.
+
+## Distance plot: Splicing
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+
+marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                       method="ad",
+                       pval=0.10,
+                       level="splicing.distance",
+                       anno=TRUE,
+                       anno.tran_id=marvel.demo$DE$PSI$Table[["ad"]]$tran_id[c(1:10)]
+                       )
+
+marvel.demo$DE$PSI$Plot[["ad"]]
+```
+
+- ```method``` option. Plot results for ```ad``` statistical test.
+- ```pval``` option. The adjusted p-value, below which, the splicing event is considered to be differentially spliced.
+- ```level``` option. When set to ```"splicing.distance"```, the distance statistic will be used to plot the DE results. Only applicable when ```method``` set to ```"ad"``` or ```"dts"```. When set to ```splicing.mean```. The typical volcano plot is returned, and the ```delta``` option may be used.
+- ```delta``` option. when ```level``` set to ```"splicing.mean"```, the absolute differences in mean PSI values between the two cell populations, above which, the splicing event is considered to be differentially spliced.
+
+## Differential (spliced) gene analysis
+|              Next, we will perform differential gene expression analysis only on the differentially spliced genes. This will enable us to investigate the gene-splicing relationship between iPSCs and endoderm cells downstream.
+
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+marvel.demo <- CompareValues(MarvelObject=marvel.demo,
+                             cell.group.g1=cell.group.g1,
+                             cell.group.g2=cell.group.g2,
+                             psi.method=c("ad", "dts"),
+                             psi.pval=c(0.10, 0.10),
+                             psi.delta=0,
+                             method.de.gene="t.test",
+                             method.adjust.de.gene="fdr",
+                             downsample=FALSE,
+                             show.progress=FALSE,
+                             level="gene.spliced"
+                             )
+
+head(marvel.demo$DE$Exp.Spliced$Table)
+```
+
+- ```psi.method```, ```psi.pval```, and ```psi.delta``` options. For defining differentially spliced events whose corresponding genes will be included for differential gene expression analysis.
+- ```method.de.gene``` and ```method.adjust.de.gene``` options. The statistical test and multiple testing method for differential gene expression analysis.
+
+## Volcano plot: Spliced genes
+
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Plot: No annotation
+marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                            method=c("ad", "dts"),
+                            psi.pval=c(0.10, 0.10),
+                            psi.delta=0,
+                            gene.pval=0.10,
+                            gene.log2fc=0.5,
+                            point.size=0.1,
+                            xlabel.size=8,
+                            level="gene.spliced",
+                            anno=FALSE
+                            )
+
+marvel.demo$DE$Exp.Spliced$Plot
+marvel.demo$DE$Exp.Spliced$Summary
+```
+
+- ```method``` option. Merge results from ```ad``` and ```dts``` statistical tests.
+- ```pval.psi``` option. The adjusted p-value, below which, the splicing event is considered to be differentially spliced.
+- ```delta.psi``` option. The absolute difference in mean PSI values between the two cell populations, above which, the splicing event is considered to be differentially spliced.
+- ```gene.pval``` option. The adjusted p-value, below which, the gene is considered to be differentially expressed.
+- ```gene.log2fc``` option. The absolute log2 fold change, above which, the gene is considered to be differentially expressed.
+- Note that 344 of 816 (42%) differentially spliced genes were not differentially expressed. Therefore, nearly half of differentially spliced genes may not be detected from differential gene expression analysis alone.
+
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+# Plot: Annotate top genes
+results <- marvel.demo$DE$Exp.Spliced$Table
+
+index <- which((results$log2fc > 2 | results$log2fc < -2) & -log10(results$p.val.adj) > 1)
+gene_short_names <- results[index, "gene_short_name"]
+
+marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
+                            method=c("ad", "dts"),
+                            psi.pval=c(0.10, 0.10),
+                            psi.delta=0,
+                            gene.pval=0.10,
+                            gene.log2fc=0.5,
+                            point.size=0.1,
+                            xlabel.size=8,
+                            level="gene.spliced",
+                            anno=TRUE,
+                            anno.gene_short_name=gene_short_names
+                            )
+
+marvel.demo$DE$Exp.Spliced$Plot
+```
+
+# Principal component analysis
+|              Dimension reduction analysis such as principal component analysis (PCA) enables us to investigate if phenotypically different cell populations are transcriptomically distinct from one another.
+|              This may be done in a supervised or unsupervised manner. The former approach uses all expressed genes or splicing events while the latter approach uses pre-determined features, such as genes and splicing event obtained from differential expression analysis. 
+|              Here, we will assess if splicing represents an additional layer of heterogeneity underlying gene expression profile. We will also demonstrate how to retrieve differentially expressed genes and differentially spliced genes from the DE analysis outputs to be used as features in PCA.
+
+## DE genes
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"}
+# Define sample groups
+    # Retrieve sample metadata
+    df.pheno <- marvel.demo$SplicePheno
+
+    # Group 1
+    sample.ids.1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+    
+    # Group 2
+    sample.ids.2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+    # Merge
+    cell.group.list <- list("iPSC"=sample.ids.1,
+                            "Endoderm"=sample.ids.2
+                            )
+
+# Retrieve DE genes
+  # Retrieve DE result table
+  results.de.exp <- marvel.demo$DE$Exp$Table    
+  
+  # Retrieve relevant gene_ids
+  index <- which(results.de.exp$p.val.adj < 0.10 & abs(results.de.exp$log2fc) > 0.5)
+  gene_ids <- results.de.exp[index, "gene_id"]
+
+# Reduce dimension
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=gene_ids,
+                      point.size=2.5,
+                      level="gene"
+                      )
+
+marvel.demo$PCA$Exp$Plot
+```
+
+- ```min.cells``` option. Here, we required the gene to be expressed in at least 25 cells across the overall cell populations defined in  ```cell.group.list``` for the gene to be included for analysis.
+- ```feature``` option. Gene IDs to be used for dimension reduction.
+- As expected, using differentially expressed (DE) genes, we were able to distinguish between iPSCs and endoderm cells.
+
+## DE splicing
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"}
+# Retrieve DE tran_ids
+method <- c("ad", "dts")
+
+tran_ids.list <- list()
+    
+for(i in 1:length(method)) {
+
+    results.de.psi <- marvel.demo$DE$PSI$Table[[method[i]]]
+    index <- which(results.de.psi$p.val.adj < 0.10 & results.de.psi$outlier==FALSE)
+    tran_ids <- results.de.psi[index, "tran_id"]
+    tran_ids.list[[i]] <- tran_ids
+
+}
+
+tran_ids <- unique(unlist(tran_ids.list))
+
+# Reduce dimension
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+marvel.demo$PCA$PSI$Plot
+```
+
+- ```min.cells``` option. Here, we required the splicing event to be expressed in at least 25 cells across the overall cell populations defined in  ```cell.group.list``` for the splicing event to be included for analysis.
+- ```feature``` option. Splicing events to be used for dimension reduction.
+- ```method.impute``` option. Method to impute missing PSI values. Indicate ```"random"``` to to randomly assign any values between 0-100 to missing values (Song *et el.*, 2017). Indicate ```"population.mean"``` to use the mean PSI value of each cell group to impute the missing values found in the corresponding cell group (Huang *et al.*, 2021).
+- ```seed``` option. Only applicable when ```method.impute``` option set to ```"random"```. This option ensures that the randomly imputed values will always be reproducible.
+- As expected, using differentially spliced genes, we were able to distinguish between iPSCs and endoderm cells.
+
+## non-DE genes
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"}
+# Retrieve relevant gene_ids
+results.de.exp <- marvel.demo$DE$Exp$Table
+index <- which(results.de.exp$p.val.adj < 0.10 & abs(results.de.exp$log2fc) > 0.5)
+gene_ids <- results.de.exp[-index, "gene_id"]
+
+# Reduce dimension
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=gene_ids,
+                      point.size=2.5,
+                      level="gene"
+                      )
+
+marvel.demo$PCA$Exp$Plot
+```
+
+- As expected, using non-DE genes, we were not able to distinguish  between iPSCs and endoderm cells.
+- Can splicing distinguish between iPSCs and endoderm cells. when non-DE genes couldn't?
+
+## Splicing (non-DE genes)
+```{r, message=FALSE, warning=FALSE, fig.width=7, fig.height=8, fig.align="center"}
+# Retrieve non-DE gene_ids
+results.de.exp <- marvel.demo$DE$Exp$Table
+index <- which(results.de.exp$p.val.adj > 0.10 )
+gene_ids <- results.de.exp[, "gene_id"]
+
+# Retrieve tran_ids
+df.feature <- do.call(rbind.data.frame, marvel.demo$SpliceFeatureValidated)
+df.feature <- df.feature[which(df.feature$gene_id %in% gene_ids), ]
+
+# Reduce dimension: All DE splicing events
+tran_ids <- df.feature$tran_id
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.all <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: SE
+tran_ids <- df.feature[which(df.feature$event_type=="SE"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.se <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: MXE
+tran_ids <- df.feature[which(df.feature$event_type=="MXE"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.mxe <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: RI
+tran_ids <- df.feature[which(df.feature$event_type=="RI"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.ri <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: A5SS
+tran_ids <- df.feature[which(df.feature$event_type=="A5SS"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.a5ss <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: A3SS
+tran_ids <- df.feature[which(df.feature$event_type=="A3SS"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.a3ss <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: AFE
+tran_ids <- df.feature[which(df.feature$event_type=="AFE"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.afe <- marvel.demo$PCA$PSI$Plot
+
+# Reduce dimension: 
+tran_ids <- df.feature[which(df.feature$event_type=="ALE"), "tran_id"]
+
+marvel.demo <- RunPCA(MarvelObject=marvel.demo,
+                      cell.group.column="cell.type",
+                      cell.group.order=c("iPSC", "Endoderm"),
+                      cell.group.colors=NULL,
+                      min.cells=5,
+                      features=tran_ids,
+                      point.size=2.5,
+                      level="splicing",
+                      method.impute="random",
+                      seed=1
+                      )
+
+plot.ale <- marvel.demo$PCA$PSI$Plot
+
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.all, plot.se, 
+             plot.mxe, plot.ri, 
+             plot.a5ss, plot.a3ss, 
+             plot.afe, plot.ale,
+             nrow=4)
+```
+
+- Note that while non-DE genes were not successful in distinguishing between iPSCs and endoderm cells, splicing events of non-DE genes were successful in doing so. This suggests that splicing may be an additional and invisible source of complexity underlying gene expression profile.
+
+# Modality dynamics
+|              Modality dynamics reveals the change in splicing pattern (modality) from one cell population (iPSCs) to another (endoderm cells). The modality dynamics from one cell population to another can be classified into three categories, namely explicit, implicit, and restricted.
+- **Explicit** modality change involves one of the main modality classess, namely included, excluded, bimodal, middle, and multimodal. For example, included to bimodal would constitute an explicity modality change.
+- **Implicit** modality change involves one of the sub- modality classess, namely primary and dispersed. For example, included-primary to included-dispersed would constitute an implicit modality change.
+- **Restricted** modality change involves limited change in splicing pattern. For example, both cell populations may have the same modality class but different mean PSI values.  
+
+|              Here, we will perform modality dynamics analysis among differentially spliced events. Representative examples for each modality dynamics classification will also be shown. This section also introduces our ad hoc plot function ```PlotValues``` for plotting selected splicing events.
+
+## Assign dynamics
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"}
+# Define sample groups
+    # Retrieve sample metadata
+    df.pheno <- marvel.demo$SplicePheno
+    
+    # Group 1
+    sample.ids.1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+    
+    # Group 2
+    sample.ids.2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+    # Merge
+    cell.group.list <- list("iPSC"=sample.ids.1,
+                            "Endoderm"=sample.ids.2
+                            )
+
+# Assign modality dynamics
+marvel.demo <- ModalityChange(MarvelObject=marvel.demo,
+                       method=c("ad", "dts"),
+                       psi.pval=c(0.10, 0.10)
+                       )
+
+marvel.demo$DE$Modality$Plot
+head(marvel.demo$DE$Modality$Table)
+marvel.demo$DE$Modality$Plot.Stats
+```
+
+- ```method``` option. The statistical tests used earlier for differential splicing analysis. Here, we combined the differentially spliced events from both ```ad``` and ```dts``` tests.
+- ```pval``` option. The adjusted p-value, below which, the splicing event is considered to be differentially spliced. The numeric vector should be the same length as the ```method``` option.
+- Note that the most prevalent modality change from iPSCs to endoderm cells is restricted, followed by implicit and then explicit. This suggests that the alternative splicing is relatively tightly regulated because big (explicit) changes in splicing patterns are uncommon.
+
+## Explicit
+```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"}
+# Example 1
+tran_id <- "chr4:108620569:108620600|108620656:108620712:+@chr4:108621951:108622024"
+  
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.1 <- marvel.demo$adhocPlot$PSI
+
+# Example 2
+tran_id <- "chr12:110502049:110502117:-@chr12:110499535:110499546:-@chr12:110496012:110496203"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.2 <- marvel.demo$adhocPlot$PSI
+
+# Example 3
+tran_id <- "chr9:35685269:35685339:-@chr9:35685064:35685139:-@chr9:35684732:35684807:-@chr9:35684488:35684550"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.3 <- marvel.demo$adhocPlot$PSI
+
+# Example 4
+tran_id <- "chr11:85981129:85981228:-@chr11:85978070:85978093:-@chr11:85976623:85976682"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.4 <- marvel.demo$adhocPlot$PSI
+
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1, plot.2, 
+             plot.3, plot.4,
+             nrow=1)
+```
+
+## Implicit
+```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"}
+# Example 1
+tran_id <- "chr17:8383254:8382781|8383157:-@chr17:8382143:8382315"
+  
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.1 <- marvel.demo$adhocPlot$PSI
+
+# Example 2
+tran_id <- "chr17:8383157:8383193|8382781:8383164:-@chr17:8382143:8382315"
+  
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.2 <- marvel.demo$adhocPlot$PSI
+
+# Example 3
+tran_id <- "chr15:24962114:24962209:+@chr15:24967029:24967152:+@chr15:24967932:24968082"
+  
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.3 <- marvel.demo$adhocPlot$PSI
+
+# Example 4
+tran_id <- "chr8:144792587:144792245|144792366:-@chr8:144791992:144792140"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.4 <- marvel.demo$adhocPlot$PSI
+
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1, plot.2, 
+             plot.3, plot.4,
+             nrow=1)
+```
+
+## Restricted
+```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"}
+# Example 1
+tran_id <- "chr5:150449703:150449739|150449492:150449696:-@chr5:150447585:150447735"
+  
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.1 <- marvel.demo$adhocPlot$PSI
+
+# Example 2
+tran_id <- "chr12:56725340:56724962|56725263:-@chr12:56724452:56724523"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.2 <- marvel.demo$adhocPlot$PSI
+
+# Example 3
+tran_id <- "chr10:78037194:78037304:+@chr10:78037439:78037441:+@chr10:78040204:78040225"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.3 <- marvel.demo$adhocPlot$PSI
+
+# Example 4
+tran_id <- "chr10:78037194:78037304:+@chr10:78037439|78040204:78040225"
+
+marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                          cell.group.list=cell.group.list,
+                          feature=tran_id,
+                          xlabels.size=5,
+                          level="splicing",
+                          min.cells=5
+                          )
+
+plot.4 <- marvel.demo$adhocPlot$PSI
+
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1, plot.2, 
+             plot.3, plot.4,
+             nrow=1)
+```
+
+# Gene-splicing dynamics
+|              MARVEL's integrated differential gene and splicing analysis enables us to investigate how gene expression changes relative to splicing changes when iPSCs differentiate into endoderm cells. The gene-splicing dynamics may be classified into four categories, namely coordinated, opposing, isoform-switching, and complex.
+- **Coordinated** gene-splicing relationship refers to the change in mean gene expression is in the same direction with the corresponding splicing event(s).
+- **Opposing** gene-splicing relationship refers to the change in mean gene expression is in the opposite direction to the corresponding splicing event(s). 
+- **Isoform-switching** refers to genes that are differentially spliced without being differentially expressed.
+- **Complex** gene-splicing relationship refers to genes with both coordinated and opposing relationships with the corresponding splicing events.
+
+|               Here, we will explore the gene-splicing dynamics of genes that are differentially spliced between iPSCs and endoderm cells. Representative examples of each dynamic will also be shown. This section also utilises the ad hoc plotting function ```PlotValues``` for plotting selected splicing events and genes.
+|               Please note that the function ```CompareValues``` with the ```level``` option set to ```gene.spliced``` needs to be executed prior to proceeding with gene-splicing dynamics analysis below. Kindly refer to ```Differential (spliced) gene analysis``` section of this tutorial.
+
+## Assign dynamics
+```{r, message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"}
+marvel.demo <- IsoSwitch(MarvelObject=marvel.demo,
+                         method=c("ad", "dts"),
+                         psi.pval=c(0.10, 0.10),
+                         psi.delta=0,
+                         gene.pval=0.10,
+                         gene.log2fc=0.5
+                         )
+
+marvel.demo$DE$Cor$Plot
+head(marvel.demo$DE$Cor$Table)
+marvel.demo$DE$Cor$Plot.Stats
+```
+- ```method``` option. Merge results from ```ad``` and ```dts``` statistical test.
+- ```pval.psi``` option. The adjusted p-value, below which, the splicing event is considered to be differentially spliced.
+- ```delta.psi``` option. The absolute difference in mean PSI values between the two cell populations, above which, the splicing event is considered to be differentially spliced.
+- ```gene.pval``` option. The adjusted p-value, below which, the gene is considered to be differentially expressed.
+- ```gene.log2fc``` option. The absolute log2 fold change, above which, the gene is considered to be differentially expressed.
+- Here, we observed majority of differentially spliced genes underwent isoform-switching followed by coordinated, and then opposing gene expression changes relative to splicing changes. 
+- Note that majority of differentially spliced genes may not be inferred directly from differential gene expression analysis alone. For example, only in coordinated gene-splicing relationship that the gene and splicing changes between iPSCs and endoderm cells are in the same direction. But this category only constitute around one-quarter of gene-splicing relationships.
+
+## Coordinated
+```{r, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"}
+# Define cell groups
+    # Retrieve sample metadata
+    df.pheno <- marvel.demo$SplicePheno
+    
+    # Group 1
+    sample.ids.1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+    
+    # Group 2
+    sample.ids.2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+    # Merge
+    cell.group.list <- list("iPSC"=sample.ids.1,
+                            "Endoderm"=sample.ids.2
+                            )
+    
+# Example 1
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="CMC2"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+  
+  plot.1_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chr16:80981806:80981877:-@chr16:80980808:80980879|80976003:80976179"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                            )
+  
+  plot.1_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Example 2
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="HNRNPC"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+  
+  plot.2_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chr14:21231072:21230958|21230997:-@chr14:21230319:21230366"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                           )
+  
+  plot.2_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1_gene, plot.1_splicing, 
+             plot.2_gene, plot.2_splicing,
+             nrow=2)
+```
+
+- For *CMC2* and *HNRNPC*, both gene expression and splicing rate for the splicing event shown here are decreased in endoderm cells relative to iPSCs.
+
+## Opposing
+```{r, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"}
+# Example 1
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="APOO"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+  
+  plot.1_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chrX:23840313:23840377:-@chrX:23833353:23833612|23833367:23833510"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                            )
+  
+  plot.1_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Example 2
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="BUB3"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+  
+  plot.2_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chr10:123162612:123162828:+@chr10:123163820:123170467|123165047:123165365"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                            )
+  
+  plot.2_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1_gene, plot.1_splicing, 
+             plot.2_gene, plot.2_splicing,
+             nrow=2)
+```
+
+- For both *APOO* and *BUB3*, the gene expression is decreased in endoderm cells relative to iPSCs.
+- However, the mean splicing rates of the splicing events shown here are increased in endoderm cells relative to iPSCs.
+
+## Iso-switch
+```{r, message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"}
+# Example 1
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="AC004086.1"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+    
+  plot.1_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chr12:112409641:112409411|112409587:-@chr12:112408420:112408656"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                            )
+      
+  plot.1_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Example 2
+  # Gene
+  df.feature <- marvel.demo$GeneFeature
+  gene_id <- df.feature[which(df.feature$gene_short_name=="ACP1"), "gene_id"]
+
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=gene_id,
+                            maintitle="gene_short_name",
+                            xlabels.size=7,
+                            level="gene"
+                            )
+  
+  plot.2_gene <- marvel.demo$adhocPlot$Exp
+
+  # Splicing
+  tran_id <- "chr2:271866:271939:+@chr2:272037:272150:+@chr2:272192:272305:+@chr2:275140:275201"
+    
+  marvel.demo <- PlotValues(MarvelObject=marvel.demo,
+                            cell.group.list=cell.group.list,
+                            feature=tran_id,
+                            xlabels.size=7,
+                            level="splicing",
+                            min.cells=5
+                            )
+  
+  plot.2_splicing <- marvel.demo$adhocPlot$PSI
+  
+# Arrange and view plots
+# Read plots from right to left for each row
+grid.arrange(plot.1_gene, plot.1_splicing, 
+             plot.2_gene, plot.2_splicing,
+             nrow=2)
+```
+
+- For both *AC004086.1* and *ACP1*, the differences in gene expression between iPSCs and endoderm cells are not statistically significant.
+- However, the corresponding splicing patterns of the splicing events shown here are significantly different between iPSCs and endoderm cells.
+
+# Gene ontology analysis
+|              Gene ontology analysis or pathway enrichment analysis categorises the differentially spliced genes between iPSCs and endoderm cell into biological pathways. This may identify sets of genes with similar function or belong to similar biological pathways that are concurrently spliced.
+|              Gene ontology analysis represents one of the two functional annotation features of MARVEL. The other functional annotation feature is nonsense-mediated (NMD) analysis.
+
+```{r, eval = FALSE}
+marvel.demo <- BioPathways(MarvelObject=marvel.demo,
+                           method=c("ad", "dts"),
+                           pval=0.10,
+                           species="human"
+                           )
+
+head(marvel.demo$DE$BioPathways$Table)
+```
+
+- ```method``` option. Merge results from ```ad``` and ```dts``` statistical test.
+- ```pval``` option. The adjusted p-value, below which, the splicing event is considered to be differentially spliced.
+- ```species``` option. MARVEL also supports GO analysis of ```"mouse"```.
+- ```custom.genes``` option. In lieu of specifying genes with the ```method``` and ```pval``` options, users may specify any custom set of genes using this option.
+
+```{r, message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"}
+# Plot top pathways
+df <- marvel.demo$DE$BioPathways$Table
+go.terms <- df$Description[c(1:10)]
+              
+marvel.demo <- BioPathways.Plot(MarvelObject=marvel.demo,
+                                go.terms=go.terms,
+                                y.label.size=10
+                                )
+
+marvel.demo$DE$BioPathways$Plot
+```
+
+- The top biological pathways enriched among differentially spliced genes are related to transcription, translation, and metabolism.
+- Users can plot the enrichment results of any biological pathways of interest arising from ```BioPathways``` function. Simply specify the custom set of pathways using the ```go.terms``` option of the ```BioPathways.Plot``` function.
+
+# Companion tool: VALERIE
+|              From this tutorial, we identified over 1,000 differentially spliced events. We would like to introduce VALERIE (**V**isulazing **AL**ternative splicing **E**vents from **RI**bonucleic acid **E**xperiments) - a visualisation platform for visualising alternative splicing events at single-cell resolution. 
+|              The tutorial for using VALERIE for investigating these differentially spliced events can be found here: https://wenweixiong.github.io/VALERIE. The R package may be installed from Github here: https://github.com/wenweixiong/VALERIE.

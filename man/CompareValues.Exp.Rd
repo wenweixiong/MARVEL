@@ -9,6 +9,7 @@ CompareValues.Exp(
   cell.group.g1 = NULL,
   cell.group.g2 = NULL,
   downsample = FALSE,
+  seed = 1,
   min.cells = 25,
   pct.cells = NULL,
   method,
@@ -16,7 +17,8 @@ CompareValues.Exp(
   show.progress = TRUE,
   nboots = 1000,
   custom.gene_ids = NULL,
-  use.downsampled.data = FALSE
+  mast.method = "bayesglm",
+  mast.ebayes = TRUE
 )
 }
 \arguments{
@@ -28,11 +30,13 @@ CompareValues.Exp(
 
 \item{downsample}{Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.}
 
+\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}.}
+
 \item{min.cells}{Numeric value. The minimum no. of cells expressing the gene for the gene to be included for differential splicing analysis.}
 
 \item{pct.cells}{Numeric value. The minimum no. of cells expressing the gene for the gene to be included for differential splicing analysis. If \code{pct.cells} is specified, then \code{pct.cells} will be used as threshold instead of \code{min.cells}.}
 
-\item{method}{Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, and \code{"t.test"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, and t-test, respectively.}
+\item{method}{Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, and \code{"t.test"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, and t-test, respectively. Additional option is \code{"mast"}. If set to \code{"mast"} is specified, the log2fc and p-values will be corrected using the gene detection rate as per the \code{MAST} package tutorial.}
 
 \item{method.adjust}{Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.}
 
@@ -41,10 +45,35 @@ CompareValues.Exp(
 \item{nboots}{Numeric value. When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.}
 
 \item{custom.gene_ids}{Character string. Instead of specified the genes to include for DE analysis with \code{min.cells}, users may input a custom vector of gene IDs to include for DE analysis.}
+
+\item{mast.method}{Character string. As per the \code{method} option of the \code{zlm} function from the \code{MAST} package. Default is \code{"bayesglm"}, other options are \code{"glm"} and \code{"glmer"}.}
+
+\item{mast.ebayes}{Logical value. As per the \code{ebayes} option of the \code{zlm} function from the \code{MAST} package. Default is \code{TRUE}.}
 }
 \value{
 An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 }
 \description{
 Performs differential gene expression analysis between 2 groups of cells.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups for analysis
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# DE
+marvel.demo <- CompareValues.Exp(MarvelObject=marvel.demo,
+                                 cell.group.g1=cell.group.g1,
+                                 cell.group.g2=cell.group.g2,
+                                 min.cells=5,
+                                 method="t.test",
+                                 method.adjust="fdr",
+                                 show.progress=FALSE
+                                 )
+
+# Check output
+head(marvel.demo$DE$Exp$Table)
 }

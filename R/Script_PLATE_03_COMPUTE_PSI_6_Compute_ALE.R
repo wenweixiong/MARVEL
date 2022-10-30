@@ -7,9 +7,17 @@
 #'
 #' @return An object of class S3 containing with new slots \code{$SpliceFeatureValidated$ALE} and \code{$PSI$ALE}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.ALE(MarvelObject=marvel.demo,
+#'                               CoverageThreshold=10
+#'                               )
 
 ComputePSI.ALE <- function(MarvelObject, CoverageThreshold=10) {
 
@@ -25,7 +33,7 @@ ComputePSI.ALE <- function(MarvelObject, CoverageThreshold=10) {
     #CoverageThreshold <- 10
     
     # Print progress
-    print(paste(nrow(df.feature.posneg), " splicing events found", sep=""))
+    message(paste(nrow(df.feature.posneg), " splicing events found", sep=""))
     
     # Create row names
         # SJ matrix
@@ -65,7 +73,7 @@ ComputePSI.ALE <- function(MarvelObject, CoverageThreshold=10) {
         # Retrieve SJ counts
         sj.included <- df.sj[coord.included, ]
         
-    # Retrieve included SJ
+    # Retrieve excluded SJ
         # End coord
         . <- strsplit(df.feature$tran_id, split=":+@", fixed=TRUE)
         . <- sapply(., function(x) {x[2]})
@@ -129,7 +137,7 @@ ComputePSI.ALE <- function(MarvelObject, CoverageThreshold=10) {
         # Retrieve SJ counts
         sj.included <- df.sj[coord.included, ]
         
-    # Retrieve included SJ
+    # Retrieve excluded SJ
         # Start coord
         . <- strsplit(df.feature$tran_id, split=":-@", fixed=TRUE)
         . <- sapply(., function(x) {x[2]})
@@ -170,7 +178,7 @@ ComputePSI.ALE <- function(MarvelObject, CoverageThreshold=10) {
     psi <- rbind.data.frame(psi.pos, psi.neg)
     
     # Track progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
     
     # Save to new slots
     MarvelObject$SpliceFeatureValidated$ALE <- df.feature.posneg

@@ -16,3 +16,8 @@ An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{
 \description{
 Subsets overlapping samples between splicing and gene data.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- CheckAlignment.PSI.Exp(MarvelObject=marvel.demo)
+}

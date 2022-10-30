@@ -27,3 +27,12 @@ An object of class S3 with updated slot \code{MarvelObject$Exp}.
 \description{
 Transforms gene expression values and censor lowly-expressing genes.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- TransformExpValues(MarvelObject=marvel.demo,
+                                  offset=1,
+                                  transformation="log2",
+                                  threshold.lower=1
+                                  )
+}

@@ -11,7 +11,8 @@ IsoSwitch(
   psi.delta = 0,
   gene.pval = 0.1,
   gene.log2fc = 0.5,
-  event.type = NULL
+  event.type = NULL,
+  custom.tran_ids = NULL
 )
 }
 \arguments{
@@ -28,10 +29,29 @@ IsoSwitch(
 \item{gene.log2fc}{Numeric value. The absolute log2 fold change in mean gene expression values between the two cell groups above which the gene is considered differentially expressed. To be used in conjunction with \code{gene.pval}. Specify \code{0} to switch this threshold off. Default value is \code{0.5}.}
 
 \item{event.type}{Character string. Indicate which splicing event type to include for analysis. Can take any combination of values: \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, \code{"A3SS"}, \code{"AFE}, or \code{"ALE}.}
+
+\item{custom.tran_ids}{Vector of character strings. Subset of tran_ids to be brought forward for analysis after filtering based on \code{psi.pval} and \code{psi.delta}.}
 }
 \value{
 An object of class S3 containing with new slots \code{MarvelObject$DE$Cor$Table}, \code{MarvelObject$DE$Cor$Plot}, and \code{MarvelObject$DE$Cor$Plot.Stats}.
 }
 \description{
 Classify gene-splicing relative changes to each other from cell group 1 to group 2. Classifications are coordinated, opposing, isoform-switching, and complex. In coordinated relationship, both gene and splicing changes in the same direction from cell group 1 to group 2. In opposing relationship, gene changes in the opposite direction relative to splicing from cell group 1 to group 2. In isoform-switching, there is differential splice junction usage without differential expression of the corresponding gene between cell group 1 and group 2. Complex relationship involves genes with both coordinated and opposing relationships with splicing. Only differentially spliced junctions are included for analysis here.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- IsoSwitch(MarvelObject=marvel.demo,
+                         method="ad",
+                         psi.pval=0.1,
+                         psi.delta=0,
+                         gene.pval=0.1,
+                         gene.log2fc=0.5
+                         )
+
+# Check outputs
+head(marvel.demo$DE$Cor$Table_Raw)
+head(marvel.demo$DE$Cor$Table)
+marvel.demo$DE$Cor$Plot
+marvel.demo$DE$Cor$Plot.Stats
 }

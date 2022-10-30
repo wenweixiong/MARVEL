@@ -6,15 +6,24 @@
 #' @param method Character string. The statistical method used for differential splicing analysis.
 #' @param pval Numeric value. Adjusted p-value below which the splicing event will be analysed for PTCs.
 #' @param delta Numeric value. Positive delta percent spliced-in (PSI) value above which the splicing event will be analysed for PTCs. "Positive" because only an increased in PSI value leads to increased alternative exon inclusion in the transcript.
+#' @param custom.tran_ids Vector of character strings. Subset of tran_ids to be brought forward for analysis after filtering based on \code{pval} and \code{delta}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$NMD$Prediction}.
 #'
-#' @importFrom Biostrings DNAStringSet translate reverseComplement
+#' @importFrom plyr join
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- FindPTC(MarvelObject=marvel.demo,
+#'                        method="ad",
+#'                        pval=0.1,
+#'                        delta=90
+#'                        )
 
-
-FindPTC <- function(MarvelObject, method, pval, delta) {
+FindPTC <- function(MarvelObject, method, pval, delta, custom.tran_ids=NULL) {
 
     # Define arguments
     method <- method
@@ -22,10 +31,11 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     delta <- delta
 
     # Example arguments
-    #MarvelObject <- marvel
-    #method <- c("ad", "dts")
-    #pval <- c(0.10, 0.10)
-    #delta <- 0.05
+    #MarvelObject <- marvel.demo
+    #method <- c("ad")
+    #pval <- c(0.10)
+    #delta <- 90
+    #custom.tran_ids <- tran_ids.shared
     
     # Subset sig. events
     .list <- list()
@@ -50,10 +60,26 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     
     de.psi.small <- do.call(rbind.data.frame, .list)
     de.psi.small <- unique(de.psi.small)
+    
+    # Check if any sig. events found
+    if(nrow(de.psi.small)==0) {
+        
+        message("No splicing events found at pval and delta thresholds specified")
+        
+        return(MarvelObject)
+        
+    }
         
     # Keep only SE, RI, A5SS, A3SS
     event_types <- c("SE", "RI", "A5SS", "A3SS")
     de.psi.small <- de.psi.small[which(de.psi.small$event_type %in% event_types), ]
+    
+    # Subset user-specified events
+    if(!is.null(custom.tran_ids[1])) {
+        
+        de.psi.small <- de.psi.small[which(de.psi.small$tran_id %in% custom.tran_ids), ]
+        
+    }
     
     # Create container to keep results
     results.list <- list()
@@ -68,7 +94,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " SE +ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " SE +ve strand identified", sep=""))
     
     if(length(tran_ids) != 0) {
         
@@ -92,7 +118,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " SE -ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " SE -ve strand identified", sep=""))
     
     if(length(tran_ids) != 0) {
         
@@ -116,7 +142,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " RI +ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " RI +ve strand identified", sep=""))
     
     if(length(tran_ids) != 0) {
         
@@ -140,7 +166,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " RI -ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " RI -ve strand identified", sep=""))
     
     if(length(tran_ids) != 0) {
         
@@ -164,7 +190,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " A5SS +ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " A5SS +ve strand identified", sep=""))
 
     if(length(tran_ids) != 0) {
         
@@ -188,7 +214,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " A5SS -ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " A5SS -ve strand identified", sep=""))
 
     if(length(tran_ids) != 0) {
         
@@ -212,7 +238,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " A3SS +ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " A3SS +ve strand identified", sep=""))
 
     if(length(tran_ids) != 0) {
         
@@ -236,7 +262,7 @@ FindPTC <- function(MarvelObject, method, pval, delta) {
     tran_ids <- de.psi.small$tran_id[index]
     gene_ids <- de.psi.small$gene_id[index]
     
-    print(paste(length(tran_ids),  " A3SS -ve strand identified", sep=""))
+    message(paste(length(tran_ids),  " A3SS -ve strand identified", sep=""))
 
     if(length(tran_ids) != 0) {
         

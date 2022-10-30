@@ -44,3 +44,30 @@ An object of class S3 with a new slots \code{MarvelObject$adhocGene$DE$VolcanoPl
 \description{
 Scatterplot of results from differential gene and splice junction analysis. x-axis represents the gene expression log2 fold change between the different pairs of cell groups. y-axis represents the PSI differences or log2 fold change between the different pairs of cell groups.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# Define SJ to plot
+coord.intron <- marvel.demo.10x$adhocGene$DE$PSI$Data$coord.intron[1]
+
+# Plot SJ vs gene
+marvel.demo.10x <- adhocGene.PlotDEValues.10x(
+                        MarvelObject=marvel.demo.10x,
+                        coord.intron=coord.intron,
+                        log2fc.gene=0.5,
+                        delta.sj=5,
+                        label.size=2,
+                        point.size=2,
+                        xmin=-2.0,
+                        xmax=2.0,
+                        ymin=-25,
+                        ymax=25
+                        )
+
+# Check output
+marvel.demo.10x$adhocGene$DE$VolcanoPlot$Plot
+}

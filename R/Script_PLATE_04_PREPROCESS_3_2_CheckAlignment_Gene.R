@@ -6,9 +6,15 @@
 #'
 #' @return An object of class S3 with updated slots \code{MarvelObject$SplicePheno}, \code{MarvelObject$SpliceFeature}, and \code{MarvelObject$PSI}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- CheckAlignment.Exp(MarvelObject=marvel.demo)
 
 CheckAlignment.Exp <- function(MarvelObject) {
         
@@ -34,18 +40,18 @@ CheckAlignment.Exp <- function(MarvelObject) {
     overlap <- intersect(sample.ids.phenoData, sample.ids.matrix)
         
     # Report progress
-    print(paste(length(sample.ids.phenoData), " samples (cells) identified in sample metadata ", sep=""))
-    print(paste(length(sample.ids.matrix), " samples (cells) identified in matrix ", sep=""))
+    message(paste(length(sample.ids.phenoData), " samples (cells) identified in sample metadata ", sep=""))
+    message(paste(length(sample.ids.matrix), " samples (cells) identified in matrix ", sep=""))
         
     # Subset overlaps
     df.pheno <- df.pheno[which(df.pheno$sample.id %in% overlap), ]
     df <- df[,c("gene_id", overlap)]
     
     # Report progress
-    print(paste(length(overlap), " overlapping samples (cells) retained ", sep=""))
+    message(paste(length(overlap), " overlapping samples (cells) retained ", sep=""))
         
     # Check alignment
-    print("Checking alignment...")
+    message("Checking alignment...")
     
     sample.ids.phenoData <- df.pheno$sample.id
     sample.ids.matrix <- names(df)[-1]
@@ -56,12 +62,12 @@ CheckAlignment.Exp <- function(MarvelObject) {
      
     if(index.true==1 & index.false==0) {
     
-        print("sample IDs in sample metadata and matrix column names MATCHED")
+        message("sample IDs in sample metadata and matrix column names MATCHED")
         
     } else {
         
         
-        print("sample IDs in sample metadata and matrix column names NOT MATCHED")
+        message("sample IDs in sample metadata and matrix column names NOT MATCHED")
 
     }
 
@@ -70,7 +76,7 @@ CheckAlignment.Exp <- function(MarvelObject) {
     #########################################################################
     
     # Print progress
-    print(paste(length(df.feature$gene_id), " genes identified in gene metadata", sep=""))
+    message(paste(length(df.feature$gene_id), " genes identified in gene metadata", sep=""))
     
     # Retrieve overlapping genes
     gene.ids.featureData <- df.feature$gene_id
@@ -78,18 +84,18 @@ CheckAlignment.Exp <- function(MarvelObject) {
     overlap <- intersect(gene.ids.featureData, gene.ids.matrix)
         
     # Report progress
-    print(paste(length(gene.ids.featureData), " genes identified in gene metadata", sep=""))
-    print(paste(length(gene.ids.matrix), " genes identified in matrix", sep=""))
+    message(paste(length(gene.ids.featureData), " genes identified in gene metadata", sep=""))
+    message(paste(length(gene.ids.matrix), " genes identified in matrix", sep=""))
         
     # Subset overlaps
     df.feature <- df.feature[which(df.feature$gene_id %in% overlap), ]
     df <- df[which(df$gene_id %in% overlap),]
     
     # Report progress
-    print(paste(length(overlap), " overlapping genes retained", sep=""))
+    message(paste(length(overlap), " overlapping genes retained", sep=""))
     
     # Check alignment
-    print("Checking alignment...")
+    message("Checking alignment...")
     
     gene.ids.featureData <- df.feature$gene_id
     gene.ids.matrix <- df$gene_id
@@ -100,12 +106,12 @@ CheckAlignment.Exp <- function(MarvelObject) {
      
     if(index.true==1 & index.false==0) {
     
-        print("gene IDs in gene metadata and matrix row names MATCHED")
+        message("gene IDs in gene metadata and matrix row names MATCHED")
         
     } else {
         
         
-        print("gene IDs in gene metadata and matrix row names NOT MATCHED")
+        message("gene IDs in gene metadata and matrix row names NOT MATCHED")
 
     }
 

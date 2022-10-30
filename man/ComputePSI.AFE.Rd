@@ -17,3 +17,10 @@ An object of class S3 containing with new slots \code{$SpliceFeatureValidated$AF
 \description{
 Computes percent spliced-in (PSI) for alternative first exon (ALE) splicing events.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ComputePSI.AFE(MarvelObject=marvel.demo,
+                              CoverageThreshold=10
+                              )
+}

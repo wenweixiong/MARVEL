@@ -10,9 +10,18 @@
 #'
 #' @return An object of class S3 with new slots \code{$SpliceFeatureValidated$SE}  \code{$PSI$SE}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.SE(MarvelObject=marvel.demo,
+#'                              CoverageThreshold=10,
+#'                              UnevenCoverageMultiplier=10
+#'                              )
 
 ComputePSI.SE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultiplier=10) {
 
@@ -29,7 +38,7 @@ ComputePSI.SE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultipl
     #UnevenCoverageMultiplier <- 10
     
     # Print progress
-    print(paste(nrow(df), " splicing events found", sep=""))
+    message(paste(nrow(df), " splicing events found", sep=""))
     
     #########################################################################
     ############################# PREPARE INPUTS ############################
@@ -267,7 +276,7 @@ ComputePSI.SE <- function(MarvelObject, CoverageThreshold, UnevenCoverageMultipl
     row.names(psi) <- NULL
     
     # Print progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
     
     ######################################################################
     ###################### RETURN FINAL OBJECTS ##########################

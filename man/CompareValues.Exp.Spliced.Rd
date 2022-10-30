@@ -15,8 +15,10 @@ CompareValues.Exp.Spliced(
   method.de.gene = "wilcox",
   method.adjust.de.gene = "fdr",
   downsample = FALSE,
+  seed = 1,
   show.progress = TRUE,
-  use.downsampled.data = FALSE
+  mast.method = "bayesglm",
+  mast.ebayes = TRUE
 )
 }
 \arguments{
@@ -38,11 +40,40 @@ CompareValues.Exp.Spliced(
 
 \item{downsample}{Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.}
 
+\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}.}
+
 \item{show.progress}{Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.}
+
+\item{mast.method}{Character string. As per the \code{method} option of the \code{zlm} function from the \code{MAST} package. Default is \code{"bayesglm"}, other options are \code{"glm"} and \code{"glmer"}.}
+
+\item{mast.ebayes}{Logical value. As per the \code{ebayes} option of the \code{zlm} function from the \code{MAST} package. Default is \code{TRUE}.}
 }
 \value{
 An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 }
 \description{
 Performs differential gene expression analysis between 2 groups of cells only on differentially spliced genes.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups for analysis
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# DE
+marvel.demo <- CompareValues.Exp.Spliced(MarvelObject=marvel.demo,
+                                         cell.group.g1=cell.group.g1,
+                                         cell.group.g2=cell.group.g2,
+                                         psi.method="ad",
+                                         psi.pval=0.10,
+                                         psi.delta=0,
+                                         method.de.gene="t.test",
+                                         method.adjust.de.gene="fdr",
+                                         show.progress=FALSE
+                                         )
+
+# Check output
+head(marvel.demo$DE$Exp.Spliced$Table)
 }

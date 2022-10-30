@@ -18,3 +18,19 @@ An object of class S3 with new slots \code{MarvelObject$adhocGene$Expression$PSI
 \description{
 Creates a dotplot of splice junction expression value of a specified gene across different cell groups. The gene and cell groups were defined earlier in \code{adhocGene.TabulateExpression.Gene.10x} function.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# SJ usage profiling
+marvel.demo.10x <- adhocGene.TabulateExpression.PSI.10x(
+                        MarvelObject=marvel.demo.10x,
+                        min.pct.cells=10
+                        )
+
+# Check output
+marvel.demo.10x$adhocGene$Expression$PSI$Plot
+}

@@ -8,8 +8,26 @@
 #' @return An object of class S3 containing the updated slots \code{MarvelObject$sj.metadata} and \code{MarvelObject$sj.count.matrix}.
 #'
 #' @importFrom plyr join
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' # Load un-processed MARVEL object
+#' marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.raw.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Annotate gene metadata
+#' marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
+#'
+#' # Annotate junction metadata
+#' marvel.demo.10x <- AnnotateSJ.10x(MarvelObject=marvel.demo.10x)
+#'
+#' # Validate junctions
+#' marvel.demo.10x <- ValidateSJ.10x(MarvelObject=marvel.demo.10x)
 
 ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
     
@@ -35,7 +53,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
         
         if(length(index) >= 1) {
             
-            print(paste(length(index), " annotated and uniquely-mapped SJ identified", sep=""))
+            message(paste(length(index), " annotated and uniquely-mapped SJ identified", sep=""))
             
         }
         
@@ -48,7 +66,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
         
         if(length(index) >= 1) {
             
-            print(paste(length(index), " annotated (at one end) and uniquely-mapped SJ identified", sep=""))
+            message(paste(length(index), " annotated (at one end) and uniquely-mapped SJ identified", sep=""))
             
         }
         
@@ -60,7 +78,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
                         
         if(length(index) >= 1) {
             
-            print(paste(length(index), " unannotated SJ identified", sep=""))
+            message(paste(length(index), " unannotated SJ identified", sep=""))
             
         }
         
@@ -75,7 +93,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
                         
         if(length(index) >= 1) {
             
-            print(paste(length(index), " multi-mapping SJ identified", sep=""))
+            message(paste(length(index), " multi-mapping SJ identified", sep=""))
             
         }
         
@@ -88,7 +106,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
                         
         if(length(index) >= 1) {
             
-            print(paste(length(index), " unannotated and multi-mapping SJ identified", sep=""))
+            message(paste(length(index), " unannotated and multi-mapping SJ identified", sep=""))
             
         }
         
@@ -128,7 +146,7 @@ ValidateSJ.10x <- function(MarvelObject, keep.novel.sj=FALSE) {
     MarvelObject$sj.metadata <- sj.metadata
     MarvelObject$sj.count.matrix <- df.sj.count
  
-    print("SJ metadata and SJ count matrix updated")
+    message("SJ metadata and SJ count matrix updated")
  
     # Return final object
     return(MarvelObject)

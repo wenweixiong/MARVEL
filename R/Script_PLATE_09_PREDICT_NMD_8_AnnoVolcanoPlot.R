@@ -13,10 +13,18 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- AnnoVolcanoPlot(MarvelObject=marvel.demo)
+#'
+#' # Check outputs
+#' head(marvel.demo$NMD$AnnoVolcanoPlot$Table)
+#' marvel.demo$NMD$AnnoVolcanoPlot$Plot
 
 AnnoVolcanoPlot <- function(MarvelObject, anno=FALSE, anno.gene_short_name=NULL, label.size=NULL, point.size=1.0, xlabel.size=8) {
 
@@ -148,7 +156,7 @@ AnnoVolcanoPlot <- function(MarvelObject, anno=FALSE, anno.gene_short_name=NULL,
             plot <- ggplot() +
                 geom_point(data, mapping=aes(x=x, y=y, color=z), size=point.size) +
                 geom_vline(xintercept=0, linetype="dashed", color="black", size=0.25) +
-                geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
+                ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
                 scale_x_continuous(breaks=seq(xmin, xmax, by=xinterval), limits=c(xmin, xmax)) +
                 scale_color_manual(values=colors) +
                 labs(title=maintitle, x=xtitle, y=ytitle, color=legendtitle) +

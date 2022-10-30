@@ -17,11 +17,38 @@
 #'
 #' @importFrom plyr join
 #' @import ggplot2
-#' @import ggrepel
 #' @import scales
 #' @importFrom grDevices hcl
+#' @import Matrix
 #'
 #' @export
+#'
+#' @examples
+#'
+#' marvel.demo.10x <- readRDS(system.file("extdata/data",
+#'                                "marvel.demo.10x.rds",
+#'                                package="MARVEL")
+#'                                )
+#'
+#' # Define SJ to plot
+#' coord.intron <- marvel.demo.10x$adhocGene$DE$PSI$Data$coord.intron[1]
+#'
+#' # Plot SJ vs gene
+#' marvel.demo.10x <- adhocGene.PlotDEValues.10x(
+#'                         MarvelObject=marvel.demo.10x,
+#'                         coord.intron=coord.intron,
+#'                         log2fc.gene=0.5,
+#'                         delta.sj=5,
+#'                         label.size=2,
+#'                         point.size=2,
+#'                         xmin=-2.0,
+#'                         xmax=2.0,
+#'                         ymin=-25,
+#'                         ymax=25
+#'                         )
+#'
+#' # Check output
+#' marvel.demo.10x$adhocGene$DE$VolcanoPlot$Plot
 
 adhocGene.PlotDEValues.10x <- function(MarvelObject, coord.intron, log2fc.gene=0.5, delta.sj=5, label.size=2, point.size=2, xmin=NULL, xmax=NULL, ymin=NULL, ymax=NULL) {
         
@@ -119,7 +146,7 @@ adhocGene.PlotDEValues.10x <- function(MarvelObject, coord.intron, log2fc.gene=0
                 geom_point(data, mapping=aes(x=x, y=y, fill=z), size=point.size, alpha=0.75, pch=21, stroke=0.1) +
                 geom_hline(yintercept=c(delta.sj * -1, delta.sj), linetype="dashed", color="black", size=0.1) +
                 geom_vline(xintercept=c(log2fc.gene * -1, log2fc.gene), linetype="dashed", color="black", size=0.1) +
-                geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
+                ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
                 scale_fill_manual(values=color) +
                 #scale_x_continuous(limits=c(xmin, xmax)) +
                 #scale_y_continuous(limits=c(ymin, ymax)) +
@@ -145,7 +172,7 @@ adhocGene.PlotDEValues.10x <- function(MarvelObject, coord.intron, log2fc.gene=0
                 geom_point(data, mapping=aes(x=x, y=y, fill=z), size=point.size, alpha=0.75, pch=21, stroke=0.1) +
                 geom_hline(yintercept=c(delta.sj * -1, delta.sj), linetype="dashed", color="black", size=0.1) +
                 geom_vline(xintercept=c(log2fc.gene * -1, log2fc.gene), linetype="dashed", color="black", size=0.1) +
-                geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
+                ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 0.5, size=label.size, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0.01) +
                 scale_fill_manual(values=color) +
                 scale_x_continuous(limits=c(xmin, xmax)) +
                 scale_y_continuous(limits=c(ymin, ymax)) +

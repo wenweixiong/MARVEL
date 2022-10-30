@@ -7,9 +7,17 @@
 #'
 #' @return An object of class S3 containing with new slots \code{$SpliceFeatureValidated$AFE} and \code{$PSI$AFE}.
 #'
+#' @importFrom plyr join
 #' @import methods
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ComputePSI.AFE(MarvelObject=marvel.demo,
+#'                               CoverageThreshold=10
+#'                               )
 
 ComputePSI.AFE <- function(MarvelObject, CoverageThreshold=10) {
 
@@ -25,7 +33,7 @@ ComputePSI.AFE <- function(MarvelObject, CoverageThreshold=10) {
     #CoverageThreshold <- 10
     
     # Print progress
-    print(paste(nrow(df.feature.posneg), " splicing events found", sep=""))
+    message(paste(nrow(df.feature.posneg), " splicing events found", sep=""))
     
     # Create row names
         # SJ matrix
@@ -171,7 +179,7 @@ ComputePSI.AFE <- function(MarvelObject, CoverageThreshold=10) {
     psi <- rbind.data.frame(psi.pos, psi.neg)
     
     # Track progress
-    print(paste(nrow(psi), " splicing events validated and quantified", sep=""))
+    message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
     
     # Save to new slots
     MarvelObject$SpliceFeatureValidated$AFE <- df.feature.posneg

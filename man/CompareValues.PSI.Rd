@@ -9,6 +9,7 @@ CompareValues.PSI(
   cell.group.g1,
   cell.group.g2,
   downsample = FALSE,
+  seed = 1,
   min.cells = 25,
   pct.cells = NULL,
   method,
@@ -19,8 +20,7 @@ CompareValues.PSI(
   show.progress = TRUE,
   annotate.outliers = TRUE,
   n.cells.outliers = 10,
-  assign.modality = TRUE,
-  use.downsampled.data = FALSE
+  assign.modality = TRUE
 )
 }
 \arguments{
@@ -31,6 +31,8 @@ CompareValues.PSI(
 \item{cell.group.g2}{Vector of character strings. Cell IDs corresponding to Group 2.}
 
 \item{downsample}{Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.}
+
+\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment which will be performed automatically.}
 
 \item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event for the event to be included for differential splicing analysis.}
 
@@ -59,4 +61,26 @@ An object of class data frame containing the output of the differential splicing
 }
 \description{
 Performs differentially splicing analysis between 2 groups of cells.
+}
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+# Define cell groups for analysis
+df.pheno <- marvel.demo$SplicePheno
+cell.group.g1 <- df.pheno[which(df.pheno$cell.type=="iPSC"), "sample.id"]
+cell.group.g2 <- df.pheno[which(df.pheno$cell.type=="Endoderm"), "sample.id"]
+
+# DE
+results <- CompareValues.PSI(MarvelObject=marvel.demo,
+                             cell.group.g1=cell.group.g1,
+                             cell.group.g2=cell.group.g2,
+                             min.cells=5,
+                             method="t.test",
+                             method.adjust="fdr",
+                             event.type=c("SE", "MXE", "RI", "A5SS", "A3SS", "AFE", "ALE"),
+                             show.progress=FALSE
+                             )
+
+# Check output
+head(results)
 }

@@ -17,3 +17,12 @@ An object of class S3 with updated slot \code{MarvelObject$SplicePheno}.
 \description{
 Subsets specific samples (cells) from sample metadata.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+sample.ids <- sample(marvel.demo$SplicePheno$sample.id, size=10)
+
+marvel.demo <- SubsetSamples(MarvelObject=marvel.demo,
+                             sample.ids=sample.ids
+                             )
+}

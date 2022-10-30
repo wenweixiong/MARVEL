@@ -26,3 +26,36 @@ An object of class S3 with a new slots \code{MarvelObject$pct.cells.expr$Gene$Pl
 \description{
 Generates a plot of gene expression distribution (percentage of cells expressing a particular gene) to determine normalised gene expression threshold for downstream differential splice junction analysis.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+# Define cell groups
+    # Retrieve sample metadata
+    sample.metadata <- marvel.demo.10x$sample.metadata
+
+    # Group 1 (reference)
+    index <- which(sample.metadata$cell.type=="iPSC")
+    cell.ids.1 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.1)
+
+    # Group 2
+    index <- which(sample.metadata$cell.type=="Cardio day 10")
+    cell.ids.2 <- sample.metadata[index, "cell.id"]
+    length(cell.ids.2)
+
+# Explore \% of cells expressing genes
+marvel.demo.10x <- PlotPctExprCells.Genes.10x(
+                        MarvelObject=marvel.demo.10x,
+                        cell.group.g1=cell.ids.1,
+                        cell.group.g2=cell.ids.2,
+                        min.pct.cells=5
+                        )
+
+# Check output
+marvel.demo.10x $pct.cells.expr$Gene$Plot
+head(marvel.demo.10x $pct.cells.expr$Gene$Data)
+}

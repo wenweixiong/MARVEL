@@ -21,3 +21,17 @@ An object of class S3 with new slots \code{MarvelObject$NMD$PTC.Prop$Table}, \co
 \description{
 Tabulates and plots the proportion of transcripts with PTC for each splicing event type.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- PropPTC(MarvelObject=marvel.demo,
+                       xlabels.size=8,
+                       show.NovelSJ.NoCDS=TRUE,
+                       prop.test="fisher"
+                       )
+
+# Check outputs
+head(marvel.demo$NMD$PTC.Prop$Table)
+marvel.demo$NMD$PTC.Prop$Plot
+marvel.demo$NMD$PTC.Prop$Plot.Stats
+}

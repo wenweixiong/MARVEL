@@ -21,12 +21,32 @@
 #' @importFrom plyr join
 #' @import stats
 #' @import methods
-#' @import FactoMineR
-#' @import factoextra
 #' @import ggplot2
 #' @importFrom grDevices hcl
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' # Define splicing events for analysis
+#' df <- do.call(rbind.data.frame, marvel.demo$PSI)
+#' tran_ids <- df$tran_id
+#'
+#' # PCA
+#' marvel.demo <- RunPCA.PSI(MarvelObject=marvel.demo,
+#'                           sample.ids=marvel.demo$SplicePheno$sample.id,
+#'                           cell.group.column="cell.type",
+#'                           cell.group.order=c("iPSC", "Endoderm"),
+#'                           cell.group.colors=NULL,
+#'                           min.cells=5,
+#'                           features=tran_ids,
+#'                           point.size=2
+#'                           )
+#'
+#' # Check outputs
+#' head(marvel.demo$PCA$PSI$Results$ind$coord)
+#' marvel.demo$PCA$PSI$Plot
 
 RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order, cell.group.colors=NULL,
                        features, min.cells=25,
@@ -157,7 +177,7 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
             # Retrieve expressed events
             . <- apply(df.small, 1, function(x) {sum(!is.na(x))})
             tran_ids <- names(.)[which(. >= min.cells)]
-            #print(length(tran_ids))
+            #message(length(tran_ids))
             
             # Save into list
             .list[[i]] <- tran_ids
@@ -207,7 +227,7 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
             
             # Check alignment
             df.small <- as.data.frame(t(df.small))
-            #print(table(names(df.small)==sample.ids))
+            #message(table(names(df.small)==sample.ids))
             
             # Save into list
             .list[[i]] <- df.small
@@ -224,7 +244,7 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     ##############################################
     
     # Reduce dimension
-    res.pca <- PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
+    res.pca <- FactoMineR::PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
     
     # Scatterplot
         # Definition
@@ -233,8 +253,8 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
         y <- data[,2]
         z <- df.pheno$pca.cell.group.label
         maintitle <- paste(nrow(df), " splicing events", sep="")
-        xtitle <- paste("PC1 (", round(get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")
-        ytitle <- paste("PC2 (", round(get_eigenvalue(res.pca)[2,2], digits=1), "%)" ,sep="")
+        xtitle <- paste("PC1 (", round(factoextra::get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")
+        ytitle <- paste("PC2 (", round(factoextra::get_eigenvalue(res.pca)[2,2], digits=1), "%)" ,sep="")
         legendtitle <- "Group"
         
         # Color scheme

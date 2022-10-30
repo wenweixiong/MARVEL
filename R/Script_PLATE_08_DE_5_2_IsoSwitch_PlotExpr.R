@@ -11,9 +11,16 @@
 #' @import stats
 #' @import methods
 #' @import ggplot2
-#' @import ggrepel
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- IsoSwitch.PlotExpr(MarvelObject=marvel.demo, anno=TRUE)
+#'
+#' # Check output
+#' marvel.demo$DE$Cor$PSIvsExpr$Plot
 
 IsoSwitch.PlotExpr <- function(MarvelObject, anno=FALSE) {
 
@@ -67,8 +74,8 @@ IsoSwitch.PlotExpr <- function(MarvelObject, anno=FALSE) {
         ytitle <- "log2FC expr"
         legendtitle <- "Expr-PSI change"
         
-        ymin <- ceiling(max(abs(y[y<0]))) * -1
-        ymax <- ceiling(max(y[y>0]))
+        ymin <- ceiling(max(abs(y[y<0]), na.rm=TRUE)) * -1
+        ymax <- ceiling(max(y[y>0], na.rm=TRUE))
         
         # Plot
         plot <- ggplot() +
@@ -93,7 +100,7 @@ IsoSwitch.PlotExpr <- function(MarvelObject, anno=FALSE) {
     } else if(anno==TRUE){
         
         # Create labels
-        df$label <- ifelse(df$cor != "Iso-Switch", df$gene_short_name, "")
+        df$label <- ifelse(df$cor != "Iso-Switch", paste(df$gene_short_name, df$event_type, sep="."), "")
         
         # Definition
         data <- df
@@ -105,13 +112,13 @@ IsoSwitch.PlotExpr <- function(MarvelObject, anno=FALSE) {
         legendtitle <- "Expr-PSI change"
         label <- df$label
         
-        ymin <- ceiling(max(abs(y[y<0]))) * -1
-        ymax <- ceiling(max(y[y>0]))
+        ymin <- ceiling(max(abs(y[y<0]), na.rm=TRUE)) * -1
+        ymax <- ceiling(max(y[y>0], na.rm=TRUE))
         
         # Plot
         plot <- ggplot() +
             geom_point(data, mapping=aes(x=x, y=y, fill=z), color="black", pch=21, size=2, alpha=1.0, stroke=0.1) +
-            geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 1.0, size=2, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
+            ggrepel::geom_text_repel(data, mapping=aes(x=x, y=y, label=label), max.overlaps = Inf, box.padding = 1.0, size=2, max.time = 1, max.iter = 1e5, segment.alpha=0.5, segment.size=0.1, min.segment.length = 0) +
             geom_vline(xintercept=c(psi.delta*-1, psi.delta), linetype="dashed", color="black", size=0.2) +
             geom_hline(yintercept=c(gene.log2fc*-1, gene.log2fc), linetype="dashed", color="black", size=0.2) +
             scale_y_continuous(breaks=seq(ymin, ymax), limits=c(ymin, ymax)) +

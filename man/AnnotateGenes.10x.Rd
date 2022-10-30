@@ -15,3 +15,14 @@ An object of class S3 containing the updated slots \code{MarvelObject$gene.metad
 \description{
 Annotates the each gene in the gene metadata with the gene type, e.g. protein-coding, antisense etc.. Annotations are retrieved from GTF. Only genes found in gene metadata and GTF will be retained.
 }
+\examples{
+
+# Load un-processed MARVEL object
+marvel.demo.10x.raw <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.raw.rds",
+                               package="MARVEL")
+                               )
+
+# Annotate gene metadata
+marvel.demo.10x <- AnnotateGenes.10x(MarvelObject=marvel.demo.10x.raw)
+}

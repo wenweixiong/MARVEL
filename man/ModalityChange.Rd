@@ -21,3 +21,17 @@ An object of class S3 with new slots \code{MarvelObject$DE$Modality$Table}, \cod
 \description{
 Classifies the type of modality change for each splicing event that has taken place between 2 groups of cells.
 }
+\examples{
+marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+
+marvel.demo <- ModalityChange(MarvelObject=marvel.demo,
+                              method="ad",
+                              psi.pval=0.1,
+                              psi.delta=0
+                              )
+
+# Check outputs
+head(marvel.demo$DE$Modality$Table)
+marvel.demo$DE$Modality$Plot
+marvel.demo$DE$Modality$Plot.Stats
+}

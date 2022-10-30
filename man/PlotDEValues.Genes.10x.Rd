@@ -44,3 +44,23 @@ An object of class S3 with a new slots \code{MarvelObject$DE$SJ$VolcanoPlot$Gene
 \description{
 Volcano plot of results from differential gene expression analysis. x-axis represents the log2 fold change between two cell groups. y-axis represents -log10(adjusted p-value). Only genes whose splice junctions were considered to be differentially spliced are included for plotting.
 }
+\examples{
+
+marvel.demo.10x <- readRDS(system.file("extdata/data",
+                               "marvel.demo.10x.rds",
+                               package="MARVEL")
+                               )
+
+marvel.demo.10x <- PlotDEValues.Genes.10x(
+                        MarvelObject=marvel.demo.10x,
+                        pval.sj=0.05,
+                        delta.sj=5,
+                        min.gene.norm=1.0,
+                        pval.adj.gene=0.05,
+                        log2fc.gene=0.5
+                        )
+
+# Check outputs
+marvel.demo.10x$DE$SJ$VolcanoPlot$Gene$Plot
+head(marvel.demo.10x$DE$SJ$VolcanoPlot$Gene$Data)
+}

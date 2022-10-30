@@ -9,9 +9,14 @@
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$NMD$GTF}.
 #'
-#' @import textclean
+#' @importFrom plyr join
 #'
 #' @export
+#'
+#' @examples
+#' marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
+#'
+#' marvel.demo <- ParseGTF(MarvelObject=marvel.demo)
 
 ParseGTF <- function(MarvelObject) {
 
@@ -19,28 +24,28 @@ ParseGTF <- function(MarvelObject) {
     gtf <- MarvelObject$GTF
 
     # Parse attributes
-    print("Parsing attribute column...")
+    message("Parsing attribute column...")
     
     attr <- strsplit(gtf$V9, split=";")
 
     # Retrieve selected attributes
         # gene_id
-        print("Retrieving gene_id...")
+        message("Retrieving gene_id...")
         
         . <- sapply(attr, function(x) grep("gene_id", x, value=TRUE))
-        gtf$gene_id <- mgsub(., c("gene_id", " ", "\""), "")
+        gtf$gene_id <- textclean::mgsub(., c("gene_id", " ", "\""), "")
         
         # transcript_id
-        print("Retrieving transcript_id...")
+        message("Retrieving transcript_id...")
         
         . <- sapply(attr, function(x) grep("transcript_id", x, value=TRUE))
-        gtf$transcript_id <- mgsub(., c("transcript_id", " ", "\""), "")
+        gtf$transcript_id <- textclean::mgsub(., c("transcript_id", " ", "\""), "")
         
         # transcript_type
-        print("Retrieving transcript_type...")
+        message("Retrieving transcript_type...")
         
         . <- sapply(attr, function(x) grep("transcript_type", x, value=TRUE))
-        gtf$transcript_type <- mgsub(., c("transcript_type", " ", "\""), "")
+        gtf$transcript_type <- textclean::mgsub(., c("transcript_type", " ", "\""), "")
         
     # Remove attribute column
     gtf$V9 <- NULL
