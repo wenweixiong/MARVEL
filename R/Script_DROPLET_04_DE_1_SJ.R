@@ -18,6 +18,7 @@
 #'
 #' @importFrom plyr join
 #' @import Matrix
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #'
 #' @export
 #'

@@ -32,7 +32,6 @@
 #' @return An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Table[["method"]]} or \code{MarvelObject$DE$Exp$Table} when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #'
 #' @export

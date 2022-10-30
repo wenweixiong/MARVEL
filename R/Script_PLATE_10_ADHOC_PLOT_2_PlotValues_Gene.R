@@ -13,7 +13,6 @@
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$Exp}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #' @import ggplot2
 #' @import scales

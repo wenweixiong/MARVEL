@@ -22,7 +22,6 @@
 #' @return An object of class S3 with new slot \code{$adhocPlot$PSI} or \code{MarvelObject$adhocPlot$Exp} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #' @import ggplot2
 #' @import scales

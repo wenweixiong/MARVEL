@@ -15,6 +15,7 @@
 #' @return An object of class S3 containing new slots \code{MarvelObject$Modality$Prop$BarChart$Table} and \code{MarvelObject$Modality$Prop$BarChart$Stats}.
 #'
 #' @importFrom plyr join
+#' @importFrom stats chisq.test fisher.test p.adjust p.adjust.methods
 #' @import methods
 #' @import ggplot2
 #'

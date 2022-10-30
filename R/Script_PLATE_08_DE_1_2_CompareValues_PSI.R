@@ -22,9 +22,9 @@
 #' @return An object of class data frame containing the output of the differential splicing analysis.
 #'
 #' @importFrom plyr join
-#' @import stats
+#' @importFrom stats ks.test na.omit p.adjust p.adjust.methods t.test wilcox.test
 #' @import methods
-#' @import utils
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #'
 #' @export
 #'

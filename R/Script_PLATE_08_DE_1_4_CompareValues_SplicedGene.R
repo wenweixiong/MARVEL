@@ -19,9 +19,8 @@
 #' @return An object of class S3 new slot \code{MarvelObject$DE$Exp$Table}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
-#' @import utils
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @export
 #'
 #' @examples

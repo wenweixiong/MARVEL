@@ -10,7 +10,7 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 8. Supports both plate-based (e.g., Smart-seq2) and droplet-based (e.g., 10x Genomics) single-cell RNA-sequencing data analysis. 
 9. In principle, also applicable to bulk RNA-sequencing data analysis.
 
-# Workflow for plate-based splicing analysis
+# General workflow
 ![](inst/extdata/figures/Cover_Figure.png)
 
 
@@ -73,19 +73,10 @@ install.packages("textclean")
 install.packages("twosamples")
 ```
 
+# Install adjunct customised package
 Please install the modified wiggleplotr R package from here: http://datashare.molbiol.ox.ac.uk/public/wwen/wiggleplotr_1.18.0_master.tar.gz
 ```
 install.packages("wiggleplotr_1.18.0_master.tar.gz", repos=NULL, type="source")
-```
-
-Finally, please install MARVEL from this repository.
-```
-# Install MARVEL package
-library(devtools)
-install_github("wenweixiong/MARVEL")
-
-# Load package
-library(MARVEL)
 ```
 
 # Tutorial

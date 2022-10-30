@@ -8,6 +8,7 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocGene$Expression$PSI$Table} and  \code{MarvelObject$adhocGene$Expression$PSI$Plot}.
 #'
 #' @importFrom plyr join
+#' @importFrom stats aggregate
 #' @import ggplot2
 #' @import Matrix
 #'

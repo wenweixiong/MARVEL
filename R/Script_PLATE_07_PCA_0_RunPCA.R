@@ -22,7 +22,6 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$PCA$PSI$Results}, \code{MarvelObject$PCA$PSI$Plot}, and \code{MarvelObject$PCA$PSI$Plot.Elbow} or \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}, when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #'
 #' @export

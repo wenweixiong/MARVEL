@@ -15,6 +15,7 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Plot}, \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Stats}, and \code{MarvelObject$adhocPlot$Boxplot$Pseudobulk$Gene$Data}.
 #'
 #' @importFrom plyr join
+#' @importFrom stats p.adjust p.adjust.methods pairwise.t.test pairwise.wilcox.test
 #' @import ggplot2
 #' @importFrom grDevices hcl
 #' @import Matrix

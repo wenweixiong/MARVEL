@@ -15,7 +15,6 @@
 #' @return An object of class S3 containing with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import ggplot2
 #' @import scales
 #'

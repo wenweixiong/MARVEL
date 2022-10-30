@@ -26,7 +26,6 @@
 #' @return An object of class S3 with new slot \code{MarvelObject$DE$PSI$Plot[["method"]]} when level set to \code{"splicing.mean"} or \code{"splicing.distance"} or \code{MarvelObject$DE$Exp.Global$Table} and \code{MarvelObject$DE$Exp.Global$Plot} when level set to \code{"gene.global"} or \code{MarvelObject$DE$Exp.Spliced$Table} and \code{MarvelObject$DE$Exp.Spliced$Plot} when level set to \code{"gene.spliced"}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import ggplot2
 #' @import scales
 #'

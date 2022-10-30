@@ -11,7 +11,7 @@
 #' @return An object of class S3 with a new slots \code{MarvelObject$DE$PseudoBulk$GeneCountMatrix}, \code{MarvelObject$DE$PseudoBulk$SJCountMatrix}, and \code{MarvelObject$DE$PseudoBulk$sample.metadata}.
 #'
 #' @importFrom plyr join rbind.fill
-#' @import utils
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @import Matrix
 #'
 #' @export

@@ -16,8 +16,8 @@
 #' @return An object of class S3 containing with new slot \code{$Modality$Prop$DoughnutChart} or \code{$Modality$Prop$BarChart}.
 #'
 #' @importFrom plyr join
+#' @importFrom stats p.adjust p.adjust.methods
 #' @import methods
-#' @import stats
 #' @import ggplot2
 #'
 #' @export

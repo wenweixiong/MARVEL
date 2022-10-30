@@ -15,7 +15,6 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$DE$Exp.Global$Table}, \code{MarvelObject$DE$Exp.Global$Summary}, and \code{MarvelObject$DE$Exp.Global$Plot}
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import ggplot2
 #' @import scales
 #'

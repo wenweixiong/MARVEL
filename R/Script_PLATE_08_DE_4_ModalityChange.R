@@ -10,7 +10,7 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$DE$Modality$Table}, \code{MarvelObject$DE$Modality$Plot}, and \code{MarvelObject$DE$Modality$Plot.Stats}.
 #'
 #' @importFrom plyr join
-#' @import stats
+#' @importFrom stats var
 #' @import methods
 #' @import ggplot2
 #'

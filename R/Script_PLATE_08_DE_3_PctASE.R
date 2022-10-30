@@ -15,7 +15,6 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$DE$AbsASE$Table} and \code{MarvelObject$DE$AbsASE$Plot}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #' @import ggplot2
 #' @importFrom grDevices hcl

@@ -9,9 +9,7 @@
 #' @return An object of class S3 updated slot \code{MarvelObject$DE$PSI$Table} and new slot \code{MarvelObject$DE$PSI$A3SS.dist.to.ss}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
-#' @import utils
 #' @export
 #'
 #' @examples

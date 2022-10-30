@@ -12,7 +12,8 @@
 #' @return An object of class S3 with a updated slot \code{MarvelObject$DE$SJ$Table}.
 #'
 #' @importFrom plyr join
-#' @import utils
+#' @importFrom stats p.adjust p.adjust.methods
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @import Matrix
 #'
 #' @export

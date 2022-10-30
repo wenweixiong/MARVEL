@@ -12,6 +12,7 @@
 #'
 #' @importFrom plyr join
 #' @import methods
+#' @importFrom utils txtProgressBar
 #'
 #' @export
 #'

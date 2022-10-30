@@ -10,6 +10,7 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$NMD$PTC.Prop$Table}, \code{MarvelObject$NMD$PTC.Prop$Plot}, and \code{MarvelObject$NMD$PTC.Prop$Plot.Stats}.
 #'
 #' @importFrom plyr join
+#' @importFrom stats aggregate chisq.test fisher.test
 #' @import ggplot2
 #' @import scales
 #'

@@ -18,7 +18,6 @@
 #' @return An object of class S3 with new slots \code{MarvelObject$DE$Exp.Spliced$Table}, \code{MarvelObject$DE$Exp.Spliced$Summary}, and \code{MarvelObject$DE$Exp.Spliced$Plot}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import ggplot2
 #' @import scales
 #'

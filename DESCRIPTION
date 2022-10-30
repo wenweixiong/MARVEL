@@ -23,7 +23,7 @@ RoxygenNote: 7.2.0
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2022-10-30 12:23:04 UTC; seanwen
+Packaged: 2022-10-30 16:32:33 UTC; seanwen
 Author: Sean Wen [aut, cre]
 Maintainer: Sean Wen <sean.wenwx@gmail.com>
 Depends: R (>= 3.5.0)

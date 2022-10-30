@@ -10,7 +10,6 @@
 #' @return An object of class S3 containing with new slot \code{MarvelObject$DE$BioPathways$Plot}.
 #'
 #' @importFrom plyr join
-#' @import stats
 #' @import methods
 #' @import ggplot2
 #' @import Matrix
