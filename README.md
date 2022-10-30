@@ -11,7 +11,7 @@ MARVEL is an R package developed for alternative splicing analysis at single-cel
 9. In principle, also applicable to bulk RNA-sequencing data analysis.
 
 # Workflow for plate-based splicing analysis
-![](inst/extdata/Cover_Figure.png)
+![](inst/extdata/figures/Cover_Figure.png)
 
 
 # Installation
