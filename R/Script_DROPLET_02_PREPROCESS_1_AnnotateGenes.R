@@ -53,10 +53,17 @@ AnnotateGenes.10x <- function(MarvelObject) {
 
         # gene type
         . <- strsplit(gtf$V9, split=";")
-        . <- sapply(., function(x) grep("gene_biotype", x, value=TRUE))
-        . <- gsub("gene_biotype", "", .)
-        . <- gsub(" ", "", .)
-        . <- gsub("\"", "", .)
+	. <- sapply(., function(x) {
+	    if (any(grepl("gene_type", x))) {
+	        grep("gene_type", x, value = TRUE)
+	    } else if (any(grepl("gene_biotype", x))) {
+	        grep("gene_biotype", x, value = TRUE)
+	    }
+	})
+	. <- gsub("gene_type", "", .)
+	. <- gsub("gene_biotype", "", .)
+	. <- gsub(" ", "", .)
+	. <- gsub("\"", "", .)
 
         gtf$gene_type <- .
     
