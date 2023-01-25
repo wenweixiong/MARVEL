@@ -12,6 +12,7 @@
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
 #' @param point.alpha Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.
 #' @param point.stroke Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.
+#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}.
 #'
@@ -44,7 +45,8 @@
 
 RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
                        features, min.cells=25,
-                       point.size=0.5, point.alpha=0.75, point.stroke=0.1
+                       point.size=0.5, point.alpha=0.75, point.stroke=0.1,
+                       pcs=c(1,2)
                        ) {
 
     # Define arguments
@@ -127,8 +129,8 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     # Scatterplot
         # Definition
         data <- as.data.frame(res.pca$ind$coord)
-        x <- data[,1]
-        y <- data[,2]
+        x <- data[,pcs[1]]
+        y <- data[,pcs[2]]
         z <- df.pheno$pca.cell.group.label
         maintitle <- paste(nrow(df), " genes", sep="")
         xtitle <- paste("PC1 (", round(factoextra::get_eigenvalue(res.pca)[1,2], digits=1), "%)" ,sep="")

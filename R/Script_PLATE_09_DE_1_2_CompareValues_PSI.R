@@ -79,14 +79,14 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     #cell.group.g1 <- cell.group.g1
     #cell.group.g2 <- cell.group.g2
     #downsample <- FALSE
-    #min.cells <- 10
+    #min.cells <- 3
     #pct.cells <- NULL
-    #method <- "ad"
+    #method <- "t.test"
     #method.adjust <- "fdr"
-    #event.type <- c("A3SS")
+    #event.type <- c("SE")
     #show.progress <- TRUE
     #annotate.outliers <- TRUE
-    #n.cells.outliers <- 5
+    #n.cells.outliers <- 0
     #assign.modality <- TRUE
     
     ############################################################
@@ -249,8 +249,19 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
              
             } else if(method=="t.test"){
             
-                statistic <- t.test(x, y)$statistic
-                p.val[i] <- t.test(x, y)$p.value
+                statistic <- tryCatch(t.test(x, y)$statistic, error=function(err) "Error")
+                
+                if(inherits(statistic, "numeric", TRUE)==1) {
+            
+                    statistic[i] <- t.test(x, y)$statistic
+                    p.val[i] <- t.test(x, y)$p.value
+                    
+                } else {
+                    
+                    statistic[i] <- NA
+                    p.val[i] <- NA
+                    
+                }
 
             } else if(method=="ks") {
                 
@@ -392,13 +403,12 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
                           stringsAsFactors=FALSE
                           )
     
+    # Remove missing pvals
+    results <- results[!is.na(results$p.val), ]
+    
     # Reorder by p-value
-    #results <- results[which(!is.na(results$p.val)), ]
-    results$p.val[which(is.na(results$p.val))] <- 1
-    #results$statistic[which(results$p.val < 0)]  <- results$statistic[which(results$p.val < 0)] * -1
-    #results$p.val <- abs(results$p.val)
+    #results$p.val[which(is.na(results$p.val))] <- 1
     results <- results[order(results$p.val), ]
-    #results <- results[order(results$statistic, decreasing=TRUE), ]
     
     # Adjust for multiple testing
     if(method != "dts" & method != "permutation") {

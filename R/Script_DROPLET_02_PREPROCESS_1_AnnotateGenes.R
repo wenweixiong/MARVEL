@@ -31,7 +31,7 @@ AnnotateGenes.10x <- function(MarvelObject) {
     df.gene.norm <- MarvelObject$gene.norm
     
     # Example arguments
-    #MarvelObject <- marvel.demo.10x.raw
+    #MarvelObject <- marvel
     #gtf <- MarvelObject$gtf
     #gene.metadata <- MarvelObject$gene.metadata
     #df.gene.norm <- MarvelObject$gene.norm
@@ -57,6 +57,16 @@ AnnotateGenes.10x <- function(MarvelObject) {
         . <- gsub("gene_biotype", "", .)
         . <- gsub(" ", "", .)
         . <- gsub("\"", "", .)
+            
+        if(.[1] == "character(0)") {
+            
+            . <- strsplit(gtf$V9, split=";")
+            . <- sapply(., function(x) grep("gene_type", x, value=TRUE))
+            . <- gsub("gene_type", "", .)
+            . <- gsub(" ", "", .)
+            . <- gsub("\"", "", .)
+            
+        }
 
         gtf$gene_type <- .
     

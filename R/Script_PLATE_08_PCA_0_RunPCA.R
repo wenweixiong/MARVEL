@@ -16,6 +16,7 @@
 #' @param seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}.  Ensures imputed values for NA PSIs are reproducible.
 #' @param method.impute Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.
 #' @param cell.group.column.impute Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.
+#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
 #'
 #' @export
 #'
@@ -54,7 +55,8 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    min.cells=25, features,
                    point.size=0.5, point.alpha=0.75, point.stroke=0.1,
                    seed=1, method.impute="random", cell.group.column.impute=NULL,
-                   level
+                   level,
+                   pcs=c(1,2)
                    ) {
 
     
@@ -72,7 +74,8 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    point.stroke=point.stroke,
                    seed=seed,
                    method.impute=method.impute,
-                   cell.group.column.impute=cell.group.column.impute
+                   cell.group.column.impute=cell.group.column.impute,
+                   pcs=pcs
                    )
 
     } else if(level=="gene") {
@@ -86,7 +89,8 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    features=features,
                    point.size=point.size,
                    point.alpha=point.alpha,
-                   point.stroke=point.stroke
+                   point.stroke=point.stroke,
+                   pcs=pcs
                    )
         
     }

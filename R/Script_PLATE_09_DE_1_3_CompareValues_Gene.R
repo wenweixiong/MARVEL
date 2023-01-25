@@ -64,7 +64,7 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NU
     custom.gene_ids <- custom.gene_ids
     
     # Define arguments
-    #custom.gene_ids <- df$gene_id
+    #custom.gene_ids <- NULL
     #df <- marvel$Exp
     #df.pheno <- marvel$SplicePheno
     #df.feature <- marvel$GeneFeature
@@ -73,7 +73,7 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NU
     #downsample <- FALSE
     #min.cells <- 3
     #pct.cells <- NULL
-    #method <- "mast"
+    #method <- "t.test"
     #method.adjust <- "fdr"
     #show.progress <- TRUE
     #mast.method <- "bayesglm"
@@ -170,6 +170,14 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NU
         
     }
     
+    # Remove genes with constant expression values
+    . <- apply(df, 1, function(x) {length(unique(x))})
+    gene_ids <- names(.)[which(. > 1)]
+    df.feature <- df.feature[which(df.feature$gene_id %in% gene_ids), ]
+    df <- df[gene_ids, ]
+    
+    message(paste(length(.) - length(gene_ids), " genes removed because expression values are essentially constant", sep=""))
+    
     ########################################################
     
     # Statistical test
@@ -221,8 +229,19 @@ CompareValues.Exp <- function(MarvelObject, cell.group.g1=NULL, cell.group.g2=NU
              
             } else if(method=="t.test"){
             
-                statistic[i] <- t.test(x, y)$statistic
-                p.val[i] <- t.test(x, y)$p.value
+                statistic <- tryCatch(t.test(x, y)$statistic, error=function(err) "Error")
+                
+                if(inherits(statistic, "numeric", TRUE)==1) {
+            
+                    statistic <- t.test(x, y)$statistic
+                    p.val[i] <- t.test(x, y)$p.value
+                    
+                } else {
+                    
+                    statistic <- NA
+                    p.val[i] <- NA
+                    
+                }
 
             } else if(method=="ks") {
                 

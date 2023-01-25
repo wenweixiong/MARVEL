@@ -38,7 +38,6 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     # Example arguments
     #library(parallel)
     #library(plyr)
-    #MarvelObject <- marvel.demo
     #df <- MarvelObject$SpliceFeature$RI
     #sj <- MarvelObject$SpliceJunction
     #CoverageThreshold <- 10
@@ -626,9 +625,22 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     psi[cov < CoverageThreshold] <- NA
 
     # Remove row names
+    . <- data.frame("tran_id"=row.names(counts.included), stringsAsFactors=FALSE)
+    counts.included <- cbind.data.frame(., counts.included)
+    row.names(counts.included) <- NULL
+    
+    . <- data.frame("tran_id"=row.names(counts.excluded), stringsAsFactors=FALSE)
+    counts.excluded <- cbind.data.frame(., counts.excluded)
+    row.names(counts.excluded) <- NULL
+    
     . <- data.frame("tran_id"=row.names(psi), stringsAsFactors=FALSE)
     psi <- cbind.data.frame(., psi)
     row.names(psi) <- NULL
+    
+    # Check row orders
+    table(counts.included$tran_id==df$tran_id)
+    table(counts.excluded$tran_id==df$tran_id)
+    table(psi$tran_id==df$tran_id)
     
     # Print progress
     message(paste(nrow(psi), " splicing events validated and quantified", sep=""))
@@ -655,6 +667,8 @@ ComputePSI.RI <- function(MarvelObject, CoverageThreshold, IntronCounts, thread,
     df.psi <- psi
                                         
     # Save to new slots
+    MarvelObject$Counts$RI$counts.included <- counts.included
+    MarvelObject$Counts$RI$counts.excluded <- counts.excluded
     MarvelObject$SpliceFeatureValidated$RI <- df.feature
     MarvelObject$PSI$RI <- psi
     

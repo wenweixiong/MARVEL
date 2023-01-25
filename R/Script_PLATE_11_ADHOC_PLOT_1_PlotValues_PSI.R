@@ -86,6 +86,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #modality.column="modality.bimodal.adj"
     #scale.y.log <- FALSE
     #cell.group.colors <- NULL
+    #point.alpha=0.2
     
     ############################################################
     
@@ -266,6 +267,11 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     
     #df.small <- do.call(rbind.data.frame, .list)
     
+    # Check if at least one cell group w/ sufficient expressing cells
+    n.groups.expr <- length(which(n.cells$freq >= min.cells))
+    
+    if(n.groups.expr != 0) {
+        
     #################################### PLOT ######################################
     
     # Definition
@@ -302,7 +308,8 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         }
         
         # Identify cell groups with at least 2 cells (for violin)
-        index.cells.expr_violin <- which(n.cells$freq >= 3)
+        #index.cells.expr_violin <- which(n.cells$freq >= 3)
+        index.cells.expr_violin <- which(n.cells$freq >= 2)
 
         # Identify cell groups with at least 1 cell (for points, and average)
         index.cells.expr_point <- which(n.cells$freq >= 1)
@@ -312,17 +319,21 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
 
         # Violin fill
         cols.violin.fill <- cols
-        cols.violin.fill[index.low.expr] <- NA
+        #cols.violin.fill[index.low.expr] <- NA
+        cols.violin.fill[index.low.expr] <- "white"
         cols.violin.fill <- cols.violin.fill[index.cells.expr_violin]
         
         # Violin border
         cols.violin.border <- cols.violin.fill
-        cols.violin.border[!is.na(cols.violin.border)] <- "gray"
-    
+        #cols.violin.border[!is.na(cols.violin.border)] <- "gray"
+        cols.violin.border[which(cols.violin.border != "white")] <- "gray"
+
         # Jitter points
         cols.points <- cols
-        cols.points[index.low.expr] <- NA
-        cols.points[!is.na(cols.points)] <- "black"
+        #cols.points[index.low.expr] <- NA
+        cols.points[index.low.expr] <- "white"
+        #cols.points[!is.na(cols.points)] <- "black"
+        cols.points[which(cols.points != "white")] <- "black"
         cols.points <- cols.points[index.cells.expr_point]
     
         # Mean icon fill
@@ -456,8 +467,20 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
 
     # Save into new slot
     MarvelObject$adhocPlot$PSI <- plot
-            
+ 
     # Return final object
     return(MarvelObject)
+ 
+    #########################################################################
+    
+    } else {
+        
+    # Save into new slot
+    MarvelObject$adhocPlot$PSI <- NULL
+    
+    # Return final object
+    return(MarvelObject)
+    
+    }
     
 }

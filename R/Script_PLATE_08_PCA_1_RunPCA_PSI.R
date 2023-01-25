@@ -15,6 +15,7 @@
 #' @param seed Numeric value. Ensures imputed values for NA PSIs are reproducible.
 #' @param method.impute Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.
 #' @param cell.group.column.impute Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.
+#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results} and  \code{MarvelObject$PCA$PSI$Plot}
 #'
@@ -51,7 +52,8 @@
 RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order, cell.group.colors=NULL,
                        features, min.cells=25,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1,
-                       seed=1, method.impute="random", cell.group.column.impute=NULL
+                       seed=1, method.impute="random", cell.group.column.impute=NULL,
+                       pcs=c(1,2)
                        ) {
 
     # Define arguments
@@ -77,13 +79,13 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #sample.ids <- sample.ids
-    #cell.group.column <- "genotype"
+    #cell.group.column <- "cell.type"
     #cell.group.order <- cell.group.order
-    #cell.group.colors <- cell.group.colors
+    #cell.group.colors <- NULL
     #features <- tran_ids
     #min.cells <- 20
     #method.impute <- "random"
-    #cell.group.column.impute <- "genotype.impute"
+    #cell.group.column.impute <- NULL
     #seed <- 1
     #point.size <- 2.5
     #point.alpha <- 0.75

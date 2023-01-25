@@ -46,7 +46,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
     anno.colors <- anno.colors
     
     # Example arguments
-    #MarvelObject <- marvel.demo.10x
+    #MarvelObject <- marvel
     #coord.intron <- "chr1:1000:1001"
     #sj.metadata <- MarvelObject$sj.metadata
     #gtf <- MarvelObject$gtf
@@ -420,7 +420,7 @@ adhocGene.PlotSJPosition.10x <- function(MarvelObject, coord.intron, coord.intro
             
             message("No protein-coding transcripts found for this gene")
             MarvelObject$adhocGene$SJPosition$metadata <- metadata
-            return
+            return(MarvelObject)
             
         }
         
