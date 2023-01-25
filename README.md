@@ -74,9 +74,9 @@ install.packages("twosamples")
 ```
 
 # Install adjunct customised package
-Please install the modified wiggleplotr R package from here: http://datashare.molbiol.ox.ac.uk/public/wwen/wiggleplotr_1.18.0_master.tar.gz
+Please install the modified wiggleplotr R package from here: http://datashare.molbiol.ox.ac.uk/public/wwen/wiggleplotr_1.18.0.tar.gz
 ```
-install.packages("wiggleplotr_1.18.0_master.tar.gz", repos=NULL, type="source")
+install.packages("wiggleplotr_1.18.0.tar.gz", repos=NULL, type="source")
 ```
 
 # Tutorial
