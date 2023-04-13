@@ -97,7 +97,7 @@ version 2.0.2
 - Updated **AnnotateSJ.10x** function to enable handling of GTF with chr prefix. Previously, only handled GTF without chr prefix. This function is only applicable for droplet-based data.
 
 version 2.0.3
-- Updated **RunPCA** function to enable a Bayesian approach for imputing missing PSI values prior to dimension reduction with principal component analysis (PCA). To use this approach for PCA, simply specify  *method.impute="Bayesian"* and *level="splicing"*. This approach was inspired Benegas *et al.* (https://elifesciences.org/articles/73520) and please cite his work if you use this option. Currently, missing PSI values are imputed with random values between 0-1 with the *method.impute="random"*. This function is only applicable for plate-based data.
+- Updated **RunPCA** function to enable a Bayesian approach for imputing missing PSI values prior to dimension reduction with principal component analysis (PCA). To use this approach for PCA, simply specify  *method.impute="Bayesian"* and *level="splicing"*. This approach was inspired by Benegas *et al.* (https://elifesciences.org/articles/73520) and please cite his work if you use this option. Currently, missing PSI values are imputed with random values between 0-1 with the *method.impute="random"*. This function is only applicable for plate-based data.
 - Updated *CompareValues* function to enable setting the random number generator when using DTS for differential splicing analysis. This will ensure reproducibility of differential splicing results. Simply specify *seed.dts=1* (or any numeric value) together with *method="dts"*. Currently, and by default, the seed is not set when DTS is used. This function is only applicable for plate-based data.
 
 # Further improvements
