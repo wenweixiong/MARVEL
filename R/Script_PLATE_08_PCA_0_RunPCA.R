@@ -8,14 +8,14 @@
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
 #' @param sample.ids Character strings. Specific cells to plot.
 #' @param min.cells Numeric value. The minimum no. of cells expressing the splicing event or gene for the event or gene, respectively, to be included for analysis.
+#' @param min.events.pct Numeric value.  Only applicable when \code{level} set to \code{"splicing"}. The minimum percentage of events expressed in a cell, above which, the cell will be retained for analysis. By default, this option is switched off, i.e., \code{NULL}.
 #' @param features Character string. Vector of \code{tran_id} or \code{gene_id} for analysis. Should match \code{tran_id} or \code{gene_id} column of \code{MarvelObject$ValidatedSpliceFeature} or \code{MarvelObject$GeneFeature} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
 #' @param point.alpha Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.
 #' @param point.stroke Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.
 #' @param level Character string. Indicate \code{"splicing"} or \code{"gene"} for splicing or gene expression analysis, respectively
-#' @param seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}.  Ensures imputed values for NA PSIs are reproducible.
-#' @param method.impute Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.
-#' @param cell.group.column.impute Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.
+#' @param method.impute Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.
+#' @param seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.
 #' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
 #'
 #' @export
@@ -50,11 +50,12 @@
 #' head(marvel.demo$PCA$PSI$Results$ind$coord)
 #' marvel.demo$PCA$PSI$Plot
 
-RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
+RunPCA <- function(MarvelObject,
+                   cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
                    sample.ids=NULL,
-                   min.cells=25, features,
+                   min.cells=25, min.pct.events=NULL, features,
                    point.size=0.5, point.alpha=0.75, point.stroke=0.1,
-                   seed=1, method.impute="random", cell.group.column.impute=NULL,
+                   method.impute="random", seed=1,
                    level,
                    pcs=c(1,2)
                    ) {
@@ -68,13 +69,13 @@ RunPCA <- function(MarvelObject, cell.group.column, cell.group.order=NULL, cell.
                    cell.group.colors=cell.group.colors,
                    sample.ids=sample.ids,
                    min.cells=min.cells,
+                   min.pct.events=min.pct.events,
                    features=features,
                    point.size=point.size,
                    point.alpha=point.alpha,
                    point.stroke=point.stroke,
-                   seed=seed,
                    method.impute=method.impute,
-                   cell.group.column.impute=cell.group.column.impute,
+                   seed=seed,
                    pcs=pcs
                    )
 

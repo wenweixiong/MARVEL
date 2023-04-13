@@ -11,13 +11,13 @@ RunPCA(
   cell.group.colors = NULL,
   sample.ids = NULL,
   min.cells = 25,
+  min.pct.events = NULL,
   features,
   point.size = 0.5,
   point.alpha = 0.75,
   point.stroke = 0.1,
-  seed = 1,
   method.impute = "random",
-  cell.group.column.impute = NULL,
+  seed = 1,
   level,
   pcs = c(1, 2)
 )
@@ -43,15 +43,15 @@ RunPCA(
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
 
-\item{seed}{Numeric value. Only applicable when \code{level} set to \code{"splicing"}.  Ensures imputed values for NA PSIs are reproducible.}
+\item{method.impute}{Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.}
 
-\item{method.impute}{Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.}
-
-\item{cell.group.column.impute}{Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.}
+\item{seed}{Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.}
 
 \item{level}{Character string. Indicate \code{"splicing"} or \code{"gene"} for splicing or gene expression analysis, respectively}
 
 \item{pcs}{Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.}
+
+\item{min.events.pct}{Numeric value.  Only applicable when \code{level} set to \code{"splicing"}. The minimum percentage of events expressed in a cell, above which, the cell will be retained for analysis. By default, this option is switched off, i.e., \code{NULL}.}
 }
 \value{
 An object of class S3 with new slots \code{MarvelObject$PCA$PSI$Results}, \code{MarvelObject$PCA$PSI$Plot}, and \code{MarvelObject$PCA$PSI$Plot.Elbow} or \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}, when \code{level} option specified as \code{"splicing"} or \code{"gene"}, respectively.

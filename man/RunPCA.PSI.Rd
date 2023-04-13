@@ -12,12 +12,12 @@ RunPCA.PSI(
   cell.group.colors = NULL,
   features,
   min.cells = 25,
+  min.pct.events = NULL,
   point.size = 0.5,
   point.alpha = 0.75,
   point.stroke = 0.1,
-  seed = 1,
   method.impute = "random",
-  cell.group.column.impute = NULL,
+  seed = 1,
   pcs = c(1, 2)
 )
 }
@@ -34,7 +34,7 @@ RunPCA.PSI(
 
 \item{features}{Character string. Vector of \code{tran_id} for analysis. Should match \code{tran_id} column of \code{MarvelObject$ValidatedSpliceFeature}.}
 
-\item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event to be included for analysis.}
+\item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event, above which, the splicing event will be retained for analysis.}
 
 \item{point.size}{Numeric value. Size of data points on reduced dimension space.}
 
@@ -42,13 +42,13 @@ RunPCA.PSI(
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
 
-\item{seed}{Numeric value. Ensures imputed values for NA PSIs are reproducible.}
+\item{method.impute}{Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.}
 
-\item{method.impute}{Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"population.mean"} method uses the mean PSI value for each cell population. Default option is \code{"population.mean"}.}
+\item{seed}{Numeric value. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.}
 
-\item{cell.group.column.impute}{Character string. Only applicable when \code{method.impute} set to \code{"population.mean"}. The name of the sample metadata column in which the variables will be used to impute missing values.}
+\item{pcs}{Numeric vector. The principal components (PCs) to plot. Default is the first two PCs, i.e., \code{c(1,2)}. If a vector of 3 is specified, a 3D scatterplot is returned.}
 
-\item{pcs}{Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.}
+\item{min.events.pct}{Numeric value. The minimum percentage of events expressed in a cell, above which, the cell will be retained for analysis. By default, this option is switched off, i.e., \code{NULL}.}
 }
 \value{
 An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results} and  \code{MarvelObject$PCA$PSI$Plot}

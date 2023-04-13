@@ -20,6 +20,9 @@ CheckAlignment.SJ <- function(MarvelObject) {
 
     # Define arguments
     MarvelObject <- MarvelObject
+    
+    # Example arguments
+    #MarvelObject <- marvel
         
     # Check alignment: SJ matrix and phenoData
         # Retrieve data
@@ -96,7 +99,12 @@ CheckAlignment.SJ <- function(MarvelObject) {
     # Update slots
     MarvelObject$SplicePheno <- df.pheno
     MarvelObject$SpliceJunction <- df
-    MarvelObject$IntronCounts <- df.intron.counts
+    
+    if(inherits(MarvelObject$IntronCounts, "data.frame", TRUE)==1) {
+        
+        MarvelObject$IntronCounts <- df.intron.counts
+        
+    }
     
     # Return final object
     return(MarvelObject)

@@ -13,8 +13,8 @@ CompareValues(
   min.cells = 25,
   pct.cells = NULL,
   method = NULL,
+  seed.dts = NULL,
   nboots = 1000,
-  n.permutations = 1000,
   method.adjust = "fdr",
   level,
   event.type = NULL,
@@ -41,7 +41,7 @@ CompareValues(
 
 \item{downsample}{Logical value. If set to \code{TRUE}, the number of cells in each cell group will be downsampled to the sample size of the smaller cell group so that both cell groups will have the sample size prior to differential expression analysis. Default is \code{FALSE}.}
 
-\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment which will be performed automatically.}
+\item{seed}{Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment when \code{assign.modality} set to \code{TRUE}.}
 
 \item{min.cells}{Numeric value. The minimum no. of cells expressing the splicing event or genes for the event or genes to be included for differential splicing analysis.}
 
@@ -49,9 +49,9 @@ CompareValues(
 
 \item{method}{Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, and \code{"t.test"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, and t-test, respectively. Additional \code{"mast"} option is available for differential gene expression analysis. If \code{"mast"} is specified, the log2fc and p-values will be corrected using the gene detection rate as per the \code{MAST} package tutorial.}
 
-\item{nboots}{Numeric value.Only applicable when \code{level} set to \code{"splicing"}.  When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.}
+\item{seed.dts}{Numeric value.  Only applicable when \code{level} set to \code{"splicing"}. The seed number for the random number generator to ensure reproducibility of DE analysis when \code{method} set to \code{"dts"}. By default this is not specified, i.e., \code{NULL}.}
 
-\item{n.permutations}{Numeric value. Only applicable when \code{level} set to \code{"splicing"}. When \code{method} set to \code{"permutation"}, this argument indicates the number of permutations to perform for generating the null distribution for subsequent p-value inference. Default is \code{1000} times.}
+\item{nboots}{Numeric value.Only applicable when \code{level} set to \code{"splicing"}.  When \code{method} set to \code{"dts"}, the number of bootstrap iterations for computing the p-value.}
 
 \item{method.adjust}{Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.}
 

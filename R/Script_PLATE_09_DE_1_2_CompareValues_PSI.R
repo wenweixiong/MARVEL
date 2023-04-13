@@ -9,7 +9,6 @@
 #' @param min.cells Numeric value. The minimum no. of cells expressing the splicing event for the event to be included for differential splicing analysis.
 #' @param pct.cells Numeric value. The minimum percentage of cells expressing the splicing event for the event to be included for differential splicing analysis. If \code{pct.cells} is specified, then \code{pct.cells} will be used as threshold instead of \code{min.cells}.
 #' @param method Character string. Statistical test to compare the 2 groups of cells. \code{"ks"}, \code{"kuiper"}, \code{"ad"}, \code{"dts"}, \code{"wilcox"}, \code{"t.test"}, and \code{"permutation"} for Kolmogorov-Smirnov, Kuiper, Anderson-Darling, DTS, Wilcox, t-test, and, permutation approach respectively.
-#' @param n.permutations Numeric value. When \code{method} set to \code{"permutation"}, this argument indicates the number of permutations to perform for generating the null distribution for subsequent p-value inference. Default is \code{1000} times.
 #' @param method.adjust Character string. Adjust p-values for multiple testing. Options available as per \code{p.adjust} function.
 #' @param event.type Character string. Indicate which splicing event type to include for analysis. Can take value \code{"SE"}, \code{"MXE"}, \code{"RI"}, \code{"A5SS"}, or \code{"A3SS"} which represents skipped-exon (SE), mutually-exclusive exons (MXE), retained-intron (RI), alternative 5' splice site (A5SS), and alternative 3' splice site (A3SS), respectively.
 #' @param show.progress Logical value. If set to \code{TRUE}, progress bar will be displayed so that users can estimate the time needed for differential analysis. Default value is \code{TRUE}.
@@ -17,7 +16,8 @@
 #' @param annotate.outliers Numeric value. When set to \code{TRUE}, statistical difference in PSI values between the two cell groups that is driven by outlier cells will be annotated.
 #' @param n.cells.outliers Numeric value. When \code{annotate.outliers} set to \code{TRUE}, the minimum number of cells with non-1 or non-0 PSI values for included-to-included or excluded-to-excluded modality change, respectively. The p-values will be re-coded to 1 when both cell groups have less than this minimum number of cells. This is to avoid false positive results.
 #' @param assign.modality Logical value. If set to \code{TRUE} (default), modalities will be assigned to each cell group.
-#' @param seed Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment which will be performed automatically.
+#' @param seed Numeric value. The seed number for the random number generator to ensure reproducibility during during down-sampling of cells when \code{downsample} set to \code{TRUE}, during permutation testing when \code{method} set to \code{"permutation"}, and during modality assignment when \code{assign.modality} set to \code{TRUE}.
+#' @param seed.dts Numeric value. The seed number for the random number generator to ensure reproducibility of DE analysis when \code{method} set to \code{"dts"}. By default this is not specified, i.e., \code{NULL}.
 #'
 #' @return An object of class data frame containing the output of the differential splicing analysis.
 #'
@@ -50,7 +50,7 @@
 #' # Check output
 #' head(results)
 
-CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE,  seed=1, min.cells=25, pct.cells=NULL, method, nboots=1000, n.permutations=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE) {
+CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsample=FALSE,  seed=1, min.cells=25, pct.cells=NULL, method, seed.dts=NULL, nboots=1000, method.adjust="fdr", event.type, show.progress=TRUE, annotate.outliers=TRUE, n.cells.outliers=10, assign.modality=TRUE) {
 
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -63,7 +63,6 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     pct.cells <- pct.cells
     method <- method
     nboots <- nboots
-    n.permutations <- n.permutations
     method.adjust <- method.adjust
     event.type <- event.type
     show.progress <- show.progress
@@ -81,13 +80,14 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     #downsample <- FALSE
     #min.cells <- 3
     #pct.cells <- NULL
-    #method <- "t.test"
+    #method <- "permutation"
     #method.adjust <- "fdr"
     #event.type <- c("SE")
     #show.progress <- TRUE
-    #annotate.outliers <- TRUE
+    #annotate.outliers <- FALSE
     #n.cells.outliers <- 0
-    #assign.modality <- TRUE
+    #assign.modality <- FALSE
+    #seed <- 1
     
     ############################################################
     
@@ -195,7 +195,7 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     }
     
     ######################################################################
-    
+        
     # Statistical test
     tran_ids <- row.names(df)
     
@@ -218,6 +218,13 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
     ######################################################################
     ############### NON-PERMUTATION APPROACH (OTHER THAN DTS) ############
     ######################################################################
+    
+        # Set random number generator for DTS
+        if(!is.null(seed.dts)){
+            
+            set.seed(seed.dts)
+            
+        }
     
         for(i in 1:length(tran_ids)) {
 
@@ -336,47 +343,71 @@ CompareValues.PSI <- function(MarvelObject, cell.group.g1, cell.group.g2, downsa
             mean.diff[i] <- mean(y) - mean(x)
             
             # Compute p-value
-                # Compute observed mean
-                mean.diff.obs <-  mean(y) - mean(x)
+                # Annotate sample group
+                .$group <- NA
+                .$group[which(.$sample.id %in% cell.group.g1)] <- "Group1"
+                .$group[which(.$sample.id %in% cell.group.g2)] <- "Group2"
+                .$group <- factor(.$group, levels=c("Group1", "Group2"))
                 
-                # Subset event
-                df.small <- df[tran_ids[i], ]
-                df.small <- na.omit(df.small)
-                            
-                # Build null distribution
+                # Statistical test
                 set.seed(seed)
+                model <- coin::independence_test(psi ~ group, data=.)
                 
-                mean.diff.perm <- NULL
-                
-                for(j in 1:n.permutations) {
-                    
-                    # Shuffle group labels
-                    names(df.small) <- sample(x=names(df.small),
-                                              size=length(names(df.small)),
-                                              replace=FALSE,
-                                              )
-                    
-                    # Retrieve values
-                    x.perm <- as.numeric(df.small[, intersect(names(df.small), sample.ids.1)])
-                    y.perm <- as.numeric(df.small[, intersect(names(df.small), sample.ids.2)])
-                    
-                    # Compute mean
-                    mean.diff.perm[j] <- mean(y.perm) - mean(x.perm)
-                                    
-                }
+                # Retrieve statistic, p-value
+                statistic[i] <- model@statistic@teststatistic
+                p.val[i] <- coin::pvalue(model)
+
+                ########################################################
+                ###################### SUPERCEDED ######################
+                ########################################################
                 
                 # Compute p-value
-                if(mean.diff.obs < 0) {
+                    # Compute observed mean
+                    #mean.diff.obs <-  mean(y) - mean(x)
                     
-                    statistic[i] <- NA
-                    p.val[i] <- sum(mean.diff.perm < mean.diff.obs)/length(mean.diff.perm)
+                    # Subset event
+                    #df.small <- df[tran_ids[1], ]
+                    #df.small <- na.omit(df.small)
                     
-                } else if(mean.diff.obs >= 0){
+                    # Format for statistical tets
+                    #df.small <- as.data.frame(t(df.small))
+                
+                # Build null distribution
+                #set.seed(seed)
+                
+                #mean.diff.perm <- NULL
+                
+                #for(j in 1:n.permutations) {
                     
-                    statistic[i] <- NA
-                    p.val[i] <- sum(mean.diff.perm > mean.diff.obs)/length(mean.diff.perm)
+                    # Shuffle group labels
+                    #names(df.small) <- sample(x=names(df.small),
+                                              #size=length(names(df.small)),
+                                              #replace=FALSE,
+                                              #)
                     
-                }
+                    # Retrieve values
+                    #x.perm <- as.numeric(df.small[, intersect(names(df.small), sample.ids.1)])
+                    #y.perm <- as.numeric(df.small[, intersect(names(df.small), sample.ids.2)])
+                    
+                    # Compute mean
+                    #mean.diff.perm[j] <- mean(y.perm) - mean(x.perm)
+                                    
+                #}
+                
+                # Compute p-value
+                #if(mean.diff.obs < 0) {
+                    
+                    #statistic[i] <- NA
+                    #p.val[i] <- sum(mean.diff.perm < mean.diff.obs)/length(mean.diff.perm)
+                    
+                #} else if(mean.diff.obs >= 0){
+                    
+                    #statistic[i] <- NA
+                    #p.val[i] <- sum(mean.diff.perm > mean.diff.obs)/length(mean.diff.perm)
+                    
+                #}
+                
+                ########################################################
                 
             # Track progress
             if(show.progress==TRUE) {

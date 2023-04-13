@@ -69,13 +69,26 @@ AnnotateSJ.10x <- function(MarvelObject) {
         gtf$V4 <- gtf$V4 - 1
         gtf$V5 <- gtf$V5 + 1
 
+    # Check for chr prefix
+    logical <- grepl("chr", gtf$V1[1], fixed=TRUE)
+            
     # Collapse start position
         # Track progress
         message("Matching gene names with SJ start coordinates in GTF...")
-        
+                    
         # Keep unique entries
         gtf.small <- gtf[, c("V1", "V5", "gene_short_name")]
-        gtf.small$chr.pos <- paste("chr", gtf$V1, ":", gtf$V5, sep="")
+        
+        if(logical==FALSE) {
+            
+            gtf.small$chr.pos <- paste("chr", gtf$V1, ":", gtf$V5, sep="")
+            
+        } else if(logical==TRUE) {
+            
+            gtf.small$chr.pos <- paste(gtf$V1, ":", gtf$V5, sep="")
+            
+        }
+            
         gtf.small <- gtf.small[,c("chr.pos", "gene_short_name")]
         gtf.small <- unique(gtf.small)
         
@@ -94,7 +107,17 @@ AnnotateSJ.10x <- function(MarvelObject) {
         
         # Keep unique entries
         gtf.small <- gtf[, c("V1", "V4", "gene_short_name")]
-        gtf.small$chr.pos <- paste("chr", gtf$V1, ":", gtf$V4, sep="")
+        
+        if(logical==FALSE) {
+        
+            gtf.small$chr.pos <- paste("chr", gtf$V1, ":", gtf$V4, sep="")
+        
+        } else if(logical==TRUE) {
+            
+            gtf.small$chr.pos <- paste(gtf$V1, ":", gtf$V4, sep="")
+            
+        }
+
         gtf.small <- gtf.small[,c("chr.pos", "gene_short_name")]
         gtf.small <- unique(gtf.small)
         

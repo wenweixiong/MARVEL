@@ -21,22 +21,26 @@ CheckAlignment.PSI <- function(MarvelObject) {
     # Define arguments
     MarvelObject <- MarvelObject
     df.pheno <- MarvelObject$SplicePheno
+    df.feature.validated <- MarvelObject$SpliceFeatureValidated
     
     # Example argument
     #MarvelObject <- marvel
     #df.pheno <- MarvelObject$SplicePheno
+    #df.feature.validated <- MarvelObject$SpliceFeatureValidated
     
     # Retrieve non-empty matrix event types
-    ncol <- c(ncol(MarvelObject$PSI[["SE"]]),
-              ncol(MarvelObject$PSI[["MXE"]]),
-              ncol(MarvelObject$PSI[["RI"]]),
-              ncol(MarvelObject$PSI[["A5SS"]]),
-              ncol(MarvelObject$PSI[["A3SS"]]),
-              ncol(MarvelObject$PSI[["ALE"]]),
-              ncol(MarvelObject$PSI[["AFE"]])
-              )
-    event.types <- c("SE", "MXE", "RI", "A5SS", "A3SS", "ALE", "AFE")
-    event.types <- event.types[which(ncol >= 2)]
+    #ncol <- c(ncol(MarvelObject$PSI[["SE"]]),
+              #ncol(MarvelObject$PSI[["MXE"]]),
+              #ncol(MarvelObject$PSI[["RI"]]),
+              #ncol(MarvelObject$PSI[["A5SS"]]),
+              #ncol(MarvelObject$PSI[["A3SS"]]),
+              #ncol(MarvelObject$PSI[["ALE"]]),
+              #ncol(MarvelObject$PSI[["AFE"]])
+              #)
+    #event.types <- c("SE", "MXE", "RI", "A5SS", "A3SS", "ALE", "AFE")
+    #event.types <- event.types[which(ncol >= 2)]
+    
+    event.types <- names(df.feature.validated)
     
     #########################################################################
     ############################### PHENODATA ###############################
