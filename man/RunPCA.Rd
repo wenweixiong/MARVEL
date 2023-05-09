@@ -19,11 +19,15 @@ RunPCA(
   method.impute = "random",
   seed = 1,
   level,
-  pcs = c(1, 2)
+  pcs = c(1, 2),
+  mode = "pca",
+  seed.umap = 42,
+  ncp.umap = 30,
+  n.dim = 20
 )
 }
 \arguments{
-\item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}
+\item{MarvelObject}{Marvel object. S3 object generated from \code{ComputePSI} function.}
 
 \item{cell.group.column}{Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.}
 
@@ -47,9 +51,17 @@ RunPCA(
 
 \item{seed}{Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.}
 
-\item{level}{Character string. Indicate \code{"splicing"} or \code{"gene"} for splicing or gene expression analysis, respectively}
+\item{level}{Character string. Indicate \code{"splicing"}, \code{"gene"}, or, \code{"integrated"} for splicing, gene expression analysis, or combined splicing and gene expression analysis, respectively. For \code{"integrated"}, users should run both \code{"splicing"} and \code{"gene"} prior to running \code{"integrated"}.}
 
-\item{pcs}{Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.}
+\item{pcs}{Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs. If a vector of 3 is specified, a 3D scatterplot is returned.}
+
+\item{mode}{Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.}
+
+\item{seed.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.}
+
+\item{ncp.umap}{Numeric value. Only applicable when \code{level} set to \code{"splicing"} or \code{"gene"}. Indicate the first number of principal components to use for UMAP . Default value is \code{30}, i.e., the first 30 PCs.}
+
+\item{n.dim}{Numeric value. Only applicable when \code{level} set to \code{"integrated"}. Indicate the first number of principal components to use for UMAP . Default value is \code{20}, i.e., the first 20 PCs.}
 
 \item{min.events.pct}{Numeric value.  Only applicable when \code{level} set to \code{"splicing"}. The minimum percentage of events expressed in a cell, above which, the cell will be retained for analysis. By default, this option is switched off, i.e., \code{NULL}.}
 }

@@ -20,7 +20,8 @@ PlotValues(
   max.cells.jitter = 10000,
   max.cells.jitter.seed = 1,
   cell.group.colors = NULL,
-  point.alpha = 0.2
+  point.alpha = 0.2,
+  point.size = 0.001
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ PlotValues(
 \item{cell.group.colors}{Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.}
 
 \item{point.alpha}{Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.}
+
+\item{point.size}{Numeric value. Size of the data points. Default value is \code{0.001}.}
 }
 \value{
 An object of class S3 with new slot \code{$adhocPlot$PSI} or \code{MarvelObject$adhocPlot$Exp} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.

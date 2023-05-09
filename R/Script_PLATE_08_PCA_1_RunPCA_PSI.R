@@ -2,7 +2,7 @@
 #'
 #' @description Performs principle component analysis using PSI values.
 #'
-#' @param MarvelObject Marvel object. S3 object generated from \code{TransformExpValues} function.
+#' @param MarvelObject Marvel object. S3 object generated from \code{ComputePSI} function.
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
@@ -16,6 +16,9 @@
 #' @param method.impute Character string. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.
 #' @param seed Numeric value. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.
 #' @param pcs Numeric vector. The principal components (PCs) to plot. Default is the first two PCs, i.e., \code{c(1,2)}. If a vector of 3 is specified, a 3D scatterplot is returned.
+#' @param mode Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.
+#' @param seed.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.
+#' @param ncp.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. Incidate the number of PCs to include for UMAP. Default value is \code{30}.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$PSI$Results} and  \code{MarvelObject$PCA$PSI$Plot}
 #'
@@ -53,7 +56,8 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
                        features, min.cells=25, min.pct.events=NULL,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1,
                        method.impute="random", seed=1,
-                       pcs=c(1,2)
+                       pcs=c(1,2),
+                       mode="pca", seed.umap=42, ncp.umap=30
                        ) {
 
     # Define arguments
@@ -73,6 +77,8 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     point.alpha <- point.alpha
     point.stroke <- point.stroke
     pcs <- pcs
+    mode <- mode
+    seed.umap <- seed.umap
     
     # Example arguments
     #MarvelObject <- marvel
@@ -80,12 +86,12 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #sample.ids <- NULL
-    #cell.group.column <- "genotype_u2af1"
-    #cell.group.order <- c("WT", "S34", "Q157")
-    #cell.group.colors <- c("lightsteelblue", "red", "darkgreen")
+    #cell.group.column <- cell.group.column
+    #cell.group.order <- cell.group.order
+    #cell.group.colors <- NULL
     #features <- tran_ids
-    #min.cells <- 0
-    #min.pct.events <- 20
+    #min.cells <- 5
+    #min.pct.events <- 10
     #method.impute <- "Bayesian"
     #seed <- 1
     #point.size <- 1.5
@@ -223,10 +229,21 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     
     ##############################################
     
+    # Define n PCs to return
+    if(nrow(df.pheno) >= 50) {
+        
+        ncp <- 50
+        
+    } else {
+        
+        ncp <- nrow(df)
+        
+    }
+    
     # Reduce dimension
     res.pca <- FactoMineR::PCA(as.data.frame(t(df)),
                                scale.unit=TRUE,
-                               ncp=20,
+                               ncp=ncp,
                                graph=FALSE
                                )
 
@@ -298,7 +315,7 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
               hcl(h = hues, l = 65, c = 100)[1:n]
             }
             
-            n = length(levels(z))
+            n = length(levels(group))
             cols = gg_color_hue(n)
         
         } else {
@@ -316,11 +333,60 @@ RunPCA.PSI <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
 
     }
     
+    # Retrieve eigenvalues
+    results.eigen <- as.data.frame(factoextra::get_eigenvalue(res.pca))
+    . <- data.frame("pc"=row.names(results.eigen))
+    results.eigen <- cbind.data.frame(., results.eigen)
+    results.eigen$pc <- gsub("Dim.", "", results.eigen$pc, fixed=TRUE)
+    results.eigen$pc <- as.numeric(results.eigen$pc)
+    
+    # Non-linear dimension reduction
+    if(mode=="umap") {
+        
+        # Subset first PCs
+        data.small <- data[,c(1:ncp.umap)]
+        
+        # Reduce dimension
+            # Non-linear
+            set.seed(seed.umap)
+            umap_out <- umap::umap(data.small)
+
+        # Scatterplot: Annotate by donor ID
+            # Definition
+            data <- as.data.frame(umap_out$layout)
+            x <- data[,1]
+            y <- data[,2]
+            z <- df.pheno$pca.cell.group.label
+            maintitle <- ""
+            xtitle <- "UMAP-1"
+            ytitle <- "UMAP-2"
+            legendtitle <- "Group"
+
+            # Plot
+            plot <- ggplot() +
+                geom_point(data, mapping=aes(x=x, y=y, fill=z), size=1.5, pch=21, alpha=0.8, stroke=0.1) +
+                labs(title=maintitle, x=xtitle, y=ytitle, fill=legendtitle) +
+                theme(panel.grid.major=element_blank(),
+                    panel.grid.minor=element_blank(),
+                    panel.background=element_blank(),
+                    plot.title = element_text(size=12, hjust=0.5),
+                    axis.line=element_line(colour = "black"),
+                    axis.title=element_text(size=12),
+                    axis.text=element_text(size=10, colour="black"),
+                    legend.title=element_text(size=8),
+                    legend.text=element_text(size=8)
+                    )  +
+            guides(fill = guide_legend(override.aes=list(size=2, alpha=0.8, stroke=0.1), ncol=1))
+    
+    }
+    
     ##############################################
      
     # Save to new slot
+    MarvelObject$PCA$PSI$RawData <- df
     MarvelObject$PCA$PSI$Results <- res.pca
     MarvelObject$PCA$PSI$Plot <- plot
+    MarvelObject$PCA$PSI$EigenValues <- results.eigen
     
     return(MarvelObject)
         

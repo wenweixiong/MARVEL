@@ -2,7 +2,7 @@
 #'
 #' @description Performs principle component analysis on splicing or gene data. This is a wrapper function for \code{RunPCA.PSI} and \code{RunPCA.Exp}.
 #'
-#' @param MarvelObject Marvel object. S3 object generated from \code{TransformExpValues} function.
+#' @param MarvelObject Marvel object. S3 object generated from \code{ComputePSI} function.
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns} and \code{cell.group.order}. If not specified, default \code{ggplot2} colors will be used.
@@ -13,10 +13,14 @@
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
 #' @param point.alpha Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.
 #' @param point.stroke Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.
-#' @param level Character string. Indicate \code{"splicing"} or \code{"gene"} for splicing or gene expression analysis, respectively
+#' @param level Character string. Indicate \code{"splicing"}, \code{"gene"}, or, \code{"integrated"} for splicing, gene expression analysis, or combined splicing and gene expression analysis, respectively. For \code{"integrated"}, users should run both \code{"splicing"} and \code{"gene"} prior to running \code{"integrated"}.
 #' @param method.impute Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.
 #' @param seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.
-#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
+#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs. If a vector of 3 is specified, a 3D scatterplot is returned.
+#' @param mode Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.
+#' @param seed.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.
+#' @param ncp.umap Numeric value. Only applicable when \code{level} set to \code{"splicing"} or \code{"gene"}. Indicate the first number of principal components to use for UMAP . Default value is \code{30}, i.e., the first 30 PCs.
+#' @param n.dim Numeric value. Only applicable when \code{level} set to \code{"integrated"}. Indicate the first number of principal components to use for UMAP . Default value is \code{20}, i.e., the first 20 PCs.
 #'
 #' @export
 #'
@@ -57,7 +61,9 @@ RunPCA <- function(MarvelObject,
                    point.size=0.5, point.alpha=0.75, point.stroke=0.1,
                    method.impute="random", seed=1,
                    level,
-                   pcs=c(1,2)
+                   pcs=c(1,2),
+                   mode="pca", seed.umap=42, ncp.umap=30,
+                   n.dim=20
                    ) {
 
     
@@ -76,7 +82,10 @@ RunPCA <- function(MarvelObject,
                    point.stroke=point.stroke,
                    method.impute=method.impute,
                    seed=seed,
-                   pcs=pcs
+                   pcs=pcs,
+                   mode=mode,
+                   seed.umap=seed.umap,
+                   ncp.umap=ncp.umap
                    )
 
     } else if(level=="gene") {
@@ -91,7 +100,24 @@ RunPCA <- function(MarvelObject,
                    point.size=point.size,
                    point.alpha=point.alpha,
                    point.stroke=point.stroke,
-                   pcs=pcs
+                   pcs=pcs,
+                   mode=mode,
+                   seed.umap=seed.umap,
+                   ncp.umap=ncp.umap
+                   )
+         
+    } else if(level=="integrated") {
+        
+        RunPCA.PSI.Exp(MarvelObject=MarvelObject,
+                   n.dim=n.dim,
+                   cell.group.column=cell.group.column,
+                   cell.group.order=cell.group.order,
+                   cell.group.colors=cell.group.colors,
+                   sample.ids=sample.ids,
+                   point.size=point.size,
+                   point.alpha=point.alpha,
+                   point.stroke=point.stroke,
+                   seed=seed.umap
                    )
         
     }

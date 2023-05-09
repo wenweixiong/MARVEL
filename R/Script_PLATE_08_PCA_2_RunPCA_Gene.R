@@ -2,7 +2,7 @@
 #'
 #' @description Performs principle component analysis using gene expression values.
 #'
-#' @param MarvelObject Marvel object. S3 object generated from \code{TransformExpValues} function.
+#' @param MarvelObject Marvel object. S3 object generated from \code{ComputePSI} function.
 #' @param sample.ids Character strings. Specific cells to plot.
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
 #' @param cell.group.order Character string. The order of the variables under the sample metadata column specified in \code{cell.group.column} to appear in the PCA cell group legend.
@@ -12,7 +12,10 @@
 #' @param point.size Numeric value. Size of data points on reduced dimension space.
 #' @param point.alpha Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.
 #' @param point.stroke Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.
-#' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.
+#' @param pcs Numeric vector. The principal components (PCs) to plot. Default is the first two PCs, i.e., \code{c(1,2)}. If a vector of 3 is specified, a 3D scatterplot is returned.
+#' @param mode Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.
+#' @param seed.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.
+#' @param ncp.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. Incidate the number of PCs to include for UMAP. Default value is \code{30}.
 #'
 #' @return An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}.
 #'
@@ -46,7 +49,8 @@
 RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.group.order=NULL, cell.group.colors=NULL,
                        features, min.cells=25,
                        point.size=0.5, point.alpha=0.75, point.stroke=0.1,
-                       pcs=c(1,2)
+                       pcs=c(1,2),
+                       mode="pca", seed.umap=42, ncp.umap=30
                        ) {
 
     # Define arguments
@@ -63,20 +67,27 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     point.size <- point.size
     point.alpha <- point.alpha
     point.stroke <- point.stroke
+    mode <- mode
+    seed.umap <- seed.umap
+    ncp.umap <- ncp.umap
     
     # Example arguments
     #MarvelObject <- marvel
     #df <- MarvelObject$Exp
-    #df.pheno <-  MarvelObject$SplicePheno
-    #df.feature <-  MarvelObject$GeneFeature
+    #df.pheno <- MarvelObject$SplicePheno
+    #df.feature <- MarvelObject$GeneFeature
+    #sample.ids <- NULL
     #cell.group.column <- cell.group.column
-    #cell.group.order <- NULL
+    #cell.group.order <- cell.group.order
     #cell.group.colors <- NULL
     #features <- gene_ids
     #min.cells <- 25
-    #point.size <- 2
+    #point.size <- 1.5
     #point.alpha <- 0.75
     #point.stroke <- 0.1
+    #pcs <- c(1,2)
+    #seed.umap <- 42
+    #ncp.umap <- 30
     
     ######################################################################
         
@@ -123,10 +134,23 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     df <- df[index.keep, ]
     df.feature <- df.feature[which(df.feature$gene_id %in% row.names(df)), ]
  
+     # Define n PCs to return
+     if(nrow(df.pheno) >= 50) {
+         
+         ncp <- 50
+         
+     } else {
+         
+         ncp <- nrow(df)
+         
+     }
+     
     # Reduce dimension
-    res.pca <- FactoMineR::PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=20, graph=FALSE)
+    res.pca <- FactoMineR::PCA(as.data.frame(t(df)), scale.unit=TRUE, ncp=ncp, graph=FALSE)
     
-    # Scatterplot
+    # Scatterplot: 2D or 3D
+    if(length(pcs)==2){
+        
         # Definition
         data <- as.data.frame(res.pca$ind$coord)
         x <- data[,pcs[1]]
@@ -171,13 +195,101 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
                 legend.text=element_text(size=8)
                 )  +
         guides(fill = guide_legend(override.aes=list(size=2, alpha=point.alpha, stroke=point.stroke), ncol=1))
-  
+
+    } else if(length(pcs)==3){
+    
+        # Definition
+        data <- as.data.frame(res.pca$ind$coord)
+        x <- data[,pcs[1]]
+        y <- data[,pcs[2]]
+        z <- data[,pcs[3]]
+        group <- df.pheno$pca.cell.group.label
+        maintitle <- ""
+        xtitle <- ""
+        ytitle <- ""
+        legendtitle <- "Group"
+
+        # Color scheme
+        if(is.null(cell.group.colors[1])) {
+        
+            gg_color_hue <- function(n) {
+              hues = seq(15, 375, length = n + 1)
+              hcl(h = hues, l = 65, c = 100)[1:n]
+            }
+            
+            n = length(levels(group))
+            cols = gg_color_hue(n)
+        
+        } else {
+            
+            cols <- cell.group.colors
+            
+        }
+        
+        # Plot
+        plot <- ggplot(data, aes(x=x, y=y, z=z, fill=group)) +
+            theme_void() +
+            axes_3D(color="grey75") +
+            stat_3D(size=point.size, pch=21, alpha=point.alpha, stroke=point.stroke) +
+            scale_fill_manual(values=cols)
+
+    }
+    
+    # Retrieve eigenvalues
+    results.eigen <- as.data.frame(factoextra::get_eigenvalue(res.pca))
+    . <- data.frame("pc"=row.names(results.eigen))
+    results.eigen <- cbind.data.frame(., results.eigen)
+    results.eigen$pc <- gsub("Dim.", "", results.eigen$pc, fixed=TRUE)
+    results.eigen$pc <- as.numeric(results.eigen$pc)
+    
+    # Non-linear dimension reduction
+    if(mode=="umap") {
+        
+        # Subset first PCs
+        data.small <- data[,c(1:ncp.umap)]
+        
+        # Reduce dimension
+            # Non-linear
+            set.seed(seed.umap)
+            umap_out <- umap::umap(data.small)
+
+        # Scatterplot: Annotate by donor ID
+            # Definition
+            data <- as.data.frame(umap_out$layout)
+            x <- data[,1]
+            y <- data[,2]
+            z <- df.pheno$pca.cell.group.label
+            maintitle <- ""
+            xtitle <- "UMAP-1"
+            ytitle <- "UMAP-2"
+            legendtitle <- "Group"
+
+            # Plot
+            plot <- ggplot() +
+                geom_point(data, mapping=aes(x=x, y=y, fill=z), size=1.5, pch=21, alpha=0.8, stroke=0.1) +
+                labs(title=maintitle, x=xtitle, y=ytitle, fill=legendtitle) +
+                theme(panel.grid.major=element_blank(),
+                    panel.grid.minor=element_blank(),
+                    panel.background=element_blank(),
+                    plot.title = element_text(size=12, hjust=0.5),
+                    axis.line=element_line(colour = "black"),
+                    axis.title=element_text(size=12),
+                    axis.text=element_text(size=10, colour="black"),
+                    legend.title=element_text(size=8),
+                    legend.text=element_text(size=8)
+                    )  +
+            guides(fill = guide_legend(override.aes=list(size=2, alpha=0.8, stroke=0.1), ncol=1))
+    
+    }
+    
     ######################################################################
     
     # Save to new slot
+    MarvelObject$PCA$Exp$RawData <- df
     MarvelObject$PCA$Exp$Results <- res.pca
     MarvelObject$PCA$Exp$Plot <- plot
-    
+    MarvelObject$PCA$Exp$EigenValues <- results.eigen
+
     return(MarvelObject)
         
 }

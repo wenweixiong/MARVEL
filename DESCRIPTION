@@ -1,6 +1,6 @@
 Package: MARVEL
 Title: Revealing Splicing Dynamics at Single-Cell Resolution
-Version: 2.0.3
+Version: 2.0.4
 Description: Alternative splicing represents an additional and underappreciated layer of complexity underlying gene expression profiles. Nevertheless, there remains hitherto a paucity of software to investigate splicing dynamics at single-cell resolution. 'MARVEL' enables splicing analysis of RNA-sequencing data generated from plate- and droplet-based library preparation methods.
 Imports: ggplot2 (>= 3.3.2), Matrix (>= 1.3-3), methods, plyr (>=
         1.8.4), scales (>= 1.1.1)
@@ -23,7 +23,7 @@ RoxygenNote: 7.2.2
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2023-04-13 10:37:41 UTC; seanwen
+Packaged: 2023-05-09 20:25:18 UTC; seanwen
 Author: Sean Wen [aut, cre]
 Maintainer: Sean Wen <sean.wenwx@gmail.com>
 Depends: R (>= 3.5.0)

@@ -15,11 +15,14 @@ RunPCA.Exp(
   point.size = 0.5,
   point.alpha = 0.75,
   point.stroke = 0.1,
-  pcs = c(1, 2)
+  pcs = c(1, 2),
+  mode = "pca",
+  seed.umap = 42,
+  ncp.umap = 30
 )
 }
 \arguments{
-\item{MarvelObject}{Marvel object. S3 object generated from \code{TransformExpValues} function.}
+\item{MarvelObject}{Marvel object. S3 object generated from \code{ComputePSI} function.}
 
 \item{sample.ids}{Character strings. Specific cells to plot.}
 
@@ -39,7 +42,13 @@ RunPCA.Exp(
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
 
-\item{pcs}{Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs.}
+\item{pcs}{Numeric vector. The principal components (PCs) to plot. Default is the first two PCs, i.e., \code{c(1,2)}. If a vector of 3 is specified, a 3D scatterplot is returned.}
+
+\item{mode}{Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.}
+
+\item{seed.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.}
+
+\item{ncp.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. Incidate the number of PCs to include for UMAP. Default value is \code{30}.}
 }
 \value{
 An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}.

@@ -18,6 +18,7 @@
 #' @param max.cells.jitter.seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Cells downsampled are reproducible. Specified together with \code{max.cells.jitter}.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
 #' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
+#' @param point.size Numeric value. Size of the data points. Default value is \code{0.001}.
 #'
 #' @return An object of class S3 with new slot \code{$adhocPlot$PSI} or \code{MarvelObject$adhocPlot$Exp} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.
 #'
@@ -50,7 +51,7 @@
 #' # Check output
 #' marvel.demo$adhocPlot$PSI
 
-PlotValues <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, level, min.cells=NULL, sigma.sq=0.001, bimodal.adjust=NULL, seed=NULL, modality.column="modality.bimodal.adj", scale.y.log=FALSE, max.cells.jitter=10000, max.cells.jitter.seed=1, cell.group.colors=NULL, point.alpha=0.2) {
+PlotValues <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, level, min.cells=NULL, sigma.sq=0.001, bimodal.adjust=NULL, seed=NULL, modality.column="modality.bimodal.adj", scale.y.log=FALSE, max.cells.jitter=10000, max.cells.jitter.seed=1, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001) {
     
     if(level=="gene") {
         
@@ -79,7 +80,8 @@ PlotValues <- function(MarvelObject, cell.group.list, feature, maintitle="gene_s
                        modality.column=modality.column,
                        scale.y.log=scale.y.log,
                        cell.group.colors=cell.group.colors,
-                       point.alpha=point.alpha
+                       point.alpha=point.alpha,
+                       point.size=point.size
                    )
         
     }

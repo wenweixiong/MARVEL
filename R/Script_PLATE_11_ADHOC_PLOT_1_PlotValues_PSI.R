@@ -17,6 +17,7 @@
 #' @param scale.y.log Logical value. Only applicable when \code{level} set to \code{"splicing"}. If set to \code{TRUE}, the y-axis of will log10-scaled. Useful when most PSI values are extremely small (< 0.02) or big (> 0.98). Default is \code{FALSE}.
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
 #' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
+#' @param point.size Numeric value. Size of the data points. Default value is \code{0.001}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.
 #'
@@ -49,7 +50,7 @@
 #' # Check output
 #' marvel.demo$adhocPlot$PSI
 
-PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2) {
+PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001) {
     
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -354,7 +355,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                 scale_fill_manual(values=cols.violin.fill) +
                 scale_color_manual(values=cols.violin.border) +
                 ggnewscale::new_scale_color() +
-            geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+            geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
                 scale_color_manual(values=cols.points) +
             stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
             scale_x_discrete(labels=xlabels) +
@@ -397,7 +398,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                     scale_fill_manual(values=cols.violin.fill) +
                     scale_color_manual(values=cols.violin.border) +
                     ggnewscale::new_scale_color() +
-                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
                     scale_color_manual(values=cols.points) +
                 stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
                 scale_x_discrete(labels=xlabels) +
@@ -442,7 +443,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                     scale_fill_manual(values=cols.violin.fill) +
                     scale_color_manual(values=cols.violin.border) +
                     ggnewscale::new_scale_color() +
-                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=0.001, alpha=point.alpha) +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
                     scale_color_manual(values=cols.points) +
                 stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
                 scale_y_continuous(trans = reverselog_trans(10), breaks=c(1, 2.5, 5, 10, 100), labels=c(100, 97.5, 95, 90, 0), limits=c(100,1)) +
