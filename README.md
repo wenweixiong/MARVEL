@@ -101,7 +101,7 @@ version 2.0.3
 - Updated *CompareValues* function to enable setting the random number generator when using DTS for differential splicing analysis. This will ensure reproducibility of differential splicing results. Simply specify *seed.dts=1* (or any numeric value) together with *method="dts"*. Currently, and by default, the seed is not set when DTS is used. This function is only applicable for plate-based data.
 
 version 2.0.4
-- Included **Proproces_rMATS** function to convert rMATS splicing coordinates as input for MARVEL. Please see *Splicing event metadata* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html).
+- Included **Preprocess_rMATS** function to convert rMATS splicing coordinates as input for MARVEL. Please see *Splicing event metadata* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html).
 - Included **PrepareBedFile.RI** function to retrieve intron coordinates for retained intron (RI) splicing events in BED format as input for bedtools to compute intron coverage. Please see *Intron count matrix* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html ).
 - Example script and data to execute both functions above available here: https://drive.google.com/file/d/1yv59wXhOZUmCB18VmSnOcFkmvLFURU7s/view?usp=share_link
 

@@ -13,29 +13,29 @@
 #'
 #' @export
 
-Proproces_rMATS <- function(file, GTF, EventType) {
+Preprocess_rMATS <- function(file, GTF, EventType) {
     
     ###############################################################
     
     if(EventType=="SE"){
         
-        Proproces_rMATS.SE(file=file, GTF=GTF)
+        Preprocess_rMATS.SE(file=file, GTF=GTF)
         
     } else if(EventType=="MXE"){
         
-        Proproces_rMATS.MXE(file=file, GTF=GTF)
+        Preprocess_rMATS.MXE(file=file, GTF=GTF)
         
     } else if(EventType=="RI"){
         
-        Proproces_rMATS.RI(file=file, GTF=GTF)
+        Preprocess_rMATS.RI(file=file, GTF=GTF)
         
     } else if(EventType=="A5SS"){
         
-        Proproces_rMATS.A5SS(file=file, GTF=GTF)
+        Preprocess_rMATS.A5SS(file=file, GTF=GTF)
         
     } else if(EventType=="A3SS"){
         
-        Proproces_rMATS.A3SS(file=file, GTF=GTF)
+        Preprocess_rMATS.A3SS(file=file, GTF=GTF)
         
     }
     

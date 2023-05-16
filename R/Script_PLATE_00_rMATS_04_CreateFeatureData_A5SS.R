@@ -12,7 +12,7 @@
 #'
 #' @export
 
-Proproces_rMATS.A5SS <- function(file, GTF) {
+Preprocess_rMATS.A5SS <- function(file, GTF) {
     
     # Define arguments
     df <- file
