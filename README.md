@@ -103,7 +103,7 @@ version 2.0.3
 version 2.0.4
 - Included **Preprocess_rMATS** function to convert rMATS splicing coordinates as input for MARVEL. Please see *Splicing event metadata* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html).
 - Included **PrepareBedFile.RI** function to retrieve intron coordinates for retained intron (RI) splicing events in BED format as input for bedtools to compute intron coverage. Please see *Intron count matrix* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html ).
-- Example script and data to execute both functions above available here: https://drive.google.com/file/d/1yv59wXhOZUmCB18VmSnOcFkmvLFURU7s/view?usp=share_link
+- Example script and data to execute both functions above available here: https://drive.google.com/file/d/1q_050alum8dveT7q9crytAXHLl046mbf/view?usp=share_link
 
 # Further improvements
 We are keen to further improve MARVEL to make it more comprehensive for single-cell splicing analysis. In particular we hope to include more functionalites related to functional annotation, e.g., predicting the biological consequence of alternative splicing. If interested please get in touch :)
