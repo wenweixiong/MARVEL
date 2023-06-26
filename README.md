@@ -101,9 +101,10 @@ version 2.0.3
 - Updated *CompareValues* function to enable setting the random number generator when using DTS for differential splicing analysis. This will ensure reproducibility of differential splicing results. Simply specify *seed.dts=1* (or any numeric value) together with *method="dts"*. Currently, and by default, the seed is not set when DTS is used. This function is only applicable for plate-based data.
 
 version 2.0.4
-- Included **Preprocess_rMATS** function to convert rMATS splicing coordinates as input for MARVEL. Please see *Splicing event metadata* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html).
-- Included **PrepareBedFile.RI** function to retrieve intron coordinates for retained intron (RI) splicing events in BED format as input for bedtools to compute intron coverage. Please see *Intron count matrix* section of plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html ).
-- Example script and data to execute both functions above available here: https://drive.google.com/file/d/1q_050alum8dveT7q9crytAXHLl046mbf/view?usp=share_link
+- Included **Preprocess_rMATS** function to convert rMATS splicing coordinates as input for MARVEL. Please see *Splicing event metadata* section of the plate-based tutorial (https://wenweixiong.github.io/MARVEL_Plate.html).
+- Included **PrepareBedFile.RI** function to retrieve intron coordinates for retained intron (RI) splicing events in BED format as input for bedtools to compute intron coverage. Please see *Intron count matrix* section of the plate-based tutorial.
+- Example script and data to execute both functions above available here: https://drive.google.com/file/d/1ilhgUdRQYC2ee1fbA54ZdxbbtB8tlQ2m/view?usp=sharing
+- Additional scripts for computing intron counts using BEDTools after running **PrepareBedFile.RI**, and scripts to tabulate intron counts after running BEDTools available here: https://drive.google.com/file/d/13YMkDg_oE3fD7jYyQna2QFlDltxxxRYW/view?usp=sharing . Please see *Intron count matrix* section of the plate-based tutorial.
 
 # Further improvements
 We are keen to further improve MARVEL to make it more comprehensive for single-cell splicing analysis. In particular we hope to include more functionalites related to functional annotation, e.g., predicting the biological consequence of alternative splicing. If interested please get in touch :)
