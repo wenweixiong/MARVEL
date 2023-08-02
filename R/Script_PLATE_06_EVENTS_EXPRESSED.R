@@ -7,7 +7,7 @@
 #' @param min.cells Numeric value. Minimum number of cells expressing the splicing event for the event to be included for tabulation. A splicing event is defined as expressed when it has a non-missing PSI value.
 #' @param event.group.colors Vector of character strings. Colors for the event groups. If not specified, default \code{ggplot2} colors will be used.
 #'
-#' @return An object of class S3 with new slots \code{MarvelObject$N.Events$Table} and \code{MarvelObject$N.Events$Plot}.
+#' @return An object of class S3 with new slots \code{MarvelObject$N.Events$Table}, \code{MarvelObject$N.Events$Plot}, and MarvelObject$N.Events$tran_ids.list.
 #'
 #' @importFrom plyr join
 #' @import methods
@@ -50,8 +50,8 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     #psi <- do.call(rbind.data.frame, MarvelObject$PSI)
     #psi.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #psi.pheno <- MarvelObject$SplicePheno
-    #sample.ids <- sample.id
-    #min.cells <- 1
+    #sample.ids <- sample.ids
+    #min.cells <- 25
     #event.group.colors <- NULL
     
     ####################################################
@@ -75,6 +75,7 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     event_types <- unique(psi.feature$event_type)
     
     n.events <- NULL
+    tran_ids.list <- list()
     
     for(i in 1:length(event_types)) {
         
@@ -82,10 +83,12 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
         psi.feature.small <- psi.feature[which(psi.feature$event_type==event_types[i]), , drop=FALSE]
         psi.small <- psi[psi.feature.small$tran_id, , drop=FALSE]
         
-        # Subset expressed events
+        # Compute expressed events
         . <- apply(psi.small, 1, function(x) {sum(!is.na(x))})
-        . <- sum(. >= min.cells)
-        n.events[i] <- .
+        n.events[i] <- sum(. >= min.cells)
+        
+        # Subset expressed events
+        tran_ids.list[[i]] <- names(.)[(. >= min.cells)]
         
     }
     
@@ -171,6 +174,7 @@ CountEvents <- function(MarvelObject, sample.ids, min.cells, event.group.colors=
     # Update slots
     MarvelObject$N.Events$Table <- results[, c("event_type", "freq", "pct")]
     MarvelObject$N.Events$Plot <- plot
+    MarvelObject$N.Events$tran_ids.list <- tran_ids.list
     
     # Return final object
     return(MarvelObject)

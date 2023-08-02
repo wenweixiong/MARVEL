@@ -37,10 +37,10 @@ DetectEvents.AFE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     track.progress <- track.progress
     
     # Example arguments
-    #df  <- parsed.gtf
+    #df <- df
     #df.sj <- MarvelObject$SpliceJunction
     #df.gene <- MarvelObject$Exp
-    #min.cells <- 50
+    #min.cells <- 5
     #min.expr <- 1
     
     # Check if GTF provided
@@ -95,7 +95,7 @@ DetectEvents.AFE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     # Retrieve gene_ids
     . <- apply(df.gene, 1, function(x) {sum(x >= min.expr)})
     gene_ids <- names(.)[which(. >= min.cells)]
-        
+    
     # Retrieve attribute: gene_id
     #attr <- strsplit(df$V9, split=";")
     #. <- sapply(attr, function(x) grep("gene_id", x, value=TRUE))
@@ -344,6 +344,9 @@ DetectEvents.AFE.PosStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     df.feature$event_type <- "AFE"
     col.others <- names(df.feature)[-which(names(df.feature) %in% c("tran_id", "event_type"))]
     df.feature <- df.feature[, c("tran_id", "event_type", col.others)]
+    
+    # Keep unique events
+    df.feature <- unique(df.feature)
         
     # Save to new slots
     MarvelObject$SpliceFeature$AFE.PosStrand <- df.feature

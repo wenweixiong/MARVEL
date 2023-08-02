@@ -113,9 +113,9 @@ IdentifyVariableEvents <- function(MarvelObject, sample.ids=NULL,
         results$sd_pred_ci_upper <- pred$fit + (2 * pred$se.fit)
     
     # Indicate highly varible events
-    results$variable <- ifelse(results$sd > results$sd_pred, TRUE, FALSE)
+    results$variable <- ifelse(results$sd > results$sd_pred, "Yes", "No")
     
-    print(paste(sum(results$variable==TRUE), " of ", nrow(results), " splicing events identified as highly variable", sep=""))
+    print(paste(sum(results$variable=="Yes"), " of ", nrow(results), " splicing events identified as highly variable", sep=""))
     
     # Scatter + lineplot
         # Definition
@@ -124,10 +124,10 @@ IdentifyVariableEvents <- function(MarvelObject, sample.ids=NULL,
         y <- data$sd
         y2 <- data$sd_pred
         z <- data$variable
-        maintitle <- paste(sum(results$variable==TRUE), " variable events", sep="")
+        maintitle <- paste(sum(results$variable=="Yes"), " variable events", sep="")
         xtitle <- paste("Mean PSI")
         ytitle <- paste("SD PSI")
-        legendtitle <- "Variable splicing events"
+        legendtitle <- "Variable AS"
                 
         # Plot
         plot <- ggplot() +
@@ -144,12 +144,13 @@ IdentifyVariableEvents <- function(MarvelObject, sample.ids=NULL,
                 axis.text.x=element_text(size=10, colour="black"),
                 axis.text.y=element_text(size=10, colour="black"),
                 legend.title=element_text(size=8),
-                legend.text=element_text(size=8)
+                legend.text=element_text(size=8),
+                legend.key=element_rect(fill="white")
                 )  +
         guides(color = guide_legend(override.aes=list(size=2, alpha=1, stroke=0.1), ncol=1))
     
     # Retrieve variable splicing ids
-    index <- which(results$variable==TRUE)
+    index <- which(results$variable=="Yes")
     tran_ids <- results[index, "tran_id"]
     
     ##############################################

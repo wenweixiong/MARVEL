@@ -17,9 +17,9 @@ PrepareBedFile.RI <- function(file) {
     df <- file
     
     # Example arguments
-    #path <- "/Users/seanwen/Documents/U2AF1_2019/Linker/rMATS/ASEvents/"
-    #file <- "fromGTF.RI.txt"
-    #df <- read.table(paste(path, file, sep=""), sep="\t", header=TRUE, stringsAsFactors=FALSE)
+    path <- "/Users/seanwen/Documents/U2AF1_2019/Linker/rMATS/ASEvents/"
+    file <- "fromGTF.RI.txt"
+    df <- read.table(paste(path, file, sep=""), sep="\t", header=TRUE, stringsAsFactors=FALSE)
 
     ###############################################################
     

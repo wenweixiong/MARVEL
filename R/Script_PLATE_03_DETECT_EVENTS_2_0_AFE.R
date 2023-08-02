@@ -90,7 +90,7 @@ DetectEvents.AFE <- function(MarvelObject, min.cells=50, min.expr=1, track.progr
     df.feature.merged <- rbind.data.frame(MarvelObject.PosStrand$SpliceFeature$AFE.PosStrand,
                                           MarvelObject.NegStrand$SpliceFeature$AFE.NegStrand
                                           )
-        
+                                                
     # Save to new slots
     MarvelObject$SpliceFeature$AFE <- df.feature.merged
     

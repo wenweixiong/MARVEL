@@ -10,6 +10,7 @@
 #' @param y.label.size Numeric value. Size of y-axis tick labels, i.e. gene set names.
 #' @param offset Numeric value. The -log10(p-value) on the x-axis to substract or add to increase the plot margins.
 #' @param x.axis Character string. If set to \code{"enrichment"} (default) the pathway enrichment will be displayed on the x-axis while the color intensity of the data points will reflect the -log10(adjusted p-value). If set to \code{"pval"} the -log10(adjusted p-value) will be displayed on the x-axis while the color intensity of the data points will reflect the pathway enrichment.
+#' @param sort.y.axis. Only applicable when custom vector of GO terms specified in the \code{go.terms} option. When set to \code{TRUE}, y-axis will be sorted as per order of custom vector of GO terms provided. Default is \code{FALSE}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$DE$BioPathways$Plot}.
 #'
@@ -35,7 +36,7 @@
 #' # Check output
 #' marvel.demo$DE$BioPathways$Plot
 
-BioPathways.Plot <- function(MarvelObject, go.terms, y.label.size=10, offset=0.5, x.axis="enrichment") {
+BioPathways.Plot <- function(MarvelObject, go.terms, y.label.size=10, offset=0.5, x.axis="enrichment", sort.y.axis=FALSE) {
     
     # Define arguments
     df <- MarvelObject$DE$BioPathways$Table
@@ -51,6 +52,7 @@ BioPathways.Plot <- function(MarvelObject, go.terms, y.label.size=10, offset=0.5
     #y.label.size <- 10
     #offset <- 0.5
     #x.axis <- "pval"
+    #sort.y.axis <- TRUE
     
     ###############################################################
 
@@ -68,6 +70,14 @@ BioPathways.Plot <- function(MarvelObject, go.terms, y.label.size=10, offset=0.5
     } else if(x.axis=="enrichment"){
         
         df <- df[order(df$enrichment, decreasing=TRUE), ]
+        
+    }
+    
+    # Sort y-axis according to custom GO terms
+    if(sort.y.axis==TRUE){
+        
+        df$Description <- factor(df$Description, levels=go.terms)
+        df <- df[order(df$Description), ]
         
     }
     

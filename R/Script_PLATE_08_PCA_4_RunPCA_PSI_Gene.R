@@ -3,7 +3,7 @@
 #' @description Non-linear dimension reduction analysis based on both splicing and gene expression data.
 #'
 #' @param MarvelObject Marvel object. S3 object generated from \code{RunPCA} function.
-#' @param n.dim. Indicate the first number of principal components to use for analysis . Default value is \code{20}, i.e., the first 20 PCs.
+#' @param n.dim Numeric values. Indicate the first number of principal components for splicing and gene, respectively, to use for analysis. Default value is \code{c(30,30)}, i.e., the first 30 PCs for both splicing and gene.
 #' @param seed Numeric value. To sure reproducibility of analysis. Default value is \code{42}.
 #' @param sample.ids Character strings. Specific cells to plot.
 #' @param cell.group.column Character string. The name of the sample metadata column in which the variables will be used to label the cell groups on the PCA.
@@ -22,7 +22,7 @@
 #' @export
 #'
 
-RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
+RunPCA.PSI.Exp <- function(MarvelObject, n.dim=c(30,30), seed=42,
                            sample.ids=NULL,
                            cell.group.column, cell.group.order, cell.group.colors=NULL,
                            point.size=0.5, point.alpha=0.75, point.stroke=0.1
@@ -41,11 +41,11 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
     
     # Define options
     #MarvelObject <- marvel
-    #n.dim <- 10
+    #n.dim <- 30
     #seed <- 42
-    #sample.ids <- NULL
-    #cell.group.column <- "cell.type"
-    #cell.group.order <- c("0-hrs", "24-hrs", "48-hrs", "72-hrs")
+    #sample.ids <- sample.ids
+    #cell.group.column <- cell.group.column
+    #cell.group.order <- cell.group.order
     #cell.group.colors <- NULL
     #point.size <- 2
     #point.alpha <- 0.8
@@ -56,11 +56,11 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
     # Create feature matrix
         # Retrieve splicing PCs
         df.psi <- as.data.frame(MarvelObject$PCA$PSI$Results$ind$coord)
-        df.psi <- df.psi[,c(1:n.dim)]
+        df.psi <- df.psi[,c(1:n.dim[1])]
 
         # Retrieve gene PCA raw data
         df.exp <- as.data.frame(MarvelObject$PCA$Exp$Results$ind$coord)
-        df.exp <- df.exp[,c(1:n.dim)]
+        df.exp <- df.exp[,c(1:n.dim[2])]
 
         # Subset overlapping samples
         overlap <- intersect(row.names(df.psi), row.names(df.exp))
@@ -118,6 +118,10 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
         # Non-linear
         set.seed(seed)
         umap_out <- umap::umap(df)
+        
+    # Define no. of columns for legends
+    n.groups <- length(levels(df.pheno$pca.cell.group.label))
+    ncol.legends <- ifelse(n.groups < 6, 1, 2)
 
     # Scatterplot
         # Definition
@@ -128,7 +132,7 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
         maintitle <- ""
         xtitle <- "UMAP-1"
         ytitle <- "UMAP-2"
-        legendtitle <- "Group"
+        legendtitle <- "Cell group"
 
         # Color scheme
         if(is.null(cell.group.colors[1])) {
@@ -138,7 +142,7 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
               hcl(h = hues, l = 65, c = 100)[1:n]
             }
             
-            n = length(levels(group))
+            n = length(levels(z))
             cols = gg_color_hue(n)
         
         } else {
@@ -160,10 +164,11 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=20, seed=42,
                 axis.title=element_text(size=12),
                 axis.text=element_text(size=10, colour="black"),
                 legend.title=element_text(size=8),
-                legend.text=element_text(size=8)
+                legend.text=element_text(size=8),
+                legend.key=element_rect(fill="white")
                 )  +
-        guides(fill = guide_legend(override.aes=list(size=2, alpha=0.8, stroke=0.1), ncol=1))
-
+        guides(fill = guide_legend(override.aes=list(size=2, alpha=0.8, stroke=0.1),  ncol=ncol.legends))
+        
     ######################################################################
     
     # Save to new slot

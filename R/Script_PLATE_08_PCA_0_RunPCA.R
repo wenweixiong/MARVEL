@@ -17,10 +17,12 @@
 #' @param method.impute Character string. Only applicable when \code{level} set to \code{"splicing"}. Indicate the method for imputing missing PSI values (low coverage). \code{"random"} method randomly assigns any values between 0-1. \code{"Bayesian"} method uses the posterior PSI computed from the \code{ComputePSI.Posterior} function. Default is \code{"random"}.
 #' @param seed Numeric value. Only applicable when \code{level} set to \code{"splicing"}. Ensures imputed values for NA PSIs are reproducible when \code{method.impute} option set to \code{"random"}. Default value is \code{1}.
 #' @param pcs Numeric vector. The two principal components (PCs) to plot. Default is the first two PCs. If a vector of 3 is specified, a 3D scatterplot is returned.
-#' @param mode Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.
+#' @param mode Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Specify \code{"elbow.plot"} to return eigen values. Default is \code{"pca"}.
 #' @param seed.umap Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.
-#' @param ncp.umap Numeric value. Only applicable when \code{level} set to \code{"splicing"} or \code{"gene"}. Indicate the first number of principal components to use for UMAP . Default value is \code{30}, i.e., the first 30 PCs.
+#' @param npc.umap Numeric value. Only applicable when \code{level} set to \code{"splicing"} or \code{"gene"}. Indicate the first number of principal components to use for UMAP . Default value is \code{30}, i.e., the first 30 PCs.
 #' @param n.dim Numeric value. Only applicable when \code{level} set to \code{"integrated"}. Indicate the first number of principal components to use for UMAP . Default value is \code{20}, i.e., the first 20 PCs.
+#' @param remove.outliers Logical value. If set to \code{TRUE}, outliers will be removed. Outliers defined as data points beyond 1.5 times the interquartile range (IQR) from the 1st and 99th percentile. Default is \code{FALSE}.
+#' @param npc.elbow.plot  Numeric value. Only applicable when \code{mode} set to \code{"elbow.plot"}. Incidate the number of PCs to for elbow plot. Default value is \code{50}.
 #'
 #' @export
 #'
@@ -62,8 +64,10 @@ RunPCA <- function(MarvelObject,
                    method.impute="random", seed=1,
                    level,
                    pcs=c(1,2),
-                   mode="pca", seed.umap=42, ncp.umap=30,
-                   n.dim=20
+                   mode="pca", seed.umap=42, npc.umap=30,
+                   n.dim=20,
+                   remove.outliers=FALSE,
+                   npc.elbow.plot=50
                    ) {
 
     
@@ -85,7 +89,9 @@ RunPCA <- function(MarvelObject,
                    pcs=pcs,
                    mode=mode,
                    seed.umap=seed.umap,
-                   ncp.umap=ncp.umap
+                   npc.umap=npc.umap,
+                   remove.outliers=remove.outliers,
+                   npc.elbow.plot=npc.elbow.plot
                    )
 
     } else if(level=="gene") {
@@ -103,7 +109,9 @@ RunPCA <- function(MarvelObject,
                    pcs=pcs,
                    mode=mode,
                    seed.umap=seed.umap,
-                   ncp.umap=ncp.umap
+                   npc.umap=npc.umap,
+                   remove.outliers=remove.outliers,
+                   npc.elbow.plot=npc.elbow.plot
                    )
          
     } else if(level=="integrated") {

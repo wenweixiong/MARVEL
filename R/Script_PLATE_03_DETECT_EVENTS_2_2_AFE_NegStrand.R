@@ -347,6 +347,9 @@ DetectEvents.AFE.NegStrand <- function(MarvelObject, parsed.gtf=NULL, min.cells=
     col.others <- names(df.feature)[-which(names(df.feature) %in% c("tran_id", "event_type"))]
     df.feature <- df.feature[, c("tran_id", "event_type", col.others)]
         
+    # Keep unique events
+    df.feature <- unique(df.feature)
+        
     # Save to new slots
     MarvelObject$SpliceFeature$AFE.NegStrand <- df.feature
     return(MarvelObject)
