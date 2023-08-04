@@ -9,7 +9,8 @@ BioPathways.Plot(
   go.terms,
   y.label.size = 10,
   offset = 0.5,
-  x.axis = "enrichment"
+  x.axis = "enrichment",
+  sort.y.axis = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ BioPathways.Plot(
 \item{offset}{Numeric value. The -log10(p-value) on the x-axis to substract or add to increase the plot margins.}
 
 \item{x.axis}{Character string. If set to \code{"enrichment"} (default) the pathway enrichment will be displayed on the x-axis while the color intensity of the data points will reflect the -log10(adjusted p-value). If set to \code{"pval"} the -log10(adjusted p-value) will be displayed on the x-axis while the color intensity of the data points will reflect the pathway enrichment.}
+
+\item{sort.y.axis.}{Only applicable when custom vector of GO terms specified in the \code{go.terms} option. When set to \code{TRUE}, y-axis will be sorted as per order of custom vector of GO terms provided. Default is \code{FALSE}.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$DE$BioPathways$Plot}.

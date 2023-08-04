@@ -18,7 +18,9 @@ RunPCA.Exp(
   pcs = c(1, 2),
   mode = "pca",
   seed.umap = 42,
-  ncp.umap = 30
+  npc.umap = 30,
+  remove.outliers = FALSE,
+  npc.elbow.plot = 50
 )
 }
 \arguments{
@@ -44,11 +46,15 @@ RunPCA.Exp(
 
 \item{pcs}{Numeric vector. The principal components (PCs) to plot. Default is the first two PCs, i.e., \code{c(1,2)}. If a vector of 3 is specified, a 3D scatterplot is returned.}
 
-\item{mode}{Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Default is \code{"pca"}.}
+\item{mode}{Character string. Specify \code{"pca"} for linear dimension reduction analysis or \code{"umap"} for non-linear dimension reduction analysis. Specify \code{"elbow.plot"} to return eigen values. Default is \code{"pca"}.}
 
 \item{seed.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. To sure reproducibility of analysis. Default value is \code{42}.}
 
-\item{ncp.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. Incidate the number of PCs to include for UMAP. Default value is \code{30}.}
+\item{npc.umap}{Numeric value. Only applicable when \code{mode} set to \code{"umap"}. Incidate the number of PCs to include for UMAP. Default value is \code{30}.}
+
+\item{remove.outliers}{Logical value. If set to \code{TRUE}, outliers will be removed. Outliers defined as data points beyond 1.5 times the interquartile range (IQR) from the 1st and 99th percentile. Default is \code{FALSE}.}
+
+\item{npc.elbow.plot}{Numeric value. Only applicable when \code{mode} set to \code{"elbow.plot"}. Incidate the number of PCs to for elbow plot. Default value is \code{50}.}
 }
 \value{
 An object of class S3 containing with new slots \code{MarvelObject$PCA$Exp$Results}, \code{MarvelObject$PCA$Exp$Plot}, and \code{MarvelObject$PCA$Exp$Plot.Elbow}.

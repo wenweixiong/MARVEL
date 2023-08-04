@@ -6,7 +6,7 @@
 \usage{
 RunPCA.PSI.Exp(
   MarvelObject,
-  n.dim = 20,
+  n.dim = c(30, 30),
   seed = 42,
   sample.ids = NULL,
   cell.group.column,
@@ -19,6 +19,8 @@ RunPCA.PSI.Exp(
 }
 \arguments{
 \item{MarvelObject}{Marvel object. S3 object generated from \code{RunPCA} function.}
+
+\item{n.dim}{Numeric values. Indicate the first number of principal components for splicing and gene, respectively, to use for analysis. Default value is \code{c(30,30)}, i.e., the first 30 PCs for both splicing and gene.}
 
 \item{seed}{Numeric value. To sure reproducibility of analysis. Default value is \code{42}.}
 
@@ -35,8 +37,6 @@ RunPCA.PSI.Exp(
 \item{point.alpha}{Numeric value. Transparency of the data points on reduced dimension space. Take any values between 0 to 1. The smaller the value, the more transparent the data points will be.}
 
 \item{point.stroke}{Numeric value. The thickness of the outline of the data points. The larger the value, the thicker the outline of the data points.}
-
-\item{n.dim.}{Indicate the first number of principal components to use for analysis . Default value is \code{20}, i.e., the first 20 PCs.}
 }
 \value{
 An object of class S3 containing with new slots \code{ MarvelObject$PCA$PSI$ElbowPlot} or \code{MarvelObject$PCA$Exp$ElbowPlot} when \code{level} option set to \code{"splicing"} or \code{"gene"}, respectively.

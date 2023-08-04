@@ -16,7 +16,7 @@ CountEvents(MarvelObject, sample.ids, min.cells, event.group.colors = NULL)
 \item{event.group.colors}{Vector of character strings. Colors for the event groups. If not specified, default \code{ggplot2} colors will be used.}
 }
 \value{
-An object of class S3 with new slots \code{MarvelObject$N.Events$Table} and \code{MarvelObject$N.Events$Plot}.
+An object of class S3 with new slots \code{MarvelObject$N.Events$Table}, \code{MarvelObject$N.Events$Plot}, and MarvelObject$N.Events$tran_ids.list.
 }
 \description{
 Tabulates and plots the number of expressed splicing events for each splicing event category for a specified cell group.
