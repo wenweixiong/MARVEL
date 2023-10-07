@@ -388,7 +388,7 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
         } else if(plot.type=="boxplot"){
             
             plot <- ggplot() +
-                geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.size=0.1) +
+                geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
                 geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
                     scale_color_manual(values=cols.points) +
                 stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
