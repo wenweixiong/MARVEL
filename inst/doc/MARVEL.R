@@ -1,7 +1,7 @@
 ## ----echo=FALSE---------------------------------------------------------------
 library(knitr)
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # Load MARVEL package
 library(MARVEL)
 
@@ -9,14 +9,14 @@ library(MARVEL)
 library(ggplot2)
 library(gridExtra)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  # Load adjunct packages to support additional functionalities
 #  library(AnnotationDbi) # GO analysis
 #  library(clusterProfiler)
 #  library(org.Hs.eg.db)
 #  library(org.Mm.eg.db)
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # Load adjunct packages to support additional functionalities
 library(plyr) # General data processing
 library(ggrepel) # General plotting
@@ -29,16 +29,16 @@ library(kSamples) # Anderson-Darling (AD) statistical test
 library(twosamples) # D Test Statistic (DTS) statistical test
 library(stringr) # Plot GO results
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # Load saved MARVEL object
 marvel.demo <- readRDS(system.file("extdata/data", "marvel.demo.rds", package="MARVEL"))
 class(marvel.demo)
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 SplicePheno <- marvel.demo$SplicePheno
 head(SplicePheno)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  # STAR in 1st pass mode
 #  STAR --runThreadN 16 \
 #       --genomeDir GRCh38_GENCODE_genome_STAR_indexed \
@@ -58,11 +58,11 @@ head(SplicePheno)
 #       --outSAMattributes NH HI AS nM XS \
 #       --quantMode TranscriptomeSAM
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 SpliceJunction <- marvel.demo$SpliceJunction
 SpliceJunction[1:5,1:5]
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  rmats \
 #      --b1 path_to_BAM_sample_1.txt \
 #      --b2 path_to_BAM_sample_2.txt \
@@ -75,11 +75,11 @@ SpliceJunction[1:5,1:5]
 #      --nthread 8 \
 #      --statoff
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 SpliceFeature <-marvel.demo$SpliceFeature
 lapply(SpliceFeature, head)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  bedtools coverage \
 #                 -g GRCh38.primary_assembly.genome_bedtools.txt \
 #                 -split \
@@ -89,11 +89,11 @@ lapply(SpliceFeature, head)
 #                    ERR1562083.txt \
 #                 -d
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 IntronCounts <- marvel.demo$IntronCounts
 IntronCounts[1:5,1:5]
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  rsem-calculate-expression --bam \
 #                            --paired-end \
 #                            -p 8 \
@@ -101,15 +101,15 @@ IntronCounts[1:5,1:5]
 #                            GRCh38_GENCODE_genome_RSEM_indexed/gencode.v31 \
 #                            ERR1562083
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 Exp <- marvel.demo$Exp
 Exp[1:5,1:5]
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 GeneFeature <- marvel.demo$GeneFeature
 head(GeneFeature)
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 marvel <- CreateMarvelObject(SpliceJunction=SpliceJunction,
                              SplicePheno=SplicePheno,
                              SpliceFeature=SpliceFeature,
@@ -118,17 +118,17 @@ marvel <- CreateMarvelObject(SpliceJunction=SpliceJunction,
                              Exp=Exp
                              )
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 include_graphics(system.file("extdata/figures", "PSI_Validation.png", package="MARVEL"))
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 include_graphics(system.file("extdata/figures", "PSI_Computation.png", package="MARVEL"))
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # Check splicing junction data
 marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="SJ")
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  # Validate, filter, compute SE splicing events
 #  marvel.demo <- ComputePSI(MarvelObject=marvel.demo,
 #                            CoverageThreshold=10,
@@ -174,14 +174,14 @@ marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="SJ")
 #                            EventType="ALE"
 #                            )
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 marvel.demo <- TransformExpValues(MarvelObject=marvel.demo,
                                   offset=1,
                                   transformation="log2",
                                   threshold.lower=1
                                   )
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 # Check splicing data
 marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="splicing")
 
@@ -191,7 +191,7 @@ marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="gene")
 # Cross-check splicing and gene data
 marvel.demo <- CheckAlignment(MarvelObject=marvel.demo, level="splicing and gene")
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Retrieve sample metadata
 df.pheno <- marvel.demo$SplicePheno
 
@@ -210,7 +210,7 @@ marvel.demo$N.Events$Plot
 # Output (2): Table
 marvel.demo$N.Events$Table
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Retrieve sample metadata
 df.pheno <- marvel.demo$SplicePheno
 
@@ -229,10 +229,10 @@ marvel.demo$N.Events$Plot
 # Output (2): Table
 marvel.demo$N.Events$Table
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 include_graphics(system.file("extdata/figures", "Modality.png", package="MARVEL"))
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Retrieve sample metadata
 df.pheno <- marvel.demo$SplicePheno
 
@@ -259,7 +259,7 @@ marvel.demo <- PropModality(MarvelObject=marvel.demo,
 marvel.demo$Modality$Prop$DoughnutChart$Plot
 marvel.demo$Modality$Prop$DoughnutChart$Table
 
-## ---- message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
 # Tabulate modality proportion (by event type)
 marvel.demo <- PropModality(MarvelObject=marvel.demo,
                             modality.column="modality.bimodal.adj",
@@ -274,7 +274,7 @@ marvel.demo <- PropModality(MarvelObject=marvel.demo,
 marvel.demo$Modality$Prop$BarChart$Plot
 head(marvel.demo$Modality$Prop$BarChart$Table)
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Retrieve sample metadata
 df.pheno <- marvel.demo$SplicePheno
 
@@ -301,7 +301,7 @@ marvel.demo <- PropModality(MarvelObject=marvel.demo,
 marvel.demo$Modality$Prop$DoughnutChart$Plot
 marvel.demo$Modality$Prop$DoughnutChart$Table
 
-## ---- message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
 # Tabulate modality proportion (by event type)
 marvel.demo <- PropModality(MarvelObject=marvel.demo,
                             modality.column="modality.bimodal.adj",
@@ -316,10 +316,10 @@ marvel.demo <- PropModality(MarvelObject=marvel.demo,
 marvel.demo$Modality$Prop$BarChart$Plot
 head(marvel.demo$Modality$Prop$BarChart$Table)
 
-## ---- echo=FALSE--------------------------------------------------------------
+## ----echo=FALSE---------------------------------------------------------------
 include_graphics(system.file("extdata/figures", "DE.png", package="MARVEL"))
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Define cell groups
     # Retrieve sample metadata
     df.pheno <- marvel.demo$SplicePheno
@@ -343,7 +343,7 @@ marvel.demo <- CompareValues(MarvelObject=marvel.demo,
 
 marvel.demo$DE$Exp$Table[1:5, ]
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Plot DE results
 marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
                             pval=0.10,
@@ -357,7 +357,7 @@ marvel.demo$DE$Exp.Global$Plot
 marvel.demo$DE$Exp.Global$Summary
 head(marvel.demo$DE$Exp.Global$Table[,c("gene_id", "gene_short_name", "sig")])
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Plot DE results with annotation of selected genes
     # Retrieve DE output table
     results <- marvel.demo$DE$Exp$Table
@@ -379,7 +379,7 @@ head(marvel.demo$DE$Exp.Global$Table[,c("gene_id", "gene_short_name", "sig")])
 
     marvel.demo$DE$Exp.Global$Plot
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 marvel.demo <- CompareValues(MarvelObject=marvel.demo,
                              cell.group.g1=cell.group.g1,
                              cell.group.g2=cell.group.g2,
@@ -394,7 +394,7 @@ marvel.demo <- CompareValues(MarvelObject=marvel.demo,
 head(marvel.demo$DE$PSI$Table[["ad"]])
 head(marvel.demo$DE$PSI$Table[["dts"]])
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 
 marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
                        method="ad",
@@ -406,7 +406,7 @@ marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
 
 marvel.demo$DE$PSI$Plot[["ad"]]
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 marvel.demo <- CompareValues(MarvelObject=marvel.demo,
                              cell.group.g1=cell.group.g1,
                              cell.group.g2=cell.group.g2,
@@ -422,7 +422,7 @@ marvel.demo <- CompareValues(MarvelObject=marvel.demo,
 
 head(marvel.demo$DE$Exp.Spliced$Table)
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Plot: No annotation
 marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
                             method=c("ad", "dts"),
@@ -439,7 +439,7 @@ marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
 marvel.demo$DE$Exp.Spliced$Plot
 marvel.demo$DE$Exp.Spliced$Summary
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=4, fig.align="center"----
 # Plot: Annotate top genes
 results <- marvel.demo$DE$Exp.Spliced$Table
 
@@ -461,7 +461,7 @@ marvel.demo <- PlotDEValues(MarvelObject=marvel.demo,
 
 marvel.demo$DE$Exp.Spliced$Plot
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
 # Define sample groups
     # Retrieve sample metadata
     df.pheno <- marvel.demo$SplicePheno
@@ -498,7 +498,7 @@ marvel.demo <- RunPCA(MarvelObject=marvel.demo,
 
 marvel.demo$PCA$Exp$Plot
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
 # Retrieve DE tran_ids
 method <- c("ad", "dts")
 
@@ -530,7 +530,7 @@ marvel.demo <- RunPCA(MarvelObject=marvel.demo,
 
 marvel.demo$PCA$PSI$Plot
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
 # Retrieve relevant gene_ids
 results.de.exp <- marvel.demo$DE$Exp$Table
 index <- which(results.de.exp$p.val.adj < 0.10 & abs(results.de.exp$log2fc) > 0.5)
@@ -549,7 +549,7 @@ marvel.demo <- RunPCA(MarvelObject=marvel.demo,
 
 marvel.demo$PCA$Exp$Plot
 
-## ---- message=FALSE, warning=FALSE, fig.width=7, fig.height=8, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=7, fig.height=8, fig.align="center"----
 # Retrieve non-DE gene_ids
 results.de.exp <- marvel.demo$DE$Exp$Table
 index <- which(results.de.exp$p.val.adj > 0.10 )
@@ -703,7 +703,7 @@ grid.arrange(plot.all, plot.se,
              plot.afe, plot.ale,
              nrow=4)
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
 # Define sample groups
     # Retrieve sample metadata
     df.pheno <- marvel.demo$SplicePheno
@@ -729,7 +729,7 @@ marvel.demo$DE$Modality$Plot
 head(marvel.demo$DE$Modality$Table)
 marvel.demo$DE$Modality$Plot.Stats
 
-## ---- message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
 # Example 1
 tran_id <- "chr4:108620569:108620600|108620656:108620712:+@chr4:108621951:108622024"
   
@@ -788,7 +788,7 @@ grid.arrange(plot.1, plot.2,
              plot.3, plot.4,
              nrow=1)
 
-## ---- message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
 # Example 1
 tran_id <- "chr17:8383254:8382781|8383157:-@chr17:8382143:8382315"
   
@@ -847,7 +847,7 @@ grid.arrange(plot.1, plot.2,
              plot.3, plot.4,
              nrow=1)
 
-## ---- message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=8, fig.height=2, fig.align="center"----
 # Example 1
 tran_id <- "chr5:150449703:150449739|150449492:150449696:-@chr5:150447585:150447735"
   
@@ -906,7 +906,7 @@ grid.arrange(plot.1, plot.2,
              plot.3, plot.4,
              nrow=1)
 
-## ---- message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align="center"----
 marvel.demo <- IsoSwitch(MarvelObject=marvel.demo,
                          method=c("ad", "dts"),
                          psi.pval=c(0.10, 0.10),
@@ -919,7 +919,7 @@ marvel.demo$DE$Cor$Plot
 head(marvel.demo$DE$Cor$Table)
 marvel.demo$DE$Cor$Plot.Stats
 
-## ---- message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
 # Define cell groups
     # Retrieve sample metadata
     df.pheno <- marvel.demo$SplicePheno
@@ -997,7 +997,7 @@ grid.arrange(plot.1_gene, plot.1_splicing,
              plot.2_gene, plot.2_splicing,
              nrow=2)
 
-## ---- message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
 # Example 1
   # Gene
   df.feature <- marvel.demo$GeneFeature
@@ -1060,7 +1060,7 @@ grid.arrange(plot.1_gene, plot.1_splicing,
              plot.2_gene, plot.2_splicing,
              nrow=2)
 
-## ---- message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=5, fig.height=5, fig.align="center"----
 # Example 1
   # Gene
   df.feature <- marvel.demo$GeneFeature
@@ -1123,7 +1123,7 @@ grid.arrange(plot.1_gene, plot.1_splicing,
              plot.2_gene, plot.2_splicing,
              nrow=2)
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  marvel.demo <- BioPathways(MarvelObject=marvel.demo,
 #                             method=c("ad", "dts"),
 #                             pval=0.10,
@@ -1132,7 +1132,7 @@ grid.arrange(plot.1_gene, plot.1_splicing,
 #  
 #  head(marvel.demo$DE$BioPathways$Table)
 
-## ---- message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
+## ----message=FALSE, warning=FALSE, fig.width=6, fig.height=4, fig.align="center"----
 # Plot top pathways
 df <- marvel.demo$DE$BioPathways$Table
 go.terms <- df$Description[c(1:10)]

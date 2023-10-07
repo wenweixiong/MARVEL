@@ -18,6 +18,7 @@
 #' @param cell.group.colors Character string. Vector of colors for the cell groups specified for PCA analysis using \code{cell.type.columns}, \code{cell.type.variable}, and \code{cell.type.labels}. If not specified, default \code{ggplot2} colors will be used.
 #' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
 #' @param point.size Numeric value. Size of the data points. Default value is \code{0.001}.
+#' @param plot.type Character string. Indicate to present PSI values using \code{"violin"} (default) or \code{"boxplot"}. The former is recommended for single-cell data while the latter is recommend for bulk data.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.
 #'
@@ -50,7 +51,7 @@
 #' # Check output
 #' marvel.demo$adhocPlot$PSI
 
-PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001) {
+PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001, plot.type="violin") {
     
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -75,19 +76,23 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     #df.pheno <- MarvelObject$SplicePheno
     #df.feature <- do.call(rbind.data.frame, MarvelObject$SpliceFeatureValidated)
     #cell.group.list <- cell.group.list
-    #feature <- tran_id
+    #feature <- tran_ids[1]
     #maintitle <- "gene_short_name"
     #xlabels.size=8.5
     #max.cells.jitter=10000
     #max.cells.jitter.seed=1
-    #min.cells=10
+    #min.cells=0
     #sigma.sq=0.001
-    #bimodal.adjust=TRUE
+    #bimodal.adjust=FALSE
     #seed=1
     #modality.column="modality.bimodal.adj"
     #scale.y.log <- FALSE
     #cell.group.colors <- NULL
-    #point.alpha=0.2
+    #point.alpha=1
+    #point.size=2
+    #cols.ave.icon.fill=NA
+    #cols.ave.icon.border=NA
+    #plot.type="boxplot"
     
     ############################################################
     
@@ -350,33 +355,64 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
     # Plot
     if(scale.y.log==FALSE) {
         
-        plot <- ggplot() +
-            geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
-                scale_fill_manual(values=cols.violin.fill) +
-                scale_color_manual(values=cols.violin.border) +
-                ggnewscale::new_scale_color() +
-            geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
-                scale_color_manual(values=cols.points) +
-            stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
-            scale_x_discrete(labels=xlabels) +
-            scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
-            labs(title=maintitle, x=xtitle, y=ytitle) +
-            theme(panel.grid.major = element_blank(),
-                panel.grid.minor = element_blank(),
-                panel.background = element_blank(),
-                panel.border=element_blank(),
-                plot.title=element_text(hjust = 0.5, size=12),
-                plot.subtitle=element_text(hjust = 0.5, size=12),
-                axis.line.y.left = element_line(color="black"),
-                axis.line.x = element_line(color="black"),
-                axis.title=element_text(size=10),
-                axis.text=element_text(size=10),
-                axis.text.x=element_text(size=xlabels.size, colour="black"),
-                axis.text.y=element_text(size=10, colour="black"),
-                legend.position="none",
-                legend.title=element_text(size=10),
-                legend.text=element_text(size=10)
-                )
+        if(plot.type=="violin") {
+                    
+            plot <- ggplot() +
+                geom_violin(data, mapping=aes(x=x, y=y, fill=z, color=z), scale="width") +
+                    scale_fill_manual(values=cols.violin.fill) +
+                    scale_color_manual(values=cols.violin.border) +
+                    ggnewscale::new_scale_color() +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
+                    scale_color_manual(values=cols.points) +
+                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
+                scale_x_discrete(labels=xlabels) +
+                scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
+                labs(title=maintitle, x=xtitle, y=ytitle) +
+                theme(panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.border=element_blank(),
+                    plot.title=element_text(hjust = 0.5, size=12),
+                    plot.subtitle=element_text(hjust = 0.5, size=12),
+                    axis.line.y.left = element_line(color="black"),
+                    axis.line.x = element_line(color="black"),
+                    axis.title=element_text(size=10),
+                    axis.text=element_text(size=10),
+                    axis.text.x=element_text(size=xlabels.size, colour="black"),
+                    axis.text.y=element_text(size=10, colour="black"),
+                    legend.position="none",
+                    legend.title=element_text(size=10),
+                    legend.text=element_text(size=10)
+                    )
+                    
+        } else if(plot.type=="boxplot"){
+            
+            plot <- ggplot() +
+                geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.size=0.1) +
+                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
+                    scale_color_manual(values=cols.points) +
+                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
+                scale_x_discrete(labels=xlabels) +
+                scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
+                labs(title=maintitle, x=xtitle, y=ytitle) +
+                theme(panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.border=element_blank(),
+                    plot.title=element_text(hjust = 0.5, size=12),
+                    plot.subtitle=element_text(hjust = 0.5, size=12),
+                    axis.line.y.left = element_line(color="black"),
+                    axis.line.x = element_line(color="black"),
+                    axis.title=element_text(size=10),
+                    axis.text=element_text(size=10),
+                    axis.text.x=element_text(size=xlabels.size, colour="black"),
+                    axis.text.y=element_text(size=10, colour="black"),
+                    legend.position="none",
+                    legend.title=element_text(size=10),
+                    legend.text=element_text(size=10)
+                    )
+            
+        }
             
     } else if(scale.y.log==TRUE){
         

@@ -20,7 +20,8 @@ PlotValues.PSI(
   scale.y.log = FALSE,
   cell.group.colors = NULL,
   point.alpha = 0.2,
-  point.size = 0.001
+  point.size = 0.001,
+  plot.type = "violin"
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ PlotValues.PSI(
 \item{point.alpha}{Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.}
 
 \item{point.size}{Numeric value. Size of the data points. Default value is \code{0.001}.}
+
+\item{plot.type}{Character string. Indicate to present PSI values using \code{"violin"} (default) or \code{"boxplot"}. The former is recommended for single-cell data while the latter is recommend for bulk data.}
 }
 \value{
 An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.

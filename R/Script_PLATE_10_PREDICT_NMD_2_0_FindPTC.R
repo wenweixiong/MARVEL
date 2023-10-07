@@ -29,6 +29,7 @@ FindPTC <- function(MarvelObject, method, pval, delta, custom.tran_ids=NULL) {
     method <- method
     pval <- pval
     delta <- delta
+    df.feature.exp <- marvel$GeneFeature
 
     # Example arguments
     #MarvelObject <- marvel.demo
@@ -282,7 +283,14 @@ FindPTC <- function(MarvelObject, method, pval, delta, custom.tran_ids=NULL) {
 
     # Merge results
     results <- do.call(rbind.data.frame, results.list)
-
+    
+    # Annotate gene name
+    results <- plyr::join(results, df.feature.exp[,c("gene_id", "gene_short_name")], by="gene_id", type="left")
+    
+    cols.1 <- c("tran_id", "gene_id", "gene_short_name")
+    cols.2 <- names(results)[-which(names(results) %in% cols.1)]
+    results <- results[,c(cols.1, cols.2)]
+    
     # Save to new slot
     MarvelObject$NMD$Prediction <- results
     
