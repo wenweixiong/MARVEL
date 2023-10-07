@@ -22,7 +22,8 @@ PlotValues(
   cell.group.colors = NULL,
   point.alpha = 0.2,
   point.size = 0.001,
-  plot.type = "violin"
+  plot.type = "violin",
+  fix.y.axis.interval = TRUE
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ PlotValues(
 \item{point.size}{Numeric value. Size of the data points. Default value is \code{0.001}.}
 
 \item{plot.type}{Character string. Indicate to present PSI values using \code{"violin"} (default) or \code{"boxplot"}. The former is recommended for single-cell data while the latter is recommend for bulk data. Only applicable when \code{"level"} set to \code{"splicing"}.}
+
+\item{fix.y.axis.interval}{Logical. If set to \code{TRUE} (default), y-axis values will be fixed from 0-100. Only applicable to when \code{"plot.type"} option set to \code{"boxplot"}.}
 }
 \value{
 An object of class S3 with new slot \code{$adhocPlot$PSI} or \code{MarvelObject$adhocPlot$Exp} when \code{level} set to \code{"splicing"} or \code{"gene"}, respectively.

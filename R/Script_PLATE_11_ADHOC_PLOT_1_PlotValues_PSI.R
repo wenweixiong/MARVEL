@@ -19,6 +19,7 @@
 #' @param point.alpha Numeric value. Transparency of the data points. Takes any values between 0-1. Default value is \code{0.2}.
 #' @param point.size Numeric value. Size of the data points. Default value is \code{0.001}.
 #' @param plot.type Character string. Indicate to present PSI values using \code{"violin"} (default) or \code{"boxplot"}. The former is recommended for single-cell data while the latter is recommend for bulk data.
+#' @param fix.y.axis.interval Logical. If set to \code{TRUE} (default), y-axis values will be fixed from 0-100. Only applicable to when \code{"plot.type"} option set to \code{"boxplot"}.
 #'
 #' @return An object of class S3 with new slot \code{MarvelObject$adhocPlot$PSI}.
 #'
@@ -51,7 +52,7 @@
 #' # Check output
 #' marvel.demo$adhocPlot$PSI
 
-PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001, plot.type="violin") {
+PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="gene_short_name", xlabels.size=8, max.cells.jitter=10000, max.cells.jitter.seed=1, min.cells=25, sigma.sq=0.001, bimodal.adjust=TRUE, seed=1, modality.column="modality.bimodal.adj", scale.y.log=FALSE, cell.group.colors=NULL, point.alpha=0.2, point.size=0.001, plot.type="violin", fix.y.axis.interval=TRUE) {
     
     # Define arguments
     df <- do.call(rbind.data.frame, MarvelObject$PSI)
@@ -387,30 +388,60 @@ PlotValues.PSI <- function(MarvelObject, cell.group.list, feature, maintitle="ge
                     
         } else if(plot.type=="boxplot"){
             
-            plot <- ggplot() +
-                geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
-                geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
-                    scale_color_manual(values=cols.points) +
-                stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
-                scale_x_discrete(labels=xlabels) +
-                scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
-                labs(title=maintitle, x=xtitle, y=ytitle) +
-                theme(panel.grid.major = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    panel.background = element_blank(),
-                    panel.border=element_blank(),
-                    plot.title=element_text(hjust = 0.5, size=12),
-                    plot.subtitle=element_text(hjust = 0.5, size=12),
-                    axis.line.y.left = element_line(color="black"),
-                    axis.line.x = element_line(color="black"),
-                    axis.title=element_text(size=10),
-                    axis.text=element_text(size=10),
-                    axis.text.x=element_text(size=xlabels.size, colour="black"),
-                    axis.text.y=element_text(size=10, colour="black"),
-                    legend.position="none",
-                    legend.title=element_text(size=10),
-                    legend.text=element_text(size=10)
-                    )
+            if(fix.y.axis.interval==TRUE) {
+                            
+                plot <- ggplot() +
+                    geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
+                    geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
+                        scale_color_manual(values=cols.points) +
+                    stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
+                    scale_x_discrete(labels=xlabels) +
+                    scale_y_continuous(breaks=seq(0, 100, by=25), limits=c(0, 100)) +
+                    labs(title=maintitle, x=xtitle, y=ytitle) +
+                    theme(panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank(),
+                        panel.border=element_blank(),
+                        plot.title=element_text(hjust = 0.5, size=12),
+                        plot.subtitle=element_text(hjust = 0.5, size=12),
+                        axis.line.y.left = element_line(color="black"),
+                        axis.line.x = element_line(color="black"),
+                        axis.title=element_text(size=10),
+                        axis.text=element_text(size=10),
+                        axis.text.x=element_text(size=xlabels.size, colour="black"),
+                        axis.text.y=element_text(size=10, colour="black"),
+                        legend.position="none",
+                        legend.title=element_text(size=10),
+                        legend.text=element_text(size=10)
+                        )
+                        
+            } else if(fix.y.axis.interval==FALSE) {
+                
+                plot <- ggplot() +
+                    geom_boxplot(data, mapping=aes(x=x, y=y, fill=z), outlier.shape=NA) +
+                    geom_jitter(data.2, mapping=aes(x=x.jitter, y=y.jitter, color=z.2), position=position_jitter(width=0.1, height=0), size=point.size, alpha=point.alpha) +
+                        scale_color_manual(values=cols.points) +
+                    stat_summary(data, mapping=aes(x=x, y=y), geom="point", fun="mean", fill=cols.ave.icon.fill, col=cols.ave.icon.border, size=2, shape=23) +
+                    scale_x_discrete(labels=xlabels) +
+                    labs(title=maintitle, x=xtitle, y=ytitle) +
+                    theme(panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank(),
+                        panel.border=element_blank(),
+                        plot.title=element_text(hjust = 0.5, size=12),
+                        plot.subtitle=element_text(hjust = 0.5, size=12),
+                        axis.line.y.left = element_line(color="black"),
+                        axis.line.x = element_line(color="black"),
+                        axis.title=element_text(size=10),
+                        axis.text=element_text(size=10),
+                        axis.text.x=element_text(size=xlabels.size, colour="black"),
+                        axis.text.y=element_text(size=10, colour="black"),
+                        legend.position="none",
+                        legend.title=element_text(size=10),
+                        legend.text=element_text(size=10)
+                        )
+                
+            }
             
         }
             
