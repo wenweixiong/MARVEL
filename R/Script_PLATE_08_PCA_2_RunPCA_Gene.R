@@ -451,6 +451,7 @@ RunPCA.Exp <- function(MarvelObject, sample.ids=NULL, cell.group.column, cell.gr
     # Save to new slot
     MarvelObject$PCA$Exp$RawData <- df
     MarvelObject$PCA$Exp$Results <- res.pca
+    MarvelObject$PCA$Exp$Plot.Data <- data
     MarvelObject$PCA$Exp$Plot <- plot
     MarvelObject$PCA$Exp$EigenValues <- results.eigen
 

@@ -173,8 +173,9 @@ RunPCA.PSI.Exp <- function(MarvelObject, n.dim=c(30,30), seed=42,
     
     # Save to new slot
     MarvelObject$PCA$Integrated$Plot <- plot
-    MarvelObject$PCA$Integrated$Results <- data
-
+    #MarvelObject$PCA$Integrated$Results <- data
+    MarvelObject$PCA$Integrated$Plot.Data <- data
+    
     return(MarvelObject)
         
 }

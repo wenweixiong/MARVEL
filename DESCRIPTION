@@ -19,11 +19,11 @@ Suggests: AnnotationDbi (>= 1.48.0), Biostrings (>= 2.56.0), BSgenome
 Encoding: UTF-8
 Authors@R: person("Sean", "Wen", role = c("aut", "cre"), email = "sean.wenwx@gmail.com")
 License: GPL-3
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2023-10-07 21:40:33 UTC; seanwen
+Packaged: 2024-08-01 14:29:40 UTC; seanwen
 Author: Sean Wen [aut, cre]
 Maintainer: Sean Wen <sean.wenwx@gmail.com>
 Depends: R (>= 3.5.0)
