@@ -144,6 +144,10 @@ PlotValues.PCA.Gene.10x <- function(MarvelObject, cell.ids=NULL, gene_short_name
     if(log2.transform==TRUE) {
         
         z <- log2(data$expr.gene.norm + 1)
+
+    } else {
+
+        z <- data$expr.gene.norm
     
     }
     
@@ -159,7 +163,16 @@ PlotValues.PCA.Gene.10x <- function(MarvelObject, cell.ids=NULL, gene_short_name
     
     }
     
-    legendtitle <- "log2(expr)"
+    if(log2.transform==TRUE) {
+
+      legendtitle <- "log2(expr)"
+
+    } else {
+
+      legendtitle <- "expr"
+
+    }
+
     
     # Plot
     plot <- ggplot() +
