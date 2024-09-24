@@ -44,7 +44,7 @@ AnnotateSJ.10x <- function(MarvelObject) {
     
     df <- data.frame("coord.intron"=rownames(df.sj.count), stringsAsFactors=FALSE)
     
-    . <- strsplit(rownames(df.sj.count), split=":", fixed=TRUE)
+    . <- strsplit(as.character(df.sj.count), split=";", fixed=TRUE)
     df$chr <- sapply(., function(x) {as.character(x[1])})
     df$start <- sapply(., function(x) {as.character(x[2])})
     df$end <- sapply(., function(x) {as.character(x[3])})
